@@ -1,0 +1,29 @@
+/* The person you opened last, when you come back to the list: a short glow, then the steady tint
+   (classes on PersonRow). Replays only on the first mount after returning, not on every scroll. */
+.person-row-return {
+  animation: person-row-return 1.6s var(--ease-out) both;
+}
+@keyframes person-row-return {
+  0%,
+  35% {
+    background-color: color-mix(in oklab, var(--accent-soft) 100%, var(--accent) 18%);
+  }
+}
+
+/* Select mode: the leading check circle grows in. */
+.person-row-check {
+  animation: person-row-check var(--dur-base) var(--ease-out) both;
+}
+@keyframes person-row-check {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .person-row-return,
+  .person-row-check {
+    animation: none;
+  }
+}
