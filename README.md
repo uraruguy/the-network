@@ -2,6 +2,8 @@
 
 **A private vault for everyone you've met.**
 
+[**thenetwork-app.vercel.app**](https://thenetwork-app.vercel.app)
+
 You meet someone at a conference, over coffee, on a trip. Three months later you remember the face,
 but not what they're working on, who introduced you, or that you promised to send them something.
 The Network is where all of that goes: one card per person with your notes, where they live, how you

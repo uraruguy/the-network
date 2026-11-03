@@ -19,6 +19,8 @@ Next.js 16 (App Router, Turbopack, `src/proxy.ts` instead of middleware) · Reac
 - Node 22 (`.nvmrc`), pnpm (`packageManager`). Read `node_modules/next/dist/docs/` before using unfamiliar Next APIs.
 - Match the surrounding code: dense, typed, small pure helpers with unit tests next to them (`*.test.ts`). Comments explain why, as file/function doc blocks; no narration.
 
+- Landing page: `site/` is static (no build), deployed by its own Vercel project `thenetwork-app` (root directory `site`). The app's deployment URL never goes in the public repo: not in the repo's website field, the README or `site/`.
+
 ### Data & auth
 - Server data access lives in `src/lib/data/*`; every function takes `ownerId` first and filters on it. All writes MUST set `ownerId` explicitly (Drizzle connects as `postgres`, bypassing RLS; the `auth.uid()` default is null there).
 - Route handlers wrap in `withOwner` (`src/lib/api-server.ts`): re-verifies the JWT locally (`getClaims`) + passkey cookie, validates params/body (zod via `parseBody`/`parseQuery`), returns `{ error, message }` and `Cache-Control: private, no-store`. Server components use `getOwner()` (`src/lib/auth/server.ts`).
