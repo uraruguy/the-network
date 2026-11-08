@@ -73,7 +73,7 @@ export const getPersonOp = defineOp({
   name: "get_person",
   title: "Get person",
   description:
-    "Everything important about one person: profile, how you met, categories/activities/tags, counts, the 5 latest note excerpts, open follow-ups, who introduced them and whom they introduced. Give personId (preferred) or personName. For the full text of past conversations use list_notes.",
+    "Everything important about one person: profile, how you met, categories/activities/tags, counts, the 5 latest note excerpts, open follow-ups, the 10 latest follow-ups done (with the note written then), who introduced them and whom they introduced. Give personId (preferred) or personName. For the full text of past conversations use list_notes.",
   access: "read",
   input: z.object(personRef),
   async run(ctx, input) {
@@ -107,9 +107,12 @@ export const getPersonOp = defineOp({
       howICanHelp: clip(p.howICanHelp, 400),
       whatICanAsk: clip(p.whatICanAsk, 400),
       lastContact: day(p.lastInteractionAt, ctx.timezone),
-      counts: { notes: p.notesCount, openFollowUps: p.reminders.length, mentionedInOtherNotes: p.mentions.length },
+      counts: { notes: p.notesCount, openFollowUps: p.reminders.length, followUpsDone: p.historyCount, mentionedInOtherNotes: p.mentions.length },
       latestNotes: notes.map((x) => compact({ id: x.id, date: day(x.occurredAt, ctx.timezone), kind: x.kind, title: x.title, excerpt: clip(x.excerpt) })),
       openFollowUps: p.reminders.slice(0, 10).map((r) => compact({ id: r.id, due: day(r.dueAt, ctx.timezone), message: clip(r.message, 200), recurrence: r.recurrence === "none" ? null : r.recurrence })),
+      followUpHistory: (p.history ?? []).slice(0, 10).map((h) =>
+        compact({ done: day(h.completedAt, ctx.timezone), message: clip(h.message, 200), note: h.note ? compact({ id: h.note.id, kind: h.note.kind, excerpt: clip(h.note.excerpt) }) : null }),
+      ),
       url: `/people/${p.id}`,
     });
   },

@@ -359,6 +359,40 @@ export const reminders = pgTable(
   (t) => [index("reminders_owner_due_idx").on(t.ownerId, t.status, t.dueAt), index("reminders_person_idx").on(t.personId)],
 );
 
+/** Where a follow-up was marked done. */
+export const COMPLETION_VIA = ["app", "email", "assistant"] as const;
+export type CompletionVia = (typeof COMPLETION_VIA)[number];
+
+/**
+ * Follow-up history: one row each time a follow-up is marked done. Repeating reminders roll
+ * forward in place, so their past occurrences only live here. `noteId` is the optional note
+ * written when marking it done (a regular note on the person).
+ */
+export const reminderCompletions = pgTable(
+  "reminder_completions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ownerId: ownerId(),
+    personId: uuid("person_id")
+      .notNull()
+      .references(() => people.id, { onDelete: "cascade" }),
+    reminderId: uuid("reminder_id").references(() => reminders.id, { onDelete: "set null" }),
+    noteId: uuid("note_id").references(() => notes.id, { onDelete: "set null" }),
+    /** What the follow-up said, when it was due and how it repeated, as of completion. */
+    message: text("message"),
+    dueAt: timestamp("due_at", { withTimezone: true }).notNull(),
+    recurrence: recurrenceEnum("recurrence").notNull().default("none"),
+    via: text("via").$type<CompletionVia>(),
+    completedAt: timestamp("completed_at", { withTimezone: true }).notNull().defaultNow(),
+    ...timestamps,
+  },
+  (t) => [
+    index("reminder_completions_person_idx").on(t.personId, t.completedAt.desc()),
+    index("reminder_completions_owner_idx").on(t.ownerId, t.completedAt.desc()),
+    index("reminder_completions_reminder_idx").on(t.reminderId),
+  ],
+);
+
 export const inboxItems = pgTable(
   "inbox_items",
   {
@@ -574,6 +608,7 @@ export const peopleRelations = relations(people, ({ one, many }) => ({
   activities: many(personActivities),
   notes: many(notes),
   reminders: many(reminders),
+  completions: many(reminderCompletions),
   mentions: many(noteMentions),
 }));
 
@@ -607,6 +642,12 @@ export const remindersRelations = relations(reminders, ({ one }) => ({
   note: one(notes, { fields: [reminders.noteId], references: [notes.id] }),
 }));
 
+export const reminderCompletionsRelations = relations(reminderCompletions, ({ one }) => ({
+  person: one(people, { fields: [reminderCompletions.personId], references: [people.id] }),
+  reminder: one(reminders, { fields: [reminderCompletions.reminderId], references: [reminders.id] }),
+  note: one(notes, { fields: [reminderCompletions.noteId], references: [notes.id] }),
+}));
+
 export const locationsRelations = relations(locations, ({ many }) => ({
   residents: many(people, { relationName: "home" }),
 }));
@@ -632,6 +673,7 @@ export type Activity = typeof activities.$inferSelect;
 export type Note = typeof notes.$inferSelect;
 export type NewNote = typeof notes.$inferInsert;
 export type Reminder = typeof reminders.$inferSelect;
+export type ReminderCompletion = typeof reminderCompletions.$inferSelect;
 export type Profile = typeof profiles.$inferSelect;
 export type City = typeof cities.$inferSelect;
 export type ImportItem = typeof importItems.$inferSelect;

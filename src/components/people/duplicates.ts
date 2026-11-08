@@ -50,6 +50,7 @@ export function likelyDuplicates<T extends Dupe>(people: readonly T[], dismissed
 export const MOVED_LABELS = [
   ["notes", "Notes"],
   ["reminders", "Follow-ups"],
+  ["history", "Past follow-ups"],
   ["mentions", "Mentions"],
   ["introduced", "Introductions"],
   ["chat_threads", "Chats"],

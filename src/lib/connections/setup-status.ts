@@ -17,7 +17,7 @@ import type { ConnectionStatus } from "./store";
  * Newest migration this build knows about. Used when the migrations folder isn't available at
  * runtime (serverless bundles); keep it in step with supabase/migrations.
  */
-export const LATEST_KNOWN_MIGRATION = "20261018000600";
+export const LATEST_KNOWN_MIGRATION = "20261108000000";
 
 export type SetupState = "ok" | "todo" | "warn" | "error";
 export type SetupItem = {

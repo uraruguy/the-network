@@ -5,10 +5,14 @@ import { addDays, startOfDay } from "date-fns";
 import { nextOccurrence } from "@/components/followups/recurrence";
 import { toast } from "@/components/ui/Toast";
 import { api } from "@/lib/api";
+import type { NoteKind } from "@/lib/constants";
 import type { ReminderWithPerson } from "@/lib/data/reminders";
+import { plainTextToMarkdown } from "@/lib/notes/paste";
+import { titleFromText } from "@/lib/notes/title";
 import type { ReminderAction, ReminderInput } from "@/lib/schemas";
 import { keys } from "./keys";
-import { applyChange, earliestDue, findIn, type ListFilter, type ReminderChange, type ReminderLike, type ReminderPatch } from "./reminders-cache";
+import { deleteNote, saveNote } from "./notes";
+import { applyChange, applyHistory, earliestDue, findIn, type HistoryChange, type ListFilter, type ReminderChange, type ReminderLike, type ReminderPatch } from "./reminders-cache";
 import type { PersonDetailApi, PersonIndexRow } from "./types";
 import { noteEntity, ParentPendingError, personEntity, reminderEntity, scopeFor, waitForParent } from "./write-order";
 
@@ -18,6 +22,12 @@ export type OpenReminder = PersonDetailApi["reminders"][number];
 /** Either row shape — what `ReminderRow` renders. */
 export type AnyReminder = OpenReminder | ReminderWithPerson;
 export type ReminderPerson = ReminderWithPerson["person"];
+/** One completed follow-up in a person's history (newest first in `PersonDetailApi.history`). */
+export type HistoryEntry = PersonDetailApi["history"][number];
+/** The note written when marking a follow-up done (or added to its history entry later). */
+export type DoneNote = { text: string; kind: NoteKind };
+/** What a completion created, for its Undo. */
+export type DoneReceipt = { completionId: string; noteId: string | null };
 
 /* ---------- reads ---------- */
 
@@ -81,6 +91,36 @@ function stripPerson(r: Record<string, unknown>) {
   return rest;
 }
 
+/** Applies one change to the person's cached follow-up history (and its count). */
+export function applyHistoryChange(qc: QueryClient, personId: string, change: HistoryChange) {
+  qc.setQueryData<PersonDetailApi>(keys.person(personId), (p) => {
+    if (!p) return p;
+    const { history, count } = applyHistory((p.history ?? []) as unknown as HistoryEntry[], p.historyCount ?? 0, change);
+    return { ...p, history, historyCount: count } as unknown as PersonDetailApi;
+  });
+}
+
+/** The history entry a completion adds, from the reminder as cached (null when it isn't cached). */
+function historyEntryFor(qc: QueryClient, v: ReminderActionVars & { action: "done" }): { personId: string; entry: HistoryEntry } | null {
+  if (!v.completionId) return null;
+  const r = findCachedReminder(qc, v.id, v.personId);
+  const personId = v.personId ?? r?.personId;
+  if (!r || !personId) return null;
+  const entry = {
+    id: v.completionId,
+    personId,
+    reminderId: r.id,
+    noteId: v.noteId ?? null,
+    message: r.message,
+    dueAt: r.dueAt,
+    recurrence: r.recurrence,
+    via: "app",
+    completedAt: new Date().toISOString(),
+    note: v.noteId && v.notePreview ? { id: v.noteId, kind: v.notePreview.kind, title: v.notePreview.title, excerpt: v.notePreview.excerpt } : null,
+  };
+  return { personId, entry: entry as unknown as HistoryEntry };
+}
+
 /** Server truth for everything a reminder touches — skipped while other reminder writes are in flight. */
 function settle(qc: QueryClient, personId: string | undefined) {
   if (qc.isMutating({ mutationKey: ["reminders"] }) > 1) return;
@@ -104,11 +144,17 @@ export const REMINDER_MUT = {
   create: ["reminders", "create"] as const,
   action: ["reminders", "action"] as const,
   delete: ["reminders", "delete"] as const,
+  /** Follow-up history entries: link a note, remove the entry. */
+  history: ["reminders", "history"] as const,
 };
 
+/** Shown in the history entry until the server's copy arrives; never sent. */
+export type NotePreview = { kind: NoteKind; title: string | null; excerpt: string };
+
 export type CreateReminderVars = ReminderInput & { id: string };
-export type ReminderActionVars = { id: string; personId?: string } & ReminderAction;
+export type ReminderActionVars = { id: string; personId?: string; notePreview?: NotePreview } & ReminderAction;
 export type DeleteReminderVars = { id: string; personId: string };
+export type HistoryVars = { id: string; personId: string } & ({ op: "link"; noteId: string; notePreview: NotePreview } | { op: "delete" });
 
 /** Local due time for snoozes on the server's terms (`snooze {days}` = that many days ahead, 09:00). */
 const snoozeDue = (days: number) => {
@@ -128,6 +174,7 @@ function changeForAction(qc: QueryClient, v: ReminderActionVars): ReminderChange
     case "snooze":
       return { type: "patch", id: v.id, patch: { dueAt: snoozeDue(v.days), status: "snoozed" } };
     case "reschedule":
+    case "reopen":
       return { type: "patch", id: v.id, patch: { dueAt: v.dueAt, status: "pending" } };
     case "update": {
       const patch: ReminderPatch = {};
@@ -186,9 +233,13 @@ export function registerReminderMutations(qc: QueryClient) {
     onSettled: (_d: unknown, _e: unknown, v: CreateReminderVars) => settle(qc, v.personId),
   });
   qc.setMutationDefaults<ReminderWithPerson, Error, ReminderActionVars>(REMINDER_MUT.action, {
-    mutationFn: ({ id, personId: _p, ...body }: ReminderActionVars) => api.patch<ReminderWithPerson>(`/api/reminders/${id}`, body),
+    mutationFn: ({ id, personId: _p, notePreview: _n, ...body }: ReminderActionVars) => api.patch<ReminderWithPerson>(`/api/reminders/${id}`, body),
     onMutate: async (v: ReminderActionVars) => {
       const personId = v.personId ?? findCachedReminder(qc, v.id)?.personId;
+      // The history entry first: it reads the reminder before the change below moves or removes it.
+      const added = v.action === "done" ? historyEntryFor(qc, v) : null;
+      if (added) applyHistoryChange(qc, added.personId, { type: "add", entry: added.entry });
+      if (v.action === "reopen" && v.completionId && personId) applyHistoryChange(qc, personId, { type: "remove", id: v.completionId });
       const change = changeForAction(qc, v);
       if (personId && change) applyReminderChange(qc, personId, change);
     },
@@ -207,6 +258,33 @@ export function registerReminderMutations(qc: QueryClient) {
     onError: (e: unknown, v: DeleteReminderVars) => failed(qc, v.personId, "Couldn’t delete the follow-up")(e),
     onSettled: (_d: unknown, _e: unknown, v: DeleteReminderVars) => settle(qc, v.personId),
   });
+  qc.setMutationDefaults<unknown, Error, HistoryVars>(REMINDER_MUT.history, {
+    mutationFn: (v: HistoryVars) =>
+      v.op === "link" ? api.patch(`/api/reminder-history/${v.id}`, { noteId: v.noteId }) : api.delete(`/api/reminder-history/${v.id}`),
+    onMutate: async (v: HistoryVars) =>
+      applyHistoryChange(
+        qc,
+        v.personId,
+        v.op === "link" ? { type: "note", id: v.id, note: { id: v.noteId, ...v.notePreview } } : { type: "remove", id: v.id },
+      ),
+    onError: (e: unknown, v: HistoryVars) => failed(qc, v.personId, v.op === "link" ? "Couldn’t add the note" : "Couldn’t remove it from the history")(e),
+    onSettled: (_d: unknown, _e: unknown, v: HistoryVars) => settle(qc, v.personId),
+  });
+}
+
+/** Saves `note` as a new note on the person (offline-safe, like the note composer) and returns its id and preview. */
+function saveDoneNote(qc: QueryClient, personId: string, note: DoneNote | null | undefined): { id: string; preview: NotePreview } | null {
+  const text = note?.text.trim();
+  if (!note || !text) return null;
+  const id = crypto.randomUUID();
+  const title = titleFromText(text);
+  saveNote(
+    qc,
+    id,
+    { personId, title, contentJson: null, contentMd: plainTextToMarkdown(text, { titleFirstLine: true }), contentText: text, kind: note.kind, occurredAt: new Date().toISOString() },
+    { isNew: true, sync: true },
+  );
+  return { id, preview: { kind: note.kind, title, excerpt: text.slice(0, 280) } };
 }
 
 /**
@@ -240,8 +318,20 @@ export function useReminderWrites() {
         run(qc, REMINDER_MUT.create, { ...input, id }, id).catch(ignore);
         return id;
       },
-      done(r: Pick<ReminderSnapshot, "id" | "personId">) {
-        run(qc, REMINDER_MUT.action, { id: r.id, personId: r.personId, action: "done" }, r.id).catch(ignore);
+      /**
+       * Marks done and adds it to the person's follow-up history, with `note` (if it has words)
+       * saved as a note on the person first. Returns what to pass to `undoDone`.
+       */
+      done(r: Pick<ReminderSnapshot, "id" | "personId">, note?: DoneNote | null): DoneReceipt {
+        const completionId = crypto.randomUUID();
+        const saved = saveDoneNote(qc, r.personId, note);
+        run(
+          qc,
+          REMINDER_MUT.action,
+          { id: r.id, personId: r.personId, action: "done", completionId, noteId: saved?.id ?? null, notePreview: saved?.preview },
+          r.id,
+        ).catch(ignore);
+        return { completionId, noteId: saved?.id ?? null };
       },
       reschedule(r: Pick<ReminderSnapshot, "id" | "personId">, dueAt: string) {
         run(qc, REMINDER_MUT.action, { id: r.id, personId: r.personId, action: "reschedule", dueAt }, r.id).catch(ignore);
@@ -252,10 +342,24 @@ export function useReminderWrites() {
       remove(r: Pick<ReminderSnapshot, "id" | "personId">) {
         run(qc, REMINDER_MUT.delete, { id: r.id, personId: r.personId }, r.id).catch(ignore);
       },
-      /** Undo for "done": puts the reminder back exactly as it was (re-opens or rolls back the repeat). */
-      undoDone(r: ReminderSnapshot) {
+      /**
+       * Undo for "done": puts the reminder back exactly as it was (re-opens or rolls back the
+       * repeat), drops its history entry and the note written with it.
+       */
+      undoDone(r: ReminderSnapshot, receipt?: DoneReceipt) {
         const dueAt = new Date(r.dueAt).toISOString();
-        run(qc, REMINDER_MUT.action, { id: r.id, personId: r.personId, action: "reschedule", dueAt }, r.id).catch(ignore);
+        if (receipt?.noteId) deleteNote(qc, { id: receipt.noteId, personId: r.personId }, { undo: false });
+        run(qc, REMINDER_MUT.action, { id: r.id, personId: r.personId, action: "reopen", dueAt, completionId: receipt?.completionId }, r.id).catch(ignore);
+      },
+      /** A note written after the fact, saved on the person and linked to the history entry. */
+      addHistoryNote(entry: Pick<HistoryEntry, "id" | "personId">, note: DoneNote) {
+        const saved = saveDoneNote(qc, entry.personId, note);
+        if (!saved) return;
+        run(qc, REMINDER_MUT.history, { id: entry.id, personId: entry.personId, op: "link", noteId: saved.id, notePreview: saved.preview }, entry.id).catch(ignore);
+      },
+      /** Removes an entry from the history (its note stays with the person). */
+      removeHistory(entry: Pick<HistoryEntry, "id" | "personId">) {
+        run(qc, REMINDER_MUT.history, { id: entry.id, personId: entry.personId, op: "delete" }, entry.id).catch(ignore);
       },
       /** Undo for "delete": re-creates it with the same id. */
       restore(r: ReminderSnapshot) {

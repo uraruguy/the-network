@@ -5,6 +5,8 @@ import { Check, CircleCheck } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useRef, useState } from "react";
 import { Avatar } from "@/components/glass/Avatar";
+import { DoneSheet } from "@/components/followups/DoneSheet";
+import { nextOccurrence, repeatLabel } from "@/components/followups/recurrence";
 import { ListSkeleton } from "@/components/skeletons/parts";
 import { NAV_FORWARD } from "@/components/shell/transitions";
 import { toast } from "@/components/ui/Toast";
@@ -13,7 +15,7 @@ import { formatRelative, formatShortDate } from "@/lib/format";
 import { duration, ease, spring, useMotionSafe } from "@/lib/motion";
 import { useQueryReady } from "@/lib/offline/useCacheReady";
 import { keys } from "@/lib/queries/keys";
-import { useReminders, useReminderWrites, type ReminderSnapshot, type ReminderWithPerson } from "@/lib/queries/reminders";
+import { useReminders, useReminderWrites, type DoneNote, type DoneReceipt, type ReminderSnapshot, type ReminderWithPerson } from "@/lib/queries/reminders";
 import type { Stats } from "@/lib/queries/types";
 import { cn } from "@/lib/utils";
 import { Section } from "./Section";
@@ -23,7 +25,7 @@ const rowKey = (r: Pick<ReminderWithPerson, "id" | "dueAt">) => `${r.id}@${new D
 /** Time the check mark gets to pop before the write (and its optimistic removal) goes out. */
 const POP_MS = 380;
 
-/** "Due" (overdue + today) and "This week", with one-tap completion + undo. */
+/** "Due" (overdue + today) and "This week": tap to mark done (with an optional note) + undo. */
 export function FollowUps() {
   const now = useNow();
   const qc = useQueryClient();
@@ -36,6 +38,8 @@ export function FollowUps() {
   const writes = useReminderWrites();
   const [checked, setChecked] = useState<ReadonlySet<string>>(() => new Set());
   const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+  // The follow-up whose done sheet is open (its circle shows checked meanwhile).
+  const [confirming, setConfirming] = useState<ReminderWithPerson | null>(null);
 
   const mark = useCallback((key: string, on: boolean) => {
     setChecked((prev) => {
@@ -52,8 +56,17 @@ export function FollowUps() {
     [qc],
   );
 
+  /** Opens the done sheet for `r`; its circle shows checked until the sheet closes. */
   const complete = useCallback(
     (r: ReminderWithPerson) => {
+      mark(rowKey(r), true);
+      setConfirming(r);
+    },
+    [mark],
+  );
+
+  const finish = useCallback(
+    (r: ReminderWithPerson, note: DoneNote | null) => {
       const key = rowKey(r);
       const snapshot: ReminderSnapshot = {
         id: r.id,
@@ -64,14 +77,14 @@ export function FollowUps() {
         recurrenceDays: r.recurrenceDays,
         dueAt: r.dueAt,
       };
-      mark(key, true);
       bump(r, -1);
+      let receipt: DoneReceipt | undefined;
       // Let the check pop first; the optimistic "done" then removes the row, which folds away.
       timers.current.set(
         key,
         setTimeout(() => {
           timers.current.delete(key);
-          writes.done(snapshot);
+          receipt = writes.done(snapshot, note);
         }, POP_MS),
       );
       toast.undo(
@@ -88,13 +101,20 @@ export function FollowUps() {
             timers.current.delete(key);
             return;
           }
-          writes.undoDone(snapshot);
+          writes.undoDone(snapshot, receipt);
         },
-        { description: r.message || undefined },
+        { description: note ? "Note saved" : r.message || undefined },
       );
     },
     [bump, mark, writes],
   );
+
+  const onSheetChange = (open: boolean) => {
+    if (open || !confirming) return;
+    // Closed without "Done" (Cancel, swipe, Escape): the circle unchecks.
+    if (!timers.current.has(rowKey(confirming))) mark(rowKey(confirming), false);
+    setConfirming(null);
+  };
 
   const loading = !ready;
   const { due, week } = splitReminders(data ?? [], now);
@@ -117,8 +137,30 @@ export function FollowUps() {
           <ReminderList rows={week} now={now} checked={checked} onComplete={complete} upcoming />
         </Section>
       )}
+      <DoneSheet
+        open={!!confirming}
+        onOpenChange={onSheetChange}
+        title={confirming?.message || "Check in"}
+        subtitle={confirming ? `${confirming.person.displayName} · due ${dueText(confirming.dueAt, now)}` : undefined}
+        personName={confirming?.person.displayName ?? ""}
+        repeat={confirming ? repeatText(confirming, now) : null}
+        onConfirm={(note) => confirming && finish(confirming, note)}
+      />
     </>
   );
+}
+
+/** The row's due label after "due": "today", "3 days ago", "Tue, 10 Nov". */
+function dueText(dueAt: string | Date, now: number): string {
+  const { text } = dueLabel(dueAt, now);
+  return /^(Today|Yesterday|Tomorrow)$/.test(text) ? text.toLowerCase() : text;
+}
+
+/** "every month · next Fri, 5 Dec" for a repeating follow-up, else null. */
+function repeatText(r: ReminderWithPerson, now: number): string | null {
+  const repeat = repeatLabel(r.recurrence, r.recurrenceDays);
+  const next = nextOccurrence(new Date(now), r.recurrence, r.recurrenceDays);
+  return repeat && next ? `${repeat} · next ${formatShortDate(next, now)}` : null;
 }
 
 function AllClear({ weekCount }: { weekCount: number }) {

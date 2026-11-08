@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Avatar } from "@/components/glass/Avatar";
 import { dueLabel, fromDueAt, nextOccurrence, repeatLabel, toDueAt } from "@/components/followups/recurrence";
+import { DoneSheet } from "@/components/followups/DoneSheet";
 import { FollowUpSheet } from "@/components/followups/FollowUpSheet";
 import { ContextMenu } from "@/components/ui/ContextMenu";
 import { Calendar } from "@/components/ui/date/Calendar";
@@ -18,7 +19,7 @@ import { toast } from "@/components/ui/Toast";
 import { useNow } from "@/lib/clock";
 import { formatDate, formatShortDate } from "@/lib/format";
 import { spring } from "@/lib/motion";
-import { useReminderWrites, type AnyReminder, type ReminderSnapshot } from "@/lib/queries/reminders";
+import { useReminderWrites, type AnyReminder, type DoneNote, type ReminderSnapshot } from "@/lib/queries/reminders";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -43,24 +44,26 @@ const snapshot = (r: AnyReminder): ReminderSnapshot => ({
 });
 
 /**
- * One follow-up, Reminders-style: tap the circle to complete (check pops, row folds away, Undo
- * in a toast; repeating ones roll to the next date), Snooze menu on the right, tap the text to
- * edit. Long-press / right-click for Edit · Done · Delete.
+ * One follow-up, Reminders-style: tap the circle to mark it done — a sheet takes an optional note
+ * on what you sent or said — then the check pops, the row folds away and a toast offers Undo
+ * (repeating ones roll to the next date). Snooze menu on the right, tap the text to edit.
+ * Long-press / right-click for Edit · Done · Delete.
  */
 export function ReminderRow({ r, showPerson = true, personName, className }: Props) {
   const router = useRouter();
   const now = useNow();
   const writes = useReminderWrites();
   const [phase, setPhase] = useState<"idle" | "checked" | "folding">("idle");
+  const [confirming, setConfirming] = useState(false);
   const [editing, setEditing] = useState(false);
   const [picking, setPicking] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // A completion still animating when the row unmounts (navigation) is sent right away.
-  const pending = useRef<ReminderSnapshot | null>(null);
+  const pending = useRef<{ snap: ReminderSnapshot; note: DoneNote | null } | null>(null);
   useEffect(
     () => () => {
       if (timer.current) clearTimeout(timer.current);
-      if (pending.current) writes.done(pending.current);
+      if (pending.current) writes.done(pending.current.snap, pending.current.note);
     },
     [writes],
   );
@@ -73,28 +76,35 @@ export function ReminderRow({ r, showPerson = true, personName, className }: Pro
   const title = r.message || (showPerson ? "Check in" : `Check in with ${first || "them"}`);
   const recurring = r.recurrence !== "none";
 
+  const nextDate = recurring ? nextOccurrence(new Date(now), r.recurrence, r.recurrenceDays) : null;
+
+  /** Opens the done sheet (the circle shows checked while it's up). */
   const complete = () => {
+    if (phase === "idle") setConfirming(true);
+  };
+
+  const finish = (note: DoneNote | null) => {
     if (phase !== "idle") return;
     const snap = snapshot(r);
-    pending.current = snap;
+    pending.current = { snap, note };
     setPhase("checked");
     timer.current = setTimeout(() => {
       if (recurring) {
         pending.current = null;
-        writes.done(snap);
+        const receipt = writes.done(snap, note);
         setPhase("idle");
         const next = nextOccurrence(new Date(), snap.recurrence, snap.recurrenceDays);
-        toast.undo(next ? `Done · next ${formatDate(next)}` : "Done", () => writes.undoDone(snap));
+        toast.undo(next ? `Done · next ${formatDate(next)}` : "Done", () => writes.undoDone(snap, receipt), noteToast(note));
       } else setPhase("folding");
     }, 420);
   };
 
   const onFolded = () => {
     if (phase !== "folding" || !pending.current) return;
-    const snap = pending.current;
+    const { snap, note } = pending.current;
     pending.current = null;
-    writes.done(snap);
-    toast.undo(showPerson && first ? `Followed up with ${first}` : "Follow-up done", () => writes.undoDone(snap));
+    const receipt = writes.done(snap, note);
+    toast.undo(showPerson && first ? `Followed up with ${first}` : "Follow-up done", () => writes.undoDone(snap, receipt), noteToast(note));
   };
 
   /** Snooze to a day, keeping the reminder's time of day. */
@@ -120,7 +130,7 @@ export function ReminderRow({ r, showPerson = true, personName, className }: Pro
     { label: "Pick a date…", icon: <CalendarDays />, onSelect: () => setTimeout(() => setPicking(true), 0) },
   ];
 
-  const checked = phase !== "idle";
+  const checked = phase !== "idle" || confirming;
 
   return (
     <motion.div
@@ -224,6 +234,18 @@ export function ReminderRow({ r, showPerson = true, personName, className }: Pro
         </div>
       </ContextMenu>
       <FollowUpSheet open={editing} onOpenChange={setEditing} personId={r.personId} personName={name} reminderId={r.id} />
+      <DoneSheet
+        open={confirming}
+        onOpenChange={setConfirming}
+        title={title}
+        subtitle={showPerson && person ? `${person.displayName} · ${due.text}` : due.text}
+        personName={name}
+        repeat={repeat && nextDate ? `${repeat} · next ${formatShortDate(nextDate, now)}` : null}
+        onConfirm={finish}
+      />
     </motion.div>
   );
 }
+
+/** The toast under "Done" says where the note went. */
+const noteToast = (note: DoneNote | null) => (note ? { description: "Note saved" } : undefined);

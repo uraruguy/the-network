@@ -157,9 +157,15 @@ export type ReminderInput = z.input<typeof reminderInput>;
 export type ReminderData = z.output<typeof reminderInput>;
 
 export const reminderAction = z.discriminatedUnion("action", [
-  z.object({ action: z.literal("done") }),
+  /**
+   * Mark done. `completionId` (client-generated) makes a replay idempotent: the follow-up is only
+   * completed once. `noteId` links the note written when marking it done.
+   */
+  z.object({ action: z.literal("done"), completionId: uuid.optional(), noteId: uuid.nullish() }),
   z.object({ action: z.literal("snooze"), days: z.number().int().min(1).max(365) }),
   z.object({ action: z.literal("reschedule"), dueAt: isoDateTime }),
+  /** Undo of "done": drops that history entry and re-opens the follow-up at `dueAt`. */
+  z.object({ action: z.literal("reopen"), dueAt: isoDateTime, completionId: uuid.optional() }),
   /** Edit a follow-up in place. A new `dueAt` re-opens it (like reschedule). */
   z.object({
     action: z.literal("update"),
@@ -175,6 +181,9 @@ export const reminderAction = z.discriminatedUnion("action", [
   }),
 ]);
 export type ReminderAction = z.input<typeof reminderAction>;
+
+/** A follow-up history entry: link the note written about it afterwards. */
+export const reminderHistoryPatch = z.object({ noteId: uuid });
 
 /* ------------------------------------------------------------------ */
 /*  Taxonomy                                                           */

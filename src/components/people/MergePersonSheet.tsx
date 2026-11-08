@@ -6,7 +6,7 @@
  * and never queues.
  */
 import { onlineManager } from "@tanstack/react-query";
-import { AtSign, Bell, Check, FileText, Handshake, ListChecks, MessageCircle, Shapes, Tag, Users } from "lucide-react";
+import { AtSign, Bell, Check, FileText, Handshake, History, ListChecks, MessageCircle, Shapes, Tag, Users } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 import { Avatar } from "@/components/glass/Avatar";
 import { GlassButton } from "@/components/glass/GlassButton";
@@ -44,6 +44,7 @@ export type MergePersonSheetProps = {
 const MOVED_ICON: Record<MovedKind, ReactNode> = {
   notes: <FileText />,
   reminders: <Bell />,
+  history: <History />,
   mentions: <AtSign />,
   introduced: <Handshake />,
   chat_threads: <MessageCircle />,

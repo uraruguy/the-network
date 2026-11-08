@@ -28,7 +28,8 @@ touch. You host it yourself, it has exactly one owner, and your notes never leav
   plus categories, warmth, tags, activities, home city, how you met and who introduced you.
 - **Follow-ups that find you.** "Tomorrow", "in 2 weeks", "in 3 months" or a date, optionally
   repeating. Today shows what's due and who you haven't talked to in a while; a daily e-mail digest
-  has one-tap *Done* and *Snooze*.
+  has one-tap *Done* and *Snooze*. Mark one done with a note on what you sent or said, and it stays
+  in that person's follow-up history.
 - **Find anyone in a second.** Instant search that ignores accents, filters by category, warmth,
   activity, tag and city, and an A–Z index. Select many at once to tidy up; removed people wait in
   *Recently deleted*, so nothing is ever lost.

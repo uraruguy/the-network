@@ -85,6 +85,37 @@ export function earliestDue(list: readonly Pick<ReminderLike, "dueAt">[]): strin
   return best === null ? null : new Date(best).toISOString();
 }
 
+/* ---------- follow-up history (person.history, newest first, + person.historyCount) ---------- */
+
+export type HistoryNote = { id: string; kind: string; title: string | null; excerpt: string };
+/** The fields history updates touch. */
+export type HistoryLike = { id: string; completedAt: string | Date; noteId: string | null; note: HistoryNote | null };
+
+export type HistoryChange =
+  /** A completion (deduplicated by id, so a replay doesn't count twice). */
+  | { type: "add"; entry: HistoryLike & Record<string, unknown> }
+  /** Undo of a completion, or the entry removed from the history. */
+  | { type: "remove"; id: string }
+  /** A note written after the fact. */
+  | { type: "note"; id: string; note: HistoryNote };
+
+const newestFirst = (a: Pick<HistoryLike, "completedAt">, b: Pick<HistoryLike, "completedAt">) => time(b.completedAt) - time(a.completedAt);
+
+/** Applies a change to a person's cached history and its total count. */
+export function applyHistory<T extends HistoryLike>(list: readonly T[], count: number, change: HistoryChange): { history: T[]; count: number } {
+  switch (change.type) {
+    case "add":
+      if (list.some((e) => e.id === change.entry.id)) return { history: [...list], count };
+      return { history: [change.entry as unknown as T, ...list].sort(newestFirst), count: count + 1 };
+    case "remove": {
+      const history = list.filter((e) => e.id !== change.id);
+      return { history, count: history.length < list.length ? Math.max(0, count - 1) : count };
+    }
+    case "note":
+      return { history: list.map((e) => (e.id === change.id ? { ...e, noteId: change.note.id, note: change.note } : e)), count };
+  }
+}
+
 /** Looks a reminder up by id across lists (first hit wins). */
 export function findIn<T extends { id: string }>(lists: readonly (readonly T[] | undefined)[], id: string): T | undefined {
   for (const l of lists) {
