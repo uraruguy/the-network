@@ -5,10 +5,11 @@
  * avatar fallbacks use the muted category palette.
  */
 import ForceGraph2D, { type ForceGraphMethods, type LinkObject, type NodeObject } from "react-force-graph-2d";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { GraphLink, GraphNode } from "@/lib/queries/types";
 import { useResolvedTokens } from "@/lib/design/useResolvedTokens";
 import { oklchToHex } from "@/lib/design/color";
+import { pinchFactor, usePinch, zoomAroundCenter } from "@/lib/gestures";
 import { paletteFor } from "@/lib/constants/palette";
 import { initials } from "@/lib/utils";
 
@@ -42,6 +43,8 @@ const TOKENS = [
 ] as const;
 
 const FONT = "-apple-system, BlinkMacSystemFont, system-ui, sans-serif";
+const MIN_ZOOM = 0.3;
+const MAX_ZOOM = 6;
 const endId = (v: unknown) => (v && typeof v === "object" ? String((v as { id: string }).id) : String(v));
 /** `#rrggbb` + alpha byte. */
 const withAlpha = (hex: string, a: number) => `${hex.slice(0, 7)}${Math.round(Math.min(1, Math.max(0, a)) * 255).toString(16).padStart(2, "0")}`;
@@ -50,6 +53,8 @@ export function NetworkGraph({ nodes, links, meName, selectedId, onSelect, width
   const ref = useRef<ForceGraphMethods<N, L> | undefined>(undefined);
   const imgCache = useRef(new Map<string, HTMLImageElement>());
   const fitted = useRef(false);
+  const [wrap, setWrap] = useState<HTMLDivElement | null>(null);
+  const pinchFrom = useRef(1);
   const t = useResolvedTokens(TOKENS);
   const dark = t.theme === "dark";
 
@@ -107,6 +112,24 @@ export function NetworkGraph({ nodes, links, meName, selectedId, onSelect, width
       g.zoom(Math.max(g.zoom(), 2.2), 500);
     }
   }, [selectedId, data.nodes]);
+
+  // Safari trackpad pinch (Chrome's ctrl+wheel pinch is d3-zoom's own): zoom around the fingers.
+  usePinch(wrap, {
+    onStart: () => {
+      pinchFrom.current = ref.current?.zoom() ?? 1;
+    },
+    onChange: ({ scale, clientX, clientY }) => {
+      const g = ref.current;
+      if (!g || !wrap) return;
+      const box = wrap.getBoundingClientRect();
+      const k0 = g.zoom();
+      const k1 = pinchFactor(pinchFrom.current, scale, MIN_ZOOM, MAX_ZOOM);
+      const point = g.screen2GraphCoords(clientX - box.left, clientY - box.top);
+      const next = zoomAroundCenter(g.screen2GraphCoords(width / 2, height / 2), point, k0, k1);
+      g.zoom(k1, 0);
+      g.centerAt(next.x, next.y, 0);
+    },
+  });
 
   const avatarFill = (name: string) => {
     const p = paletteFor(name);
@@ -180,45 +203,47 @@ export function NetworkGraph({ nodes, links, meName, selectedId, onSelect, width
   };
 
   return (
-    <ForceGraph2D
-      ref={ref}
-      width={width}
-      height={height}
-      graphData={data}
-      backgroundColor="rgba(0,0,0,0)"
-      nodeRelSize={6}
-      nodeVal={(n) => ((n as N).me ? 4 : 1)}
-      nodeLabel={() => ""}
-      nodeCanvasObject={(n, ctx, s) => drawNode(n as N, ctx, s)}
-      nodePointerAreaPaint={(n, color, ctx) => {
-        const node = n as N;
-        ctx.beginPath();
-        ctx.arc(node.x ?? 0, node.y ?? 0, node.me ? 14 : 12, 0, 2 * Math.PI);
-        ctx.fillStyle = color;
-        ctx.fill();
-      }}
-      linkColor={(l) => linkColour(l as L)}
-      linkWidth={(l) => ((l as L).kind === "introduced" ? 1.8 : (l as L).kind === "mention" ? 1 + Math.min(2, (l as L).weight * 0.4) : 0.8)}
-      linkLineDash={(l) => ((l as L).kind === "mention" ? [2, 2] : null)}
-      linkDirectionalArrowLength={(l) => ((l as L).kind === "introduced" ? 4 : 0)}
-      linkDirectionalArrowRelPos={1}
-      linkDirectionalParticles={(l) => ((l as L).kind === "introduced" && selectedId ? 2 : 0)}
-      linkDirectionalParticleWidth={2}
-      linkDirectionalParticleColor={() => t["--accent"]}
-      onNodeClick={(n) => onSelect((n as N).me ? null : String((n as N).id))}
-      onBackgroundClick={() => onSelect(null)}
-      cooldownTicks={110}
-      warmupTicks={40}
-      d3AlphaDecay={0.045}
-      onEngineStop={() => {
-        if (fitted.current) return;
-        fitted.current = true;
-        ref.current?.zoomToFit(500, fitPadding);
-      }}
-      d3VelocityDecay={0.3}
-      minZoom={0.3}
-      maxZoom={6}
-      enableNodeDrag
-    />
+    <div ref={setWrap}>
+      <ForceGraph2D
+        ref={ref}
+        width={width}
+        height={height}
+        graphData={data}
+        backgroundColor="rgba(0,0,0,0)"
+        nodeRelSize={6}
+        nodeVal={(n) => ((n as N).me ? 4 : 1)}
+        nodeLabel={() => ""}
+        nodeCanvasObject={(n, ctx, s) => drawNode(n as N, ctx, s)}
+        nodePointerAreaPaint={(n, color, ctx) => {
+          const node = n as N;
+          ctx.beginPath();
+          ctx.arc(node.x ?? 0, node.y ?? 0, node.me ? 14 : 12, 0, 2 * Math.PI);
+          ctx.fillStyle = color;
+          ctx.fill();
+        }}
+        linkColor={(l) => linkColour(l as L)}
+        linkWidth={(l) => ((l as L).kind === "introduced" ? 1.8 : (l as L).kind === "mention" ? 1 + Math.min(2, (l as L).weight * 0.4) : 0.8)}
+        linkLineDash={(l) => ((l as L).kind === "mention" ? [2, 2] : null)}
+        linkDirectionalArrowLength={(l) => ((l as L).kind === "introduced" ? 4 : 0)}
+        linkDirectionalArrowRelPos={1}
+        linkDirectionalParticles={(l) => ((l as L).kind === "introduced" && selectedId ? 2 : 0)}
+        linkDirectionalParticleWidth={2}
+        linkDirectionalParticleColor={() => t["--accent"]}
+        onNodeClick={(n) => onSelect((n as N).me ? null : String((n as N).id))}
+        onBackgroundClick={() => onSelect(null)}
+        cooldownTicks={110}
+        warmupTicks={40}
+        d3AlphaDecay={0.045}
+        onEngineStop={() => {
+          if (fitted.current) return;
+          fitted.current = true;
+          ref.current?.zoomToFit(500, fitPadding);
+        }}
+        d3VelocityDecay={0.3}
+        minZoom={MIN_ZOOM}
+        maxZoom={MAX_ZOOM}
+        enableNodeDrag
+      />
+    </div>
   );
 }

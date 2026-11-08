@@ -9,9 +9,10 @@ const COPY = {
     title: "The globe can’t start here",
     description: "This browser or device has WebGL turned off, which the map needs. Your people are all still in the list.",
   },
+  // Only after the map was brought back several times in a row and kept dropping out.
   lost: {
-    title: "The map took a break",
-    description: "The graphics context was lost (this happens when a device is low on memory). Reload the map to pick up where you were.",
+    title: "The map keeps dropping out",
+    description: "Your device is short on graphics memory right now. Closing a few tabs or apps usually helps. Your people are all still in the list.",
   },
   crashed: {
     title: "Something went wrong with the map",
@@ -19,7 +20,7 @@ const COPY = {
   },
 } as const;
 
-/** Shown in place of the map when WebGL is unavailable, the context is lost, or the map crashed. */
+/** Shown in place of the map when WebGL is unavailable, the map crashed, or recovery gave up. */
 export function MapFallback({ kind, onRetry }: { kind: keyof typeof COPY; onRetry: () => void }) {
   const copy = COPY[kind];
   return (

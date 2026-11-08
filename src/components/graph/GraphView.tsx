@@ -11,7 +11,9 @@ import { FilterBar } from "@/components/filters/FilterBar";
 import { MapHeader } from "@/components/globe/MapHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { filterPeople, filtersFromParams, filtersToParams, isEmpty, type PeopleFilters } from "@/lib/filters/people-filters";
+import { CANVAS_PAGE, usePageZoomLock } from "@/lib/gestures";
 import { useIsPhone } from "@/lib/media";
+import { cn } from "@/lib/utils";
 import { useGraph, useProfile } from "@/lib/queries/misc";
 import { usePeopleIndex } from "@/lib/queries/people";
 import { GraphPersonPanel } from "./GraphPersonPanel";
@@ -32,6 +34,8 @@ export function GraphView() {
   const { data: profile } = useProfile();
   const [selected, setSelected] = useState<string | null>(null);
   const phone = useIsPhone();
+  // A pinch anywhere here zooms the graph, never the page.
+  usePageZoomLock();
 
   const people = useMemo(() => index ?? [], [index]);
   const filtered = useMemo(() => {
@@ -73,7 +77,10 @@ export function GraphView() {
   return (
     <div
       ref={root}
-      className="relative h-dvh w-full overflow-hidden bg-bg bg-[radial-gradient(ellipse_80%_70%_at_50%_46%,var(--accent-50),var(--bg)_72%)] dark:bg-[radial-gradient(ellipse_80%_70%_at_50%_46%,var(--bg-3),var(--bg)_72%)]"
+      className={cn(
+        "relative h-dvh w-full overflow-hidden bg-bg bg-[radial-gradient(ellipse_80%_70%_at_50%_46%,var(--accent-50),var(--bg)_72%)] dark:bg-[radial-gradient(ellipse_80%_70%_at_50%_46%,var(--bg-3),var(--bg)_72%)]",
+        CANVAS_PAGE,
+      )}
     >
       <div className="absolute inset-0">
         {box.w > 0 && !isPending && (
