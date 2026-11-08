@@ -5,7 +5,7 @@ import { createActivity } from "@/lib/data/activities";
 import { searchCities } from "@/lib/data/locations";
 import { createNote } from "@/lib/data/notes";
 import { createPerson, getPerson, searchPeople, updatePerson } from "@/lib/data/people";
-import { completeReminder, createReminder } from "@/lib/data/reminders";
+import { completeReminder, createReminder, reminderPersonId } from "@/lib/data/reminders";
 import { personInput, personPatch, reminderInput, type LocationInput } from "@/lib/schemas";
 import { normalizeForSearch } from "@/components/ui/search";
 import { defineOp, noteSourceOf, sourceOf, ToolError, type ToolCtx } from "./registry";
@@ -245,13 +245,34 @@ export const createFollowupOp = defineOp({
 export const completeFollowupOp = defineOp({
   name: "complete_followup",
   title: "Complete follow-up",
-  description: "Mark a follow-up as done (ids come from due_followups or get_person). Recurring follow-ups roll forward to their next date instead of closing.",
+  description:
+    "Mark a follow-up as done (ids come from due_followups or get_person); it is kept in the person's follow-up history. Pass `note` when the user says what they sent or talked about: it is saved as a note on the person and linked to this entry. Recurring follow-ups roll forward to their next date instead of closing.",
   access: "write",
-  input: z.object({ followUpId: z.string().uuid() }),
+  input: z.object({
+    followUpId: z.string().uuid(),
+    note: z.string().trim().min(1).max(20_000).optional().describe("What the user sent or talked about (markdown allowed)"),
+    kind: z.enum(NOTE_KINDS).default("message").describe("For the note: message, call, meeting or note"),
+  }),
   async run(ctx, input) {
-    const r = await completeReminder(ctx.ownerId, input.followUpId);
+    const target = await reminderPersonId(ctx.ownerId, input.followUpId);
+    if (!target) throw new ToolError("not_found", "No follow-up with that id.", "Use due_followups to list open follow-ups.");
+    const note = input.note
+      ? await createNote(
+          ctx.ownerId,
+          { personId: target, title: null, contentJson: null, contentMd: input.note, contentText: input.note, kind: input.kind, occurredAt: new Date().toISOString(), pinned: false, mentionIds: [] },
+          noteSourceOf(ctx),
+        )
+      : null;
+    const r = await completeReminder(ctx.ownerId, input.followUpId, { noteId: note?.id ?? null, via: "assistant" });
     if (!r) throw new ToolError("not_found", "No follow-up with that id.", "Use due_followups to list open follow-ups.");
-    return { ok: true, followUpId: r.id, person: r.person.displayName, status: r.status, ...(r.status === "pending" ? { nextDue: day(r.dueAt, ctx.timezone) } : {}) };
+    return {
+      ok: true,
+      followUpId: r.id,
+      person: r.person.displayName,
+      status: r.status,
+      ...(r.status === "pending" ? { nextDue: day(r.dueAt, ctx.timezone) } : {}),
+      ...(note ? { noteId: note.id } : {}),
+    };
   },
   audit: (r) => ({ entity: "reminder", entityId: r.followUpId }),
 });

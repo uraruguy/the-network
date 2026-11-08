@@ -33,6 +33,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Avatar } from "@/components/glass/Avatar";
 import { Chip } from "@/components/glass/Chip";
 import { GlassButton } from "@/components/glass/GlassButton";
+import { FollowUpHistory } from "@/components/followups/FollowUpHistory";
 import { FollowUpSheet } from "@/components/followups/FollowUpSheet";
 import { QuickImportSheet } from "@/components/import/QuickImportSheet";
 import { primeKeyboard } from "@/components/notes/keyboard";
@@ -291,6 +292,7 @@ export function PersonDetail({ id }: { id: string }) {
       ) : (
         <div className="space-y-7">
           <FollowUpsSection person={person} onAdd={() => setFollowUp(true)} />
+          <FollowUpHistory person={person} />
 
           <div className="space-y-3">
             <PersonNotesSection personId={id} personName={name} />

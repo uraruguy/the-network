@@ -3,6 +3,7 @@ import { and, asc, desc, eq, inArray, isNotNull, isNull, sql, type SQL } from "d
 import type { SelectedFields } from "drizzle-orm/pg-core";
 import { db, schema, type Tx } from "@/lib/db";
 import { qcol } from "./sql";
+import { HISTORY_EXCERPT, HISTORY_LIMIT, toHistoryEntry } from "./history";
 import { HttpError } from "@/lib/errors";
 import type { PersonData, PersonPatchData } from "@/lib/schemas";
 import { cleanNames, slugify } from "@/lib/text";
@@ -128,7 +129,8 @@ export type NoteSummary = PersonDetail["notes"][number];
 
 /**
  * One person with everything the profile page shows — a single SQL statement (drizzle relational
- * query). Notes come as excerpts (first page only; see listNotes) plus the total `notesCount`.
+ * query). Notes come as excerpts (first page only; see listNotes) plus the total `notesCount`;
+ * the follow-up history newest first, plus the total `historyCount`.
  */
 export async function getPerson(ownerId: string, id: string) {
   const row = await db.query.people.findFirst({
@@ -137,6 +139,7 @@ export async function getPerson(ownerId: string, id: string) {
     columns: { search: false, hobbies: false, hobbiesOther: false },
     extras: (t, { sql }) => ({
       notesCount: sql<number>`(select count(*)::int from notes n where n.person_id = ${t.id} and n.deleted_at is null)`.as("notes_count"),
+      historyCount: sql<number>`(select count(*)::int from reminder_completions c where c.person_id = ${t.id})`.as("history_count"),
     }),
     with: {
       homeLocation: true,
@@ -161,6 +164,17 @@ export async function getPerson(ownerId: string, id: string) {
         where: (t, { inArray }) => inArray(t.status, [...OPEN_REMINDER_STATUSES]),
         orderBy: (t, { asc }) => asc(t.dueAt),
       },
+      completions: {
+        columns: { ownerId: false, createdAt: false, updatedAt: false },
+        orderBy: (t, { desc }) => [desc(t.completedAt)],
+        limit: HISTORY_LIMIT,
+        with: {
+          note: {
+            columns: { id: true, kind: true, title: true, deletedAt: true },
+            extras: (t, { sql }) => ({ excerpt: sql<string>`left(${t.contentText}, ${HISTORY_EXCERPT})`.as("excerpt") }),
+          },
+        },
+      },
       mentions: {
         columns: {},
         with: {
@@ -175,7 +189,7 @@ export async function getPerson(ownerId: string, id: string) {
   });
   if (!row) return null;
 
-  const { categories: pcs, activities: pas, tags: pts, introducedBy, mentions, ...rest } = row;
+  const { categories: pcs, activities: pas, tags: pts, introducedBy, mentions, completions, ...rest } = row;
   const cats = pcs.map((pc) => pc.category).sort((a, b) => a.sort - b.sort || a.name.localeCompare(b.name));
   const acts = pas.map((pa) => pa.activity).sort((a, b) => a.sort - b.sort || a.name.localeCompare(b.name));
   const tagList = pts.map((pt) => pt.tag).sort((a, b) => a.name.localeCompare(b.name));
@@ -187,6 +201,7 @@ export async function getPerson(ownerId: string, id: string) {
     activityIds: acts.map((a) => a.id),
     tags: tagList,
     tagIds: tagList.map((t) => t.id),
+    history: completions.map(toHistoryEntry),
     mentions: mentions
       .filter((m) => !m.note.deletedAt && !m.note.person.deletedAt)
       .sort((a, b) => +new Date(b.note.occurredAt) - +new Date(a.note.occurredAt))

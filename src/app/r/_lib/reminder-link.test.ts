@@ -50,7 +50,7 @@ describe("POST /api/reminders/:id/:action", () => {
     const res = await POST(post("done", { exp, sig }), ctx("done"));
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true, action: "done", already: false });
-    expect(completeReminder).toHaveBeenCalledWith("owner-1", ID);
+    expect(completeReminder).toHaveBeenCalledWith("owner-1", ID, { via: "email" });
   });
 
   it("snoozes a week, also from a no-JS form post (then back to the page)", async () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyChange, earliestDue, findIn, matchesFilter, type ReminderLike } from "./reminders-cache";
+import { applyChange, applyHistory, earliestDue, findIn, matchesFilter, type HistoryLike, type ReminderLike } from "./reminders-cache";
 
 const r = (id: string, dueAt: string, extra: Partial<ReminderLike> = {}): ReminderLike => ({
   id,
@@ -72,5 +72,31 @@ describe("earliestDue / findIn", () => {
   it("findIn returns the first hit across lists", () => {
     expect(findIn([undefined, [list[1]!], list], "b")).toBe(list[1]);
     expect(findIn([list], "zzz")).toBeUndefined();
+  });
+});
+
+describe("applyHistory", () => {
+  const h = (id: string, completedAt: string, extra: Partial<HistoryLike> = {}): HistoryLike => ({ id, completedAt, noteId: null, note: null, ...extra });
+  const history = [h("new", "2026-11-05T10:00:00.000Z"), h("old", "2026-10-01T10:00:00.000Z")];
+
+  it("adds newest first and counts it once, even when replayed", () => {
+    const added = applyHistory(history, 7, { type: "add", entry: h("mid", "2026-10-20T10:00:00.000Z") });
+    expect(ids(added.history)).toEqual(["new", "mid", "old"]);
+    expect(added.count).toBe(8);
+    expect(applyHistory(added.history, added.count, { type: "add", entry: h("mid", "2026-10-20T10:00:00.000Z") }).count).toBe(8);
+  });
+
+  it("removes (undo) and only counts down for an entry it had", () => {
+    expect(applyHistory(history, 7, { type: "remove", id: "old" })).toEqual({ history: [history[0]], count: 6 });
+    expect(applyHistory(history, 7, { type: "remove", id: "nope" }).count).toBe(7);
+    expect(applyHistory([], 0, { type: "remove", id: "x" }).count).toBe(0);
+  });
+
+  it("attaches a note written later", () => {
+    const note = { id: "n1", kind: "call", title: null, excerpt: "Called instead" };
+    const out = applyHistory(history, 2, { type: "note", id: "old", note });
+    expect(out.history[1]).toMatchObject({ id: "old", noteId: "n1", note });
+    expect(out.history[0]).toBe(history[0]);
+    expect(out.count).toBe(2);
   });
 });

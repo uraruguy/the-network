@@ -108,6 +108,7 @@ export async function mergePeople(db: Db, ownerId: string, keepId: string, dropI
 
     count("notes", await tx.execute(sql`update notes set person_id = ${keepId} where owner_id = ${ownerId} and person_id = ${dropId} and deleted_at is null`));
     count("reminders", await tx.execute(sql`update reminders set person_id = ${keepId} where owner_id = ${ownerId} and person_id = ${dropId}`));
+    count("history", await tx.execute(sql`update reminder_completions set person_id = ${keepId} where owner_id = ${ownerId} and person_id = ${dropId}`));
     count("chat_threads", await tx.execute(sql`update chat_threads set person_id = ${keepId} where owner_id = ${ownerId} and person_id = ${dropId}`));
     count("mentions", await tx.execute(sql`
       insert into note_mentions (owner_id, note_id, person_id)

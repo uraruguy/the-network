@@ -4,7 +4,7 @@ import { db, schema } from "@/lib/db";
 
 /** Full JSON export of everything the owner has — the data is theirs. Re-checks the session with Auth (`fresh`). */
 export const GET = withOwner(async ({ ownerId }) => {
-  const [people, notes, reminders, categories, locations, tags, activities] = await Promise.all([
+  const [people, notes, reminders, followUpHistory, categories, locations, tags, activities] = await Promise.all([
     db.query.people.findMany({
       where: and(eq(schema.people.ownerId, ownerId), isNull(schema.people.deletedAt)),
       columns: { search: false },
@@ -16,12 +16,13 @@ export const GET = withOwner(async ({ ownerId }) => {
       with: { mentions: { columns: { personId: true } } },
     }),
     db.query.reminders.findMany({ where: eq(schema.reminders.ownerId, ownerId) }),
+    db.query.reminderCompletions.findMany({ where: eq(schema.reminderCompletions.ownerId, ownerId), orderBy: (t, { desc }) => [desc(t.completedAt)] }),
     db.query.categories.findMany({ where: eq(schema.categories.ownerId, ownerId) }),
     db.query.locations.findMany({ where: eq(schema.locations.ownerId, ownerId) }),
     db.query.tags.findMany({ where: eq(schema.tags.ownerId, ownerId) }),
     db.query.activities.findMany({ where: eq(schema.activities.ownerId, ownerId) }),
   ]);
-  const body = JSON.stringify({ exportedAt: new Date().toISOString(), version: 2, categories, activities, locations, tags, people, notes, reminders }, null, 2);
+  const body = JSON.stringify({ exportedAt: new Date().toISOString(), version: 2, categories, activities, locations, tags, people, notes, reminders, followUpHistory }, null, 2);
   return new Response(body, {
     headers: {
       "content-type": "application/json",

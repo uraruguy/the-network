@@ -1,6 +1,7 @@
 import "server-only";
 import { and, asc, eq, inArray, isNull, lte, sql } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
+import { HISTORY_EXCERPT, HISTORY_LIMIT, toHistoryEntry, type HistoryEntry } from "./history";
 import type { ReminderData } from "@/lib/schemas";
 import { addDays, localDate, parseISODate, safeTimeZone, toISODate, zonedParts, zonedTimeToUtc, type ISODate } from "@/lib/time/zoned";
 import { OPEN_REMINDER_STATUSES } from "./people";
@@ -9,9 +10,12 @@ import { OPEN_REMINDER_STATUSES } from "./people";
  * Follow-up reminders. `people.next_followup_at` is kept in sync by the `sync_next_followup`
  * database trigger, so nothing here has to maintain it. Calendar math (snooze, repeats) runs on
  * the owner's calendar (`profiles.timezone`), not the server's (UTC on Vercel).
+ *
+ * Every completion is written to `reminder_completions` (the person's follow-up history), with
+ * the note written when marking it done, if any.
  */
 
-const { reminders, people, notes, profiles } = schema;
+const { reminders, reminderCompletions, people, notes, profiles } = schema;
 
 /** Follow-ups land at 09:00 local time, like the rest of the app. */
 const DEFAULT_HOUR = 9;
@@ -40,6 +44,12 @@ export async function listReminders(ownerId: string, opts: { until?: Date; perso
 }
 
 export type ReminderWithPerson = Awaited<ReturnType<typeof listReminders>>[number];
+
+/** The person a follow-up is for, or null if it isn't the owner's. */
+export async function reminderPersonId(ownerId: string, id: string): Promise<string | null> {
+  const [row] = await db.select({ personId: reminders.personId }).from(reminders).where(and(eq(reminders.ownerId, ownerId), eq(reminders.id, id)));
+  return row?.personId ?? null;
+}
 
 function getReminder(ownerId: string, id: string) {
   return db.query.reminders.findFirst({ where: and(eq(reminders.ownerId, ownerId), eq(reminders.id, id)), with: { person: personCols } });
@@ -125,21 +135,75 @@ export function snoozeUntil(days: number, timeZone: string, now = new Date()): D
   return zonedTimeToUtc(addDays(localDate(now, tz), days), DEFAULT_HOUR, 0, tz);
 }
 
-/** Marks done; recurring reminders roll forward (from today, at their usual local time) instead of closing. */
-export async function completeReminder(ownerId: string, id: string) {
+/** The owner's note `id`, if it exists and isn't deleted. */
+async function ownNoteId(ownerId: string, id: string | null | undefined): Promise<string | null> {
+  if (!id) return null;
+  const [note] = await db.select({ id: notes.id }).from(notes).where(and(eq(notes.ownerId, ownerId), eq(notes.id, id), isNull(notes.deletedAt)));
+  return note?.id ?? null;
+}
+
+export type CompleteOptions = {
+  /** Client-generated history entry id: a replay of the same completion changes nothing. */
+  completionId?: string;
+  /** The note written when marking it done. */
+  noteId?: string | null;
+  via?: schema.CompletionVia;
+};
+
+/**
+ * Marks done and records it in the person's follow-up history; recurring reminders roll forward
+ * (from today, at their usual local time) instead of closing.
+ */
+export async function completeReminder(ownerId: string, id: string, opts: CompleteOptions = {}) {
+  if (opts.completionId) {
+    const [seen] = await db.select({ ownerId: reminderCompletions.ownerId }).from(reminderCompletions).where(eq(reminderCompletions.id, opts.completionId));
+    if (seen) return seen.ownerId === ownerId ? getReminder(ownerId, id) : null;
+  }
   const r = await db.query.reminders.findFirst({ where: and(eq(reminders.ownerId, ownerId), eq(reminders.id, id)) });
   if (!r) return null;
+  // Already done (e.g. from the app, then again from the assistant): one entry is enough.
+  if (r.status === "done") return getReminder(ownerId, id);
   const next = r.recurrence === "none" ? null : nextDue(new Date(), r.recurrence, r.recurrenceDays, await ownerTimeZone(ownerId), r.dueAt);
+  const noteId = await ownNoteId(ownerId, opts.noteId);
   const scope = and(eq(reminders.ownerId, ownerId), eq(reminders.id, id));
   await db.transaction(async (tx) => {
     if (next) await tx.update(reminders).set({ dueAt: next, status: "pending", sentAt: null, doneAt: null }).where(scope);
     else await tx.update(reminders).set({ status: "done", doneAt: new Date() }).where(scope);
+    await tx.insert(reminderCompletions).values({
+      ...(opts.completionId ? { id: opts.completionId } : {}),
+      ownerId,
+      personId: r.personId,
+      reminderId: r.id,
+      noteId,
+      message: r.message,
+      dueAt: r.dueAt,
+      recurrence: r.recurrence,
+      via: opts.via ?? "app",
+    });
     await tx
       .update(people)
       .set({ lastInteractionAt: sql`greatest(coalesce(${people.lastInteractionAt}, 'epoch'::timestamptz), now())` })
       .where(and(eq(people.ownerId, ownerId), eq(people.id, r.personId)));
   });
   return getReminder(ownerId, id);
+}
+
+/** Undo of "done": removes that history entry and re-opens the follow-up at `dueAt`. */
+export async function reopenReminder(ownerId: string, id: string, dueAt: Date, completionId?: string) {
+  const found = await db.transaction(async (tx) => {
+    if (completionId) {
+      await tx
+        .delete(reminderCompletions)
+        .where(and(eq(reminderCompletions.ownerId, ownerId), eq(reminderCompletions.id, completionId), eq(reminderCompletions.reminderId, id)));
+    }
+    const rows = await tx
+      .update(reminders)
+      .set({ dueAt, status: "pending", sentAt: null, doneAt: null })
+      .where(and(eq(reminders.ownerId, ownerId), eq(reminders.id, id)))
+      .returning({ id: reminders.id });
+    return rows.length > 0;
+  });
+  return found ? getReminder(ownerId, id) : null;
 }
 
 /** Pushes a reminder to 09:00 local time, `days` after today in the owner's time zone. */
@@ -185,5 +249,47 @@ export async function updateReminder(
 
 export async function deleteReminder(ownerId: string, id: string): Promise<boolean> {
   const rows = await db.delete(reminders).where(and(eq(reminders.ownerId, ownerId), eq(reminders.id, id))).returning({ id: reminders.id });
+  return rows.length > 0;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Follow-up history                                                  */
+/* ------------------------------------------------------------------ */
+
+/** One person's follow-up history, newest first. */
+export async function listHistory(ownerId: string, personId: string, limit = HISTORY_LIMIT): Promise<HistoryEntry[]> {
+  const rows = await db.query.reminderCompletions.findMany({
+    where: and(eq(reminderCompletions.ownerId, ownerId), eq(reminderCompletions.personId, personId)),
+    columns: { ownerId: false, createdAt: false, updatedAt: false },
+    orderBy: (t, { desc }) => [desc(t.completedAt)],
+    limit,
+    with: {
+      note: {
+        columns: { id: true, kind: true, title: true, deletedAt: true },
+        extras: (t, { sql }) => ({ excerpt: sql<string>`left(${t.contentText}, ${HISTORY_EXCERPT})`.as("excerpt") }),
+      },
+    },
+  });
+  return rows.map(toHistoryEntry);
+}
+
+/** Links a note to a history entry (a note written after the fact). Null if either isn't the owner's. */
+export async function linkHistoryNote(ownerId: string, id: string, noteId: string) {
+  const owned = await ownNoteId(ownerId, noteId);
+  if (!owned) return null;
+  const rows = await db
+    .update(reminderCompletions)
+    .set({ noteId: owned })
+    .where(and(eq(reminderCompletions.ownerId, ownerId), eq(reminderCompletions.id, id)))
+    .returning({ id: reminderCompletions.id });
+  return rows.length ? { id, noteId: owned } : null;
+}
+
+/** Removes an entry from the history (its note stays with the person). */
+export async function deleteHistoryEntry(ownerId: string, id: string): Promise<boolean> {
+  const rows = await db
+    .delete(reminderCompletions)
+    .where(and(eq(reminderCompletions.ownerId, ownerId), eq(reminderCompletions.id, id)))
+    .returning({ id: reminderCompletions.id });
   return rows.length > 0;
 }

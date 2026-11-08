@@ -93,5 +93,5 @@ export function dueLabel(r: Pick<LinkedReminder, "dueAt">, now = Date.now()): st
 }
 
 export async function applyLinkAction(r: LinkedReminder, action: LinkAction) {
-  return action === "done" ? completeReminder(r.ownerId, r.id) : snoozeReminder(r.ownerId, r.id, SNOOZE_DAYS);
+  return action === "done" ? completeReminder(r.ownerId, r.id, { via: "email" }) : snoozeReminder(r.ownerId, r.id, SNOOZE_DAYS);
 }
