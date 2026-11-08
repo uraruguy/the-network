@@ -17,6 +17,7 @@ import { FilterBar } from "@/components/filters/FilterBar";
 import { buttonVariants, GlassButton } from "@/components/glass/GlassButton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { EMPTY_FILTERS, filterPeople, filtersFromParams, filtersToParams, isEmpty, type Facet, type PeopleFilters } from "@/lib/filters/people-filters";
+import { CANVAS_PAGE, usePageZoomLock } from "@/lib/gestures";
 import { useIsPhone } from "@/lib/media";
 import { useCacheReady } from "@/lib/offline/useCacheReady";
 import { useProfile } from "@/lib/queries/misc";
@@ -79,6 +80,8 @@ export function GlobeView() {
   const multi = selected && selected.people.length > 1 ? selected : null;
 
   const phone = useIsPhone();
+  // A pinch anywhere here zooms the globe, never the page (Safari would magnify the whole app).
+  usePageZoomLock();
   const root = useRef<HTMLDivElement>(null);
   const header = useRef<HTMLDivElement>(null);
   const chrome = useRef<HTMLDivElement>(null);
@@ -170,7 +173,8 @@ export function GlobeView() {
       : `${plural(onMap, "person", "people")} · ${cityCount}`;
 
   return (
-    <div ref={root} className="relative h-dvh w-full overflow-hidden bg-bg">
+    // App surface, not a document: a drag moves the map and never selects the labels around it.
+    <div ref={root} className={cn("relative h-dvh w-full overflow-hidden bg-bg", CANVAS_PAGE)}>
       {dataReady ? (
         <MapCanvas
           handle={handle}
