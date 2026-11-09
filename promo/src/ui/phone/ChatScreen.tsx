@@ -48,10 +48,10 @@ export function ChatScreen({ frame, draft = "", caret = false, sent = 0, tools =
           </div>
           <div className="flex flex-col items-start gap-2 pr-6">
             <div className="flex gap-1.5">
-              <Pill done label="Checked follow-ups" detail="4 due" frame={frame} />
+              <Pill done label="Checked follow-ups" detail="3 this week" frame={frame} />
             </div>
             <div className="surface rounded-lg rounded-bl-xs px-4 py-3 text-body text-fg">
-              Two are due today: <Link>Max Larsen</Link> and <Link>Valentina Dubois</Link>. <Link>Nik</Link>&apos;s rematch is in 2 weeks.
+              Two are due today: <Link>Max Larsen</Link> and <Link>Valentina Dubois</Link>. Later this week: <Link>Nik</Link>&apos;s intro to Valentina.
             </div>
           </div>
         </div>
@@ -77,7 +77,7 @@ export function ChatScreen({ frame, draft = "", caret = false, sent = 0, tools =
         )}
 
         {answer > 0 && (
-          <div className="pt-2 pr-6" style={{ height: answer < 1 ? 56 * answer : undefined, opacity: clamp01(answer * 2), transform: `translateY(${(1 - answer) * 10}px)` }}>
+          <div className="pt-2 pr-6" style={{ height: answer < 1 ? 56 * answer : undefined, opacity: clamp01(answer * 1.4), transform: `scale(${0.94 + 0.06 * answer})`, transformOrigin: "0 0" }}>
             <div className="surface w-full rounded-lg rounded-bl-xs px-4 py-3 text-body text-fg">
               <p>
                 {ASK.answerLead.slice(0, chars)}

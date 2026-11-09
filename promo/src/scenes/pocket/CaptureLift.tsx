@@ -6,7 +6,7 @@ import { Spinner } from "../../ui/phone/ChatScreen";
 import { Tap } from "../../ui/phone/parts";
 import { B, LANDING } from "./beats";
 import type { Anchors } from "./Callouts";
-import { project, type Pose } from "./camera";
+import { dof, project, type Pose } from "./camera";
 
 const W = 370;
 const SCALE = 2.3;
@@ -55,6 +55,10 @@ export function CaptureLift({ cam, anchors }: { cam: (f: number) => Pose; anchor
   // Lift from the field's place in the phone to the canvas.
   const src = project(cam(Math.min(frame, B.lift + 30)), 16, 172);
   const lift = springAt(frame, B.lift, SPRINGS.smooth);
+  // Mounts looking exactly like the phone's (dimmed, defocused) field, then comes into focus.
+  const focusIn = progress(frame, B.lift - 4, 12, EASE.inOut);
+  const pose0 = cam(frame);
+  const look = 1 - focusIn;
   const s = mix(src.k, SCALE, lift);
   const x = mix(src.x, TARGET.x, lift);
   const y = mix(src.y, TARGET.y, lift);
@@ -71,7 +75,7 @@ export function CaptureLift({ cam, anchors }: { cam: (f: number) => Pose; anchor
     <AbsoluteFill>
       {/* the floating composer */}
       {cardOut < 1 && (
-        <div style={{ position: "absolute", left: x, top: y - 70 * cardOut, width: W, transformOrigin: "0 0", transform: `scale(${s})`, opacity: 1 - cardOut }}>
+        <div style={{ position: "absolute", left: x, top: y - 70 * cardOut, width: W, transformOrigin: "0 0", transform: `scale(${s})`, opacity: 1 - cardOut, filter: look > 0.01 ? `brightness(${1 - pose0.dim * look}) blur(${(dof(frame) * look) / s}px)` : undefined }}>
           <div
             ref={cardRef}
             className="specular relative rounded-xl p-1.5 pl-3.5"

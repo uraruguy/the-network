@@ -41,7 +41,7 @@ export function TodayScreen({ stats = 1, done = 0, fold = 0, toast = 0, scrollY 
           <h1 className="text-title1 text-fg">Good afternoon, {OWNER}</h1>
         </header>
 
-        <div style={{ opacity: 1 - captureLifted * 0.85 }}>
+        <div style={{ opacity: 1 - captureLifted }}>
           <CaptureField text="" />
         </div>
 
@@ -126,7 +126,7 @@ function Tile({ icon: Icon, label, value, accent }: { icon: LucideIcon; label: s
 function Row({ f, first, done = 0, fold = 0, upcoming }: { f: FollowUp; first: boolean; done?: number; fold?: number; upcoming?: boolean }) {
   const h = 64 * (1 - fold);
   return (
-    <li className="relative overflow-hidden" style={{ height: h, opacity: 1 - clamp01((fold - 0.2) / 0.5) }}>
+    <li className="relative overflow-hidden" style={{ height: h, opacity: 1 - 0.5 * clamp01((fold - 0.4) / 0.6) }}>
       {!first && <span className="absolute top-0 right-0 left-[108px] h-[0.5px] bg-separator" />}
       <div className="flex min-h-[64px] items-center pr-4 pl-1.5">
         <CheckCircle t={done} />

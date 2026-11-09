@@ -1,4 +1,4 @@
-import { EASE, mix } from "../../kit/motion";
+import { EASE, mix, progress } from "../../kit/motion";
 import { PHONE_OUTER_H, PHONE_OUTER_W } from "../../devices/IPhone";
 
 /** Phone pose on the 1080×1350 canvas: centre (x, y), scale, rotations (deg), opacity, dim. */
@@ -54,6 +54,9 @@ export function track(keys: Key[]) {
     return full[full.length - 1]![1];
   };
 }
+
+/** Depth of field (canvas px) on the phone while the capture card floats in front of it. */
+export const dof = (f: number) => 7 * progress(f, 340, 50, EASE.inOut) * (1 - progress(f, 588, 44, EASE.inOut));
 
 /** Screen-space speed (px/frame) of the phone, for velocity-based blur. */
 export function speed(cam: (f: number) => Pose, frame: number) {

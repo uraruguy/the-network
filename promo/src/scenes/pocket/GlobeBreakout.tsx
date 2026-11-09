@@ -55,7 +55,8 @@ export function GlobeBreakout({ cam }: { cam: (f: number) => Pose }) {
   if (frame < B.breakout || frame >= B.globeHome) return null;
   const from = project(cam(Math.min(frame, B.breakout + 2)), PHONE_GLOBE.cx, PHONE_GLOBE.cy);
   const t = springAt(frame, B.breakout, SPRINGS.sheet);
-  const back = progress(frame, B.globeExit, B.globeHome - B.globeExit, EASE.inOut);
+  const back = progress(frame, B.globeExit, B.globeBack - B.globeExit, EASE.inOut);
+  const handBack = progress(frame, B.globeBack, B.globeHome - B.globeBack, (q) => q);
   const home = project(cam(frame), PHONE_GLOBE.cx, PHONE_GLOBE.cy);
   const x = mix(mix(from.x, TARGET.x, t), home.x, back);
   const y = mix(mix(from.y, TARGET.y, t), home.y, back);
@@ -71,11 +72,11 @@ export function GlobeBreakout({ cam }: { cam: (f: number) => Pose }) {
   const pose = cam(frame);
   const tl = project(pose, 0, 0);
   const br = project(pose, 402, 874);
-  const open = progress(frame, B.breakout, 12, EASE.out) * (1 - progress(frame, B.globeHome - 12, 12, EASE.in));
+  const open = progress(frame, B.breakout, 12, EASE.out) * (1 - progress(frame, B.globeBack - 14, 12, EASE.in));
   const e = 900 * open;
   const clip = open >= 1 ? undefined : `inset(${tl.y - e}px ${1080 - br.x - e}px ${1350 - br.y - e}px ${tl.x - e}px round ${60 * tl.k * (1 - open)}px)`;
   return (
-    <AbsoluteFill>
+    <AbsoluteFill style={{ opacity: 1 - handBack }}>
       <AbsoluteFill style={{ clipPath: clip }}>
       <Globe
         width={1080}

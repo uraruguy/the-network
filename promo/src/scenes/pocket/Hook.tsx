@@ -13,7 +13,7 @@ const F = 470;
 /** Memory fragments: what a card remembers about someone. Readable mid-depth chips. */
 const MEMORIES = [
   { name: "Ana Kolenič", note: "Met at Web Summit", x: 250, y: 560 },
-  { name: "Valentina Dubois", note: "Moving to Lisbon", x: 800, y: 700 },
+  { name: "Valentina Dubois", note: "Lives in Lisbon", x: 800, y: 700 },
   { name: "Inês Sampaio", note: "Owes you an intro", x: 300, y: 880 },
   { name: "Nik Zupan", note: "Padel on Sundays", x: 770, y: 1060 },
   { name: "Sara Rossi", note: "Introduced by Max", x: 330, y: 1220 },
@@ -37,7 +37,7 @@ const bez = (p0: number, c: number, p1: number, u: number) => (1 - u) * (1 - u) 
 /**
  * The hook. Faces (and five things you'd want to remember about them) float in depth, soft and
  * dim behind "You meet hundreds of people."; on "Remember every one." they rack into focus and
- * stream along curved paths, with speed streaks, into the phone's screen (`sink`).
+ * stream along curved paths into the phone's screen (`sink`), squashing and stretching with speed.
  */
 export function Hook({ sink }: { sink: (frame: number) => { x: number; y: number; s: number } }) {
   const frame = useCurrentFrame();
@@ -68,38 +68,22 @@ export function Hook({ sink }: { sink: (frame: number) => { x: number; y: number
     const cy = my + dx * 0.42 * p.it.side;
     const at = (q: number) => ({ x: bez(p.x0, cx, s.x, q), y: bez(p.y0, cy, s.y, q) });
     const pos = at(e);
+    // Velocity from last frame's point on the same path: drives squash-and-stretch and the smear.
+    const u0 = clamp01((frame - 1 - start) / 30);
+    const prev = at(u0 * u0 * u0);
+    const vx = pos.x - prev.x;
+    const vy = pos.y - prev.y;
+    const speed = Math.hypot(vx, vy);
     if (u > 0.82 && u < 1) arriving++;
-    const tail = u > 0 && u < 1 ? [0.05, 0.1, 0.16, 0.22].map((d) => at(Math.max(0, e - d * (0.3 + e)))) : [];
-    return { p, pos, u, tail };
+    return { p, pos, u, speed, angle: (Math.atan2(vy, vx) * 180) / Math.PI };
   });
 
   return (
     <AbsoluteFill>
-      <svg width={1080} height={1350} style={{ position: "absolute", inset: 0 }}>
-        {drawn.map(({ p, pos, tail, u }) => {
-          if (!tail.length || u < 0.08) return null;
-          const hue = hueFor(p.it.name);
-          const w = (p.it.note ? 26 : 60 * p.k) * (1 - 0.7 * u) * 0.5;
-          const pts = [pos, ...tail];
-          return pts.slice(1).map((q, j) => (
-            <line
-              key={`${p.i}-${j}`}
-              x1={pts[j]!.x}
-              y1={pts[j]!.y}
-              x2={q.x}
-              y2={q.y}
-              stroke={`oklch(0.8 0.09 ${hue})`}
-              strokeOpacity={0.55 * (1 - j / 4) * Math.min(1, u * 3)}
-              strokeWidth={Math.max(1, w * (1 - j / 4.5))}
-              strokeLinecap="round"
-            />
-          ));
-        })}
-      </svg>
       {drawn
         .filter(({ u }) => u < 1)
         .sort((a, b) => b.p.z - a.p.z)
-        .map(({ p, pos, u }) => {
+        .map(({ p, pos, u, speed, angle }) => {
           const fade = 1 - clamp01((u - 0.82) / 0.18);
           const scale = mix(1, 0.18, u * u);
           const defocus = Math.abs(p.z - FOCUS_Z);
@@ -108,16 +92,41 @@ export function Hook({ sink }: { sink: (frame: number) => { x: number; y: number
           const base = clamp01((2.4 - p.z) / 0.4);
           // Once sharp, keep the headline band clear.
           const band = mix(1, clamp01((pos.y - 380) / 90), sharp);
-          if (p.it.note) {
-            return (
+          // Squash and stretch along the motion; a short, wide, soft smear behind (no thin tails).
+          const st = u > 0 && u < 1 ? clamp01(speed / 42) : 0;
+          const smear = (w: number, h: number) =>
+            st > 0.04 ? (
               <div
-                key={p.i}
+                style={{
+                  position: "absolute",
+                  left: pos.x,
+                  top: pos.y,
+                  width: w * (1 + 1.5 * st),
+                  height: h,
+                  marginLeft: -(w * (1 + 1.5 * st)) + w * 0.5,
+                  marginTop: -h / 2,
+                  borderRadius: 999,
+                  transformOrigin: `${w * (1 + 1.5 * st) - w * 0.5}px 50%`,
+                  transform: `rotate(${angle}deg)`,
+                  background: `linear-gradient(90deg, oklch(0.82 0.08 ${hueFor(p.it.name)} / 0), oklch(0.82 0.08 ${hueFor(p.it.name)} / ${0.42 * st}))`,
+                  filter: `blur(${Math.max(2, h * 0.18)}px)`,
+                  opacity: fade * band,
+                }}
+              />
+            ) : null;
+          const stretch = `rotate(${angle}deg) scale(${1 + 0.5 * st}, ${1 - 0.18 * st}) rotate(${-angle}deg)`;
+          if (p.it.note) {
+            const cs = 1.45 * scale * p.k;
+            return (
+              <div key={p.i}>
+              {smear(150 * cs, 46 * cs)}
+              <div
                 className="surface"
                 style={{
                   position: "absolute",
                   left: pos.x,
                   top: pos.y,
-                  transform: `translate(-50%, -50%) scale(${1.45 * scale * p.k})`,
+                  transform: `translate(-50%, -50%) ${st > 0.04 ? `rotate(${angle}deg) scale(${1 + 0.18 * st}, ${1 - 0.08 * st}) rotate(${-angle}deg)` : ""} scale(${cs})`,
                   display: "flex",
                   alignItems: "center",
                   gap: 11,
@@ -137,12 +146,16 @@ export function Hook({ sink }: { sink: (frame: number) => { x: number; y: number
                   <span style={{ fontSize: 14, fontWeight: 500, color: "oklch(0.5 0.08 198)" }}>{p.it.note}</span>
                 </span>
               </div>
+              </div>
             );
           }
           const size = 66 * p.k * scale;
           return (
-            <div key={p.i} style={{ position: "absolute", left: pos.x - size / 2, top: pos.y - size / 2, opacity: dim * fade * base * band, filter: blur > 0.4 ? `blur(${blur}px)` : undefined }}>
-              <Avatar name={p.it.name} size={Math.max(3, size)} ring={false} style={{ boxShadow: "0 8px 22px rgba(0,0,0,0.4)" }} />
+            <div key={p.i}>
+              {smear(size, size * 0.9)}
+              <div style={{ position: "absolute", left: pos.x - size / 2, top: pos.y - size / 2, opacity: dim * fade * base * band, filter: blur > 0.4 ? `blur(${blur}px)` : undefined, transform: st > 0.04 ? stretch : undefined }}>
+                <Avatar name={p.it.name} size={Math.max(3, size)} ring={false} style={{ boxShadow: "0 8px 22px rgba(0,0,0,0.4)" }} />
+              </div>
             </div>
           );
         })}

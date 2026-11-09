@@ -6,7 +6,7 @@ import { DarkStage } from "../kit/Stage";
 import { B } from "../scenes/pocket/beats";
 import { CaptureLift } from "../scenes/pocket/CaptureLift";
 import { Callouts, measureAnchors, type Anchors } from "../scenes/pocket/Callouts";
-import { focus, project, speed, track, type Pose } from "../scenes/pocket/camera";
+import { dof, focus, project, speed, track, type Pose } from "../scenes/pocket/camera";
 import { GlobeBreakout } from "../scenes/pocket/GlobeBreakout";
 import { Hook } from "../scenes/pocket/Hook";
 import { Outro } from "../scenes/pocket/Outro";
@@ -51,9 +51,6 @@ const cam = track([
 
 /** Nik's card scrolls (inside the phone) from follow-ups down to older notes and how you met. */
 export const personScroll = (f: number) => 470 * progress(f, 792, 42, EASE.inOut);
-
-/** Depth of field on the phone while the capture card floats in front of it. */
-const dof = (f: number) => 7 * progress(f, 340, 50, EASE.inOut) * (1 - progress(f, 588, 44, EASE.inOut));
 
 /** Kickers carry data. Each holds its slot from `at` to `out`; consecutive ones swap in place. */
 const KICKERS: { text: string; at: number; out: number }[] = [

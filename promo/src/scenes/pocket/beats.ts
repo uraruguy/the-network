@@ -40,15 +40,17 @@ export const B = {
   // Globe
   breakout: 1118,
   globeExit: 1330,
-  /** The globe is back inside the Globe screen; then the Chat tab is tapped and swaps in. */
-  globeHome: 1362,
+  /** The canvas globe is back on the in-phone globe, crossfades into it, and is gone by globeHome. */
+  globeBack: 1352,
+  globeHome: 1360,
   chatTap: 1366,
   chatSwap: 1370,
   // Ask
   askType: 1374,
   askSend: 1418,
   askSent: 1422,
-  answer: 1476,
+  /** A beat after "…or ask Claude." lands, so the two entrances don't share frames. */
+  answer: 1486,
   // End
   end: 1600,
 } as const;

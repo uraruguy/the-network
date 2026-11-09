@@ -52,9 +52,9 @@ export function PhoneContent({ frame, personRef, personScroll = 0 }: { frame: nu
       tab={-1}
       stats={1}
       done={progress(frame, B.saraDone, 22, EASE.out)}
-      fold={progress(frame, B.saraFold, 24, EASE.ios)}
+      fold={progress(frame, B.saraFold, 18, EASE.inOut)}
       toast={springAt(frame, B.toast, SPRINGS.snappy)}
-      captureLifted={frame >= B.lift ? 1 : 0}
+      captureLifted={frame >= B.lift - 4 ? 1 : 0}
     />
   );
   const { filed, glow } = filedAt(frame);
@@ -128,7 +128,7 @@ function globe(frame: number) {
       tab={-1}
       rotate={globeRotation(frame)}
       reveal={progress(frame, B.globeSwap + 4, 40, EASE.out)}
-      globeHidden={frame >= B.breakout && frame < B.globeHome}
+      globeHidden={frame >= B.breakout && frame < B.globeBack - 2}
       chromeOut={progress(frame, B.breakout - 8, 24, EASE.in) * (1 - progress(frame, B.globeExit + 4, 24, EASE.out))}
       arcs={arcsAt(frame)}
       clusterAngle={CLUSTER_ANGLE}
@@ -152,7 +152,7 @@ function chat(frame: number) {
       caret={frame < B.askSent}
       sent={springAt(frame, B.askSent, SPRINGS.snappy)}
       tools={frame >= p1 ? pills : []}
-      answer={progress(frame, B.answer, 14, EASE.out)}
+      answer={progress(frame, B.answer, 18, EASE.inOut)}
       chars={Math.floor(Math.max(0, frame - B.answer - 2) * 1.8)}
       rows={tween(frame, [B.answer + 18, B.answer + 54], [0, 3], (t) => t)}
     />
