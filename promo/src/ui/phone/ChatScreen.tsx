@@ -51,7 +51,7 @@ export function ChatScreen({ frame, draft = "", caret = false, sent = 0, tools =
               <Pill done label="Checked follow-ups" detail="4 due" frame={frame} />
             </div>
             <div className="surface rounded-lg rounded-bl-xs px-4 py-3 text-body text-fg">
-              Two are due today: <Link>Max Larsen</Link> and <Link>Valentina Dubois</Link>. <Link>Ola</Link>&apos;s on Sunday.
+              Two are due today: <Link>Max Larsen</Link> and <Link>Valentina Dubois</Link>. <Link>Nik</Link>&apos;s rematch is in 2 weeks.
             </div>
           </div>
         </div>

@@ -11,5 +11,5 @@ export const FLIP = { start: 960, end: 1000 } as const;
 export const MAIN = { x: 236, y: 38 } as const;
 export const main = (x: number, y: number) => ({ x: MAIN.x + x, y: MAIN.y + y });
 
-/** Window-space anchor on Today: the People tile's number (left edge, middle). */
-export const PEOPLE_TILE = main(112, 281);
+/** Window-space anchor on Today: the People tile's number box (top-left). */
+export const PEOPLE_TILE = main(106, 263);

@@ -18,6 +18,8 @@ const RISE: Pose = { x: 540, y: 1000, s: 1.32, rx: 4, ry: 0, rz: 0, o: 1, dim: 0
 const RECEDE: Pose = { x: 540, y: 1150, s: 0.9, rx: 14, ry: 0, rz: 0, o: 1, dim: 0.66 };
 const ARRIVE: Pose = { x: 540, y: 920, s: 1.0, rx: 0, ry: 0, rz: 0, o: 1, dim: 0 };
 const TABS: Pose = { x: 540, y: 860, s: 1.15, rx: 0, ry: 0, rz: 0, o: 1, dim: 0 };
+/** Where the in-phone globe sits on the canvas for the breakout and the return. */
+const GLOBE: Pose = { ...TABS, ...focus(201, 512, 1.25, 540, 905) };
 
 /** The phone's camera for the whole film. It never parks at a base pose between chapters. */
 const cam = track([
@@ -36,10 +38,12 @@ const cam = track([
   [1028, focus(201, 74, 1.68, 540, 480), EASE.inOut],
   [1058, TABS],
   [1062, TABS, EASE.inOut],
-  [1112, focus(201, 512, 1.25, 540, 905)],
+  [1112, GLOBE],
   [1180, { x: 540, y: 1560, s: 1.0, rx: 30, ry: 0, rz: 0, o: 0, dim: 0.3 }, EASE.in],
-  [1336, { ...OFF, o: 1 }],
-  [1392, focus(201, 560, 1.6, 540, 860), EASE.out],
+  [1300, { ...OFF, o: 1 }],
+  [B.globeHome, GLOBE, EASE.out],
+  [B.chatSwap + 2, GLOBE, EASE.inOut],
+  [1404, focus(201, 560, 1.6, 540, 860)],
   [1470, focus(201, 566, 1.66, 540, 852), EASE.inOut],
   [1596, focus(201, 570, 1.7, 540, 848), EASE.inOut],
   [1632, { x: 540, y: 1100, s: 0.62, rx: 16, ry: 0, rz: 0, o: 0, dim: 0.4 }, EASE.in],

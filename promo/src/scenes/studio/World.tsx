@@ -21,9 +21,9 @@ const TITLES: TitleSpec[] = [
   { at: 122, out: 350, kicker: "3 due today", lines: [[T("Follow-ups that "), A("find you.")]] },
   { at: 362, out: 650, kicker: "1 note → 4 people", lines: [[T("Paste anything. AI "), A("files it.")]] },
   { at: 664, out: 798, kicker: "286 people · 79 cities", lines: [[T("Type a city. "), A("Get your people.")]] },
-  { at: 806, out: 1026, kicker: "7 people in Lisbon", lines: [[T("Landing in Lisbon? "), A("Know who's there.")]] },
-  { at: 1034, out: 1102, kicker: "iPhone · Mac · offline", lines: [[T("Installs like an app. "), A("Works offline.")]] },
-  { at: 1114, out: 1312, kicker: "Your own Anthropic or OpenRouter key", lines: [[T("Ask your "), A("network.")]] },
+  { at: 806, out: 988, kicker: "7 people in Lisbon", lines: [[T("Landing in Lisbon? "), A("Know who's there.")]] },
+  { at: 996, out: 1096, kicker: "iPhone · Mac · offline", lines: [[T("Installs like an app. "), A("Works offline.")]] },
+  { at: 1110, out: 1312, kicker: "Your own Anthropic or OpenRouter key", lines: [[T("Ask your "), A("network.")]] },
   { at: 1322, out: 1612, kicker: "13 MCP tools", lines: [[T("…or ask "), A("Claude.")]] },
 ];
 
@@ -31,18 +31,22 @@ const TITLES: TitleSpec[] = [
 export function World({ frame, theme }: { frame: number; theme: Theme }) {
   const dark = theme === "dark";
   const windowOpacity =
-    tween(frame, [84, 96], [0, 1]) * (1 - tween(frame, [984, 1004], [0, 1], EASE.in)) + tween(frame, [1098, 1110], [0, 1]) * (frame >= 1098 ? 1 : 0);
+    tween(frame, [84, 96], [0, 1]) * (1 - tween(frame, [984, 1004], [0, 1], EASE.in)) + tween(frame, [1102, 1112], [0, 1]) * (frame >= 1100 ? 1 : 0);
   const fadeForMcp = 1 - tween(frame, [1304, 1318], [0, 1], EASE.in);
-  const windowOn = frame >= 84 && frame < 1320 && !(frame >= 1004 && frame < 1098);
+  const windowOn = frame >= 84 && frame < 1320 && !(frame >= 1004 && frame < 1100);
+  // Chat intro: the window dissolves just under the composer, then opens up for the whip.
+  const fadeBelow = frame >= 1100 && frame < 1160 ? 600 + 700 * tween(frame, [1140, 1156], [0, 1], EASE.in) : undefined;
+  const planetOnTop = frame < 1050;
   return (
     <StudioStage theme={theme}>
       <Bloom frame={frame} />
+      {dark && !planetOnTop && <BigGlobe frame={frame} />}
       {windowOn && (
-        <WindowLayer frame={frame} keys={CAM} dark={dark} opacity={Math.min(1, windowOpacity) * fadeForMcp} blurId={`mb-${theme}`}>
+        <WindowLayer frame={frame} keys={CAM} dark={dark} opacity={Math.min(1, windowOpacity) * fadeForMcp} fadeBelow={fadeBelow} blurId={`mb-${theme}`}>
           <WindowContent frame={frame} theme={theme} />
         </WindowLayer>
       )}
-      {dark && <BigGlobe frame={frame} />}
+      {dark && planetOnTop && <BigGlobe frame={frame} />}
       <BloomCounter frame={frame} />
       <EmailOverlay frame={frame} />
       <PasteKeys frame={frame} />

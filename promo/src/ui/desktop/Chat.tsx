@@ -9,7 +9,7 @@ export const ANSWER = {
   rows: [
     { name: "Inês Sampaio", line: "Product designer at Figma · boulders on Thursdays. You met her at Web Summit today." },
     { name: "Mateo Fernández", line: "Founder · raising a seed round. Invited you on a climbing trip to Sintra." },
-    { name: "Valentina Dubois", line: "Designer · she introduced you to Inês." },
+    { name: "Valentina Dubois", line: "Designer · climbs at Lisbon Boulder Lab. She introduced you to Inês." },
   ],
   tail: "Want me to plan a session with Inês on Thursday?",
 };

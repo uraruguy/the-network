@@ -1,15 +1,13 @@
-import { Spinner } from "./parts";
+/** One transcript line. `shown` 0..1 types a command / reveals output. `person` = the answer, in bright text. */
+export type TermLine = { kind: "cmd" | "out" | "ok" | "dim" | "person" | "gap"; text: string; shown: number };
 
-/** One transcript line. `shown` 0..1 types a command / reveals output; `name` bolds a lead name. */
-export type TermLine = { kind: "cmd" | "out" | "ok" | "dim" | "tool" | "person" | "gap"; text: string; shown: number; name?: string; running?: boolean };
-
-const COLOR = { cmd: "#eef7f7", out: "#a9bfc0", ok: "#8ef0c8", dim: "rgba(215,230,230,0.5)", tool: "#7fe6ea", person: "#d7e6e6", gap: "transparent" } as const;
+const COLOR = { cmd: "#eef7f7", out: "#a9bfc0", ok: "#8ef0c8", dim: "rgba(215,230,230,0.5)", person: "#f4fbfb", gap: "transparent" } as const;
 
 /**
  * A macOS Terminal window (dark glass, JetBrains Mono) showing a plain shell transcript. Big type
  * on purpose: it has to read on a phone. Long commands wrap; nothing is cropped.
  */
-export function Terminal({ lines, caretOn, width = 1720, size = 30, frame }: { lines: TermLine[]; caretOn: boolean; width?: number; size?: number; frame: number }) {
+export function Terminal({ lines, caretOn, width = 1720, size = 30 }: { lines: TermLine[]; caretOn: boolean; width?: number; size?: number }) {
   const mono = '"JetBrains Mono Variable", ui-monospace, monospace';
   return (
     <div style={{ width, borderRadius: 18, overflow: "hidden", background: "rgba(10,18,20,0.95)", boxShadow: "0 0 0 1px rgba(255,255,255,0.10), 0 0 90px -20px rgba(52,219,227,0.35), 0 40px 100px -20px rgba(0,0,0,0.6)" }}>
@@ -31,10 +29,7 @@ export function Terminal({ lines, caretOn, width = 1720, size = 30, frame }: { l
           return (
             <div key={i} style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", color: COLOR[l.kind], opacity: reveal, transform: `translateY(${(1 - reveal) * 8}px)`, display: "flex", gap: "0.6em" }}>
               {l.kind === "cmd" && <span style={{ color: "#5ff0f4" }}>❯</span>}
-              {l.kind === "tool" && <span style={{ color: "#5ff0f4" }}>{l.running ? <Spinner size={size * 0.8} frame={frame} /> : "→"}</span>}
-              {l.kind === "person" && <span style={{ color: "#5ff0f4" }}>•</span>}
               <span style={{ minWidth: 0 }}>
-                {l.name && <span style={{ color: "#ffffff", fontWeight: 700 }}>{l.name}</span>}
                 {l.kind === "cmd" ? text : l.text}
                 {typing && caretOn && <span style={{ background: "#5ff0f4", color: "transparent" }}>▌</span>}
               </span>

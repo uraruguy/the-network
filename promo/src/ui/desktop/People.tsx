@@ -8,10 +8,14 @@ export const LISBON: Person[] = [
   { name: "Inês Sampaio", city: "Lisbon", flag: "🇵🇹", role: "Product designer", company: "Figma", warmth: "inner", last: "now", acts: ["🧗", "☕"] },
   { name: "Mateo Fernández", city: "Lisbon", flag: "🇵🇹", role: "Founder", warmth: "active", last: "now", acts: ["🧗", "🎾"] },
   { name: "Valentina Dubois", city: "Lisbon", flag: "🇵🇹", role: "Designer", warmth: "active", last: "3w", acts: ["🧗", "🍽️", "✈️"] },
+  { name: "José Silva", city: "Lisbon", flag: "🇵🇹", role: "Architect", warmth: "active", last: "2mo", acts: ["🚴"] },
+  { name: "Camila Sampaio", city: "Lisbon", flag: "🇵🇹", role: "Data scientist", company: "Revolut", warmth: "dormant", last: "5mo", acts: ["🍸"] },
+  { name: "Diego Silva", city: "Lisbon", flag: "🇵🇹", role: "Chef", warmth: "inner", last: "2mo", acts: ["🍽️"] },
+  { name: "Inês Fernández", city: "Lisbon", flag: "🇵🇹", role: "Photographer", warmth: "dormant", last: "1y", acts: ["📷"] },
 ];
 
-/** The list before searching: the README screenshot's rows, with the Lisbon three woven in. */
-export const ROWS: Person[] = [...PEOPLE.slice(0, 6), LISBON[0]!, ...PEOPLE.slice(6, 9), LISBON[1]!, PEOPLE[9]!, LISBON[2]!, ...PEOPLE.slice(10)];
+/** The list, A–Z like the app's default "Name" sort: the README screenshot's rows plus the Lisbon seven. */
+export const ROWS: Person[] = [...PEOPLE, ...LISBON].sort((a, b) => a.name.localeCompare(b.name, "en"));
 
 const norm = (s: string) => s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 export const matches = (p: Person, q: string) => !q || norm([p.name, p.city, p.role, p.company].filter(Boolean).join(" ")).includes(norm(q));

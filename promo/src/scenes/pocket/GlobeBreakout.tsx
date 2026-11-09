@@ -67,8 +67,16 @@ export function GlobeBreakout({ cam }: { cam: (f: number) => Pose }) {
   const proj = globeProjector(rot, r, x, y);
   const lastLand = ARCS[landed - 1]?.[1];
   const tick = lastLand === undefined ? 0 : 1 - clamp01((frame - lastLand - ARC) / 10);
+  // Starts (and ends) clipped to the phone's screen like the in-phone globe, then the clip opens.
+  const pose = cam(frame);
+  const tl = project(pose, 0, 0);
+  const br = project(pose, 402, 874);
+  const open = progress(frame, B.breakout, 12, EASE.out) * (1 - progress(frame, B.globeHome - 12, 12, EASE.in));
+  const e = 900 * open;
+  const clip = open >= 1 ? undefined : `inset(${tl.y - e}px ${1080 - br.x - e}px ${1350 - br.y - e}px ${tl.x - e}px round ${60 * tl.k * (1 - open)}px)`;
   return (
     <AbsoluteFill>
+      <AbsoluteFill style={{ clipPath: clip }}>
       <Globe
         width={1080}
         height={1350}
@@ -84,6 +92,7 @@ export function GlobeBreakout({ cam }: { cam: (f: number) => Pose }) {
         uiScale={ui}
         atmosphere={mix(mix(0.7, 1.1, t), 0.7, back)}
       />
+      </AbsoluteFill>
       <svg width={1080} height={1350} style={{ position: "absolute", inset: 0, opacity: overlays }}>
         {NAMED.map((n) => {
           const c = CITY.get(n.city)!;

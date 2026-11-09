@@ -59,12 +59,14 @@ function Section({ title, count, caption, action, children, className }: { title
   );
 }
 
-function Tile({ icon, label, value, accent, bump = 0 }: { icon: ReactNode; label: string; value: ReactNode; accent?: boolean; bump?: number }) {
+function Tile({ icon, label, value, accent, bump = 0, hideValue }: { icon: ReactNode; label: string; value: ReactNode; accent?: boolean; bump?: number; hideValue?: boolean }) {
   return (
     <div className="surface flex h-[92px] flex-col justify-between rounded-lg p-3.5" style={bump > 0 ? { boxShadow: `0 0 0 ${3 * bump}px var(--focus-ring)`, transform: `scale(${1 + 0.04 * bump})` } : undefined}>
       <span className={cn("grid size-7 place-items-center rounded-full", accent ? "bg-accent-fill text-accent-fg" : "bg-accent-soft text-accent-text")}>{icon}</span>
       <span className="min-w-0">
-        <span className={cn("block h-7 text-title2 tabular-nums", accent ? "text-accent-text" : "text-fg")}>{value}</span>
+        <span className={cn("block h-7 text-title2 tabular-nums", accent ? "text-accent-text" : "text-fg")} style={hideValue ? { opacity: 0 } : undefined}>
+          {value}
+        </span>
         <span className="block truncate text-caption text-fg-3">{label}</span>
       </span>
     </div>
@@ -78,6 +80,9 @@ const RECONNECT: { name: string; ago: string; warmth: keyof typeof WARMTH_COLOR;
   { name: "Yuki Tanaka", ago: "2mo", warmth: "active", label: "Active" },
   { name: "Lukas Schröder", ago: "4mo", warmth: "inner", label: "Close" },
 ];
+
+const AFTER_IMPORT_NUDGE = { name: "Ana Kolenič", ago: "2mo", warmth: "active" as const, label: "Active" };
+const IMPORTED_NOTE = { icon: FileText, title: "Web Summit Lisbon, day 2", who: "Inês Sampaio", when: "now" };
 
 const RECENT = [
   { icon: Phone, title: "Call: she's in Berlin 12–15 May for a client workshop", who: "Sara Rossi", when: "2h ago" },
@@ -95,7 +100,13 @@ export function TodayPage({
   stats,
   capture = "",
   peopleBump = 0,
+  hidePeople,
+  imported,
 }: {
+  /** The hook's counter is flying into this number: keep it hidden until it lands. */
+  hidePeople?: boolean;
+  /** After the paste import: Mateo leaves Reconnect, the new note tops Recent notes. */
+  imported?: boolean;
   rows?: Record<string, RowState>;
   stats?: { people: number; cities: number; due: number };
   capture?: string;
@@ -118,7 +129,7 @@ export function TodayPage({
       <Composer value={capture} placeholder="Who did you meet? Jot it down…" leading={<Sparkles size={18} strokeWidth={2.2} />} canSend={!!capture} />
       <div className="mt-1.5 h-4" />
       <div className="mt-6 grid grid-cols-3 gap-3">
-        <Tile icon={<Users size={15} strokeWidth={2.2} />} label="People" value={s.people} bump={peopleBump} />
+        <Tile icon={<Users size={15} strokeWidth={2.2} />} label="People" value={s.people} bump={peopleBump} hideValue={hidePeople} />
         <Tile icon={<Globe2 size={15} strokeWidth={2.2} />} label="Cities" value={s.cities} />
         <Tile icon={<Bell size={15} strokeWidth={2.2} />} label="Due today" value={s.due} accent={s.due > 0} />
       </div>
@@ -142,7 +153,7 @@ export function TodayPage({
         <div className="min-w-0 space-y-8">
           <Section title="Reconnect" caption="Close people you haven't talked to in two months" action={<span className="font-medium text-accent-text">See all</span>}>
             <div className="flex flex-wrap gap-2 pt-0.5 pb-1">
-              {RECONNECT.map((m) => {
+              {(imported ? [...RECONNECT.filter((m) => m.name !== "Mateo Fernández"), AFTER_IMPORT_NUDGE] : RECONNECT).map((m) => {
                 const name = m.name;
                 return (
                   <span key={name} className="surface flex h-14 max-w-[15rem] shrink-0 items-center gap-2.5 rounded-full pr-4 pl-2">
@@ -170,8 +181,8 @@ export function TodayPage({
             }
           >
             <ul className="surface overflow-hidden rounded-lg">
-              {RECENT.map((n, i) => (
-                <li key={i} className={cn("relative", i < RECENT.length - 1 && "after:absolute after:right-0 after:bottom-0 after:left-[58px] after:h-[0.5px] after:bg-separator")}>
+              {(imported ? [IMPORTED_NOTE, ...RECENT.slice(0, 3)] : RECENT).map((n, i, list) => (
+                <li key={i} className={cn("relative", i < list.length - 1 && "after:absolute after:right-0 after:bottom-0 after:left-[58px] after:h-[0.5px] after:bg-separator")}>
                   <div className="flex min-h-[56px] items-center gap-3 px-4 py-2.5">
                     <span className="grid size-[30px] shrink-0 place-items-center rounded-xs bg-accent-soft text-accent-text">
                       <n.icon size={16} strokeWidth={2.1} />

@@ -75,9 +75,9 @@ function Key({ k }: { k: string }) {
 }
 
 export function PasteKeys({ frame }: { frame: number }) {
-  if (frame < 346 || frame > 382) return null;
-  const a = springAt(frame, 346, SPRINGS.pop) - tween(frame, [370, 382], [0, 1], EASE.in);
-  const press = Math.max(0, 1 - Math.abs(frame - 362) / 5);
+  if (frame < 338 || frame > 370) return null;
+  const a = springAt(frame, 338, SPRINGS.pop) - tween(frame, [360, 370], [0, 1], EASE.in);
+  const press = Math.max(0, 1 - Math.abs(frame - 354) / 5);
   return (
     <div style={{ position: "absolute", left: 960, top: 640, transform: `translate(-50%, -50%) scale(${0.8 + 0.2 * clamp01(a)})`, opacity: clamp01(a), display: "flex", alignItems: "center", gap: 20, padding: "22px 40px 22px 24px", borderRadius: 40, background: "rgba(255,255,255,0.86)", backdropFilter: "blur(18px) saturate(1.6)", boxShadow: "0 0 0 1px rgba(10,40,50,0.08), 0 30px 70px -20px rgba(0,30,40,0.5)" }}>
       {["⌘", "V"].map((k) => (
@@ -100,15 +100,16 @@ const START = (() => {
 })();
 
 export function BigGlobe({ frame }: { frame: number }) {
-  if (frame < FLIP.start || frame > 1112) return null;
-  const grow = tween(frame, [FLIP.start, 1006], [0, 1], EASE.inOut);
-  const settle = tween(frame, [1030, 1062], [0, 1], EASE.inOut);
-  const out = tween(frame, [1088, 1110], [0, 1], EASE.in);
+  if (frame < FLIP.start || frame > 1162) return null;
+  const grow = tween(frame, [FLIP.start, 1000], [0, 1], EASE.inOut);
+  const settle = tween(frame, [992, 1024], [0, 1], EASE.inOut);
+  const out = tween(frame, [1142, 1160], [0, 1], EASE.in);
   const x = mix(mix(START.x, 960, grow), 600, settle);
   const y = mix(mix(START.y, 790, grow), 860, settle);
   const r = mix(mix(START.r, 720, grow), 560, settle);
+  const dim = 0.45 * settle + 0.25 * tween(frame, [1092, 1110], [0, 1]);
   return (
-    <AbsoluteFill style={{ opacity: (1 - 0.45 * settle) * (1 - out) }}>
+    <AbsoluteFill style={{ opacity: (1 - dim) * (1 - out) }}>
       <Globe width={1920} height={1080} radius={r} center={[x, y]} rotate={globeRotate(frame)} theme="dark" home="Lisbon" reveal={1} focus="Lisbon" arcs={arcsAt(frame)} uiScale={mix(1.2, 1.7, grow)} atmosphere={1.3} />
     </AbsoluteFill>
   );
@@ -158,13 +159,13 @@ function PhoneGlobe({ frame }: { frame: number }) {
 }
 
 /** Synced flips in at this frame (Offline before). */
-const SYNCED_AT = 1072;
+const SYNCED_AT = 1046;
 
 export function PhoneOverlay({ frame }: { frame: number }) {
-  if (frame < 1028 || frame > 1112) return null;
-  const enter = springAt(frame, 1030, SPRINGS.sheet);
-  const exit = tween(frame, [1090, 1110], [0, 1], EASE.in);
-  const pill = springAt(frame, 1046, SPRINGS.smooth) - exit;
+  if (frame < 992 || frame > 1104) return null;
+  const enter = springAt(frame, 994, SPRINGS.sheet);
+  const exit = tween(frame, [1092, 1104], [0, 1], EASE.in);
+  const pill = springAt(frame, 1004, SPRINGS.smooth) - exit;
   const synced = frame >= SYNCED_AT;
   const pop = synced ? 1 + 0.08 * Math.sin(Math.PI * tween(frame, [SYNCED_AT, SYNCED_AT + 14], [0, 1])) : 1;
   return (
@@ -215,39 +216,43 @@ export function PhoneOverlay({ frame }: { frame: number }) {
 const CMD_ADD = 'claude mcp add --transport http --scope user network https://your-network/api/mcp --header "Authorization: Bearer ntk_…"';
 const CMD_ASK = 'claude -p "Who should I catch up with in Lisbon?"';
 
+/**
+ * A plain shell transcript with only what the CLI prints (`mcp list`: one line per server;
+ * `-p`: just the answer). The `#` lines are dim annotations, not CLI output.
+ */
 export function TerminalOverlay({ frame }: { frame: number }) {
   if (frame < 1316 || frame > 1626) return null;
   const enter = springAt(frame, 1316, SPRINGS.sheet);
   const exit = tween(frame, [1602, 1624], [0, 1], EASE.in);
-  const push = tween(frame, [1340, 1600], [0, 1], EASE.inOut);
+  const push = tween(frame, [1490, 1560], [0, 1], EASE.inOut);
   const on = (f: number) => (frame >= f ? springAt(frame, f, SPRINGS.snappy) : 0);
-  const toolDone = frame >= 1470;
   const lines: TermLine[] = [
     { kind: "cmd", text: CMD_ADD, shown: tween(frame, [1318, 1356], [0.06, 1], (t) => t) },
     { kind: "out", text: "Added HTTP MCP server network with URL: https://your-network/api/mcp to user config", shown: on(1360) },
     { kind: "cmd", text: "claude mcp list", shown: tween(frame, [1368, 1376], [0, 1], (t) => t) },
     { kind: "ok", text: "network: https://your-network/api/mcp (HTTP) - ✓ Connected", shown: on(1382) },
-    { kind: "dim", text: "13 tools: search_people · get_person · list_notes · search_notes · add_note · …", shown: on(1392) },
-    { kind: "gap", text: "", shown: on(1418) },
-    { kind: "cmd", text: CMD_ASK, shown: tween(frame, [1420, 1446], [0, 1], (t) => t) },
-    { kind: "tool", text: `network › search_people(city: "Lisbon")${toolDone ? " · 3 people" : ""}`, shown: on(1452), running: !toolDone },
-    { kind: "person", name: "Inês Sampaio", text: " — met her at Web Summit today; climbs on Thursdays.", shown: on(1480) },
-    { kind: "person", name: "Mateo Fernández", text: " — raising a seed round; wants an intro to Björn.", shown: on(1492) },
-    { kind: "person", name: "Valentina Dubois", text: " — introduced you to Inês; you owe her a studio intro.", shown: on(1504) },
+    { kind: "dim", text: "# 13 tools: search_people, get_person, list_notes, search_notes, add_note, …", shown: on(1394) },
+    { kind: "gap", text: "", shown: on(1416) },
+    { kind: "cmd", text: CMD_ASK, shown: tween(frame, [1418, 1444], [0, 1], (t) => t) },
+    { kind: "dim", text: '# via MCP: network › search_people(city: "Lisbon") · 7 people', shown: on(1452) },
+    { kind: "person", text: "You know 7 people in Lisbon. Three worth a catch-up:", shown: on(1468) },
+    { kind: "person", text: "- Inês Sampaio — met at Web Summit today; climbs on Thursdays.", shown: on(1478) },
+    { kind: "person", text: "- Mateo Fernández — raising a seed round; wants an intro to Björn.", shown: on(1488) },
+    { kind: "person", text: "- Valentina Dubois — introduced you to Inês; owed a studio intro.", shown: on(1498) },
   ];
   return (
-    <AbsoluteFill style={{ perspective: 2400 }}>
+    <AbsoluteFill style={{ perspective: 2400, WebkitMaskImage: bandMask, maskImage: bandMask }}>
       <div
         style={{
           position: "absolute",
           left: 90,
           top: 232,
-          transformOrigin: "50% 30%",
-          transform: `translateY(${(1 - enter) * 900 + exit * 220}px) rotateX(${(1 - enter) * 14}deg) scale(${(0.95 + 0.05 * enter) * (1 + 0.025 * push)})`,
+          transformOrigin: "30px 100%",
+          transform: `translateY(${(1 - enter) * 900 + exit * 220}px) rotateX(${(1 - enter) * 14}deg) scale(${(0.95 + 0.05 * enter) * (1 + 0.3 * push)})`,
           opacity: 1 - exit,
         }}
       >
-        <Terminal lines={lines} caretOn={Math.floor(frame / 16) % 2 === 0} frame={frame} width={1740} size={34} />
+        <Terminal lines={lines} caretOn={Math.floor(frame / 16) % 2 === 0} width={1740} size={32} />
       </div>
     </AbsoluteFill>
   );

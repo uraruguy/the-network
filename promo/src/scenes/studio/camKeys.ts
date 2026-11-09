@@ -31,28 +31,30 @@ export const CAM: Key[] = [
   // Cards fly into the People tile: tiles + the toast in one frame.
   { f: 604, cam: { fx: 560, fy: 600, zoom: 1.4, sx: 960, sy: 640 } },
   { f: 652, cam: { fx: 562, fy: 602, zoom: 1.42 } },
-  // Search: whip-pan (Today → People hides in the blur), results pushed in.
-  { f: 668, cam: { fx: 838, fy: 355, zoom: 1.7, sx: 960, sy: 580 }, ease: WHIP },
-  { f: 760, cam: { fx: 838, fy: 352, zoom: 1.72 } },
-  { f: 780, cam: { fx: 900, fy: 262, zoom: 1.6, sx: 960, sy: 560 } },
-  { f: 790, cam: {} },
+  // Search: whip-pan (Today → People hides in the blur): the count, the field and all seven
+  // Lisbon rows in one frame; "Show on globe" is in that frame too.
+  { f: 668, cam: { fx: 838, fy: 417, zoom: 1.25, sx: 960, sy: 670 }, ease: WHIP },
+  { f: 790, cam: { fx: 840, fy: 417, zoom: 1.27 } },
   // Globe: whip from "Show on globe" onto the planet and the Lisbon panel.
   { f: 812, cam: { fx: 930, fy: 520, zoom: 1.42, sx: 960, sy: 650 }, ease: WHIP },
   { f: 856, cam: { fx: 930, fy: 524, zoom: 1.45 } },
-  // Push onto the Lisbon panel (the payoff), hold, then back out for the arcs and the flip.
-  { f: 878, cam: { fx: 1180, fy: 392, zoom: 1.8, sx: 960, sy: 680 } },
-  { f: 930, cam: { fx: 1186, fy: 396, zoom: 1.84 } },
+  // Push onto the Lisbon pin and its panel (the payoff, both fully in frame), hold, then back
+  // out for the arcs and the flip.
+  { f: 878, cam: { fx: 1048, fy: 392, zoom: 1.6, sx: 960, sy: 640 } },
+  { f: 930, cam: { fx: 1052, fy: 396, zoom: 1.63 } },
   { f: 954, cam: { fx: 920, fy: 524, zoom: 1.48, sx: 960, sy: 650 } },
   { f: 960, cam: {} },
   // (dark) the planet outgrows the window, which falls back and fades.
   { f: 1004, cam: { fx: 900, fy: 520, zoom: 1.1, sy: 700, rx: 18 } },
-  // Chat: the window returns already pushed in on the composer…
-  { f: 1098, cam: { fx: 838, fy: 860, zoom: 2.0, sx: 960, sy: 1460, rx: 22 } },
-  { f: 1124, cam: { fx: 838, fy: 860, zoom: 2.0, sx: 960, sy: 640, rx: 0 }, ease: EASE.out },
-  { f: 1140, cam: {} },
-  // …then whips up to the answer.
-  { f: 1158, cam: { fx: 838, fy: 330, zoom: 1.58, sx: 960, sy: 640 }, ease: WHIP },
-  { f: 1314, cam: { fx: 838, fy: 336, zoom: 1.63 } },
+  // Chat: the window rises over the dimmed planet, tight on the composer…
+  { f: 1100, cam: { fx: 870, fy: 862, zoom: 2.5, sx: 960, sy: 1500, rx: 22 } },
+  { f: 1128, cam: { fx: 870, fy: 862, zoom: 2.5, sx: 960, sy: 470, rx: 0 }, ease: EASE.out },
+  { f: 1142, cam: {} },
+  // …whips up to the conversation, then pushes into the answer card.
+  { f: 1160, cam: { fx: 838, fy: 330, zoom: 1.58, sx: 960, sy: 640 }, ease: WHIP },
+  { f: 1232, cam: { fx: 838, fy: 336, zoom: 1.6 } },
+  { f: 1272, cam: { fx: 838, fy: 380, zoom: 2.2, sx: 960, sy: 640 } },
+  { f: 1304, cam: { fx: 838, fy: 384, zoom: 2.24 } },
   // MCP: the window falls back behind the terminal.
   { f: 1346, cam: { fx: 720, fy: 469, zoom: 0.62, sx: 600, sy: 760, rx: 16, ry: 18 } },
 ];

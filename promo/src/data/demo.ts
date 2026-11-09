@@ -175,6 +175,15 @@ export const INTROS: [string, string][] = [
   ["Lukas Schröder", "Hannah Taylor"],
 ];
 
+/**
+ * The Studio film's graph: INTROS without Inês Sampaio, who is created later in that film by the
+ * paste import (Valentina introduced Mateo instead).
+ */
+export const INTROS_STUDIO: [string, string][] = [
+  ...INTROS.filter(([a, b]) => a !== "Inês Sampaio" && b !== "Inês Sampaio"),
+  ["Valentina Dubois", "Mateo Fernández"],
+];
+
 /** A large, deterministic crowd of names (the seed script's lists) for swarms and counters. */
 const FIRST = [
   "Žan", "Ana", "Luka", "Nika", "Matej", "Špela", "Tjaša", "Rok", "Urška", "Jure", "Maša", "Gašper", "Eva", "Nejc", "Teja", "Aljaž",

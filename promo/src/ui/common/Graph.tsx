@@ -13,14 +13,17 @@ const WARMTH = new Map<string, Warmth>(PEOPLE.map((p) => [p.name, p.warmth]));
 const warmthOf = (name: string): Warmth =>
   WARMTH.get(name) ?? (["Sara Rossi", "Max Larsen", "Nik Zupan", "Valentina Dubois"].includes(name) ? "inner" : "active");
 
+type Intros = readonly (readonly [string, string])[];
+
 /**
- * The layout, computed once: BFS from the owner over INTROS (who introduced whom), ~40 faint
- * ambient acquaintances hung off random people for density, then a seeded d3-force run to rest.
+ * A layout, computed once per intro list: BFS from the owner over the list (who introduced whom),
+ * ~40 faint ambient acquaintances hung off random people for density, then a seeded d3-force run
+ * to rest. The default list is INTROS.
  */
-const LAYOUT = (() => {
+function buildLayout(intros: Intros) {
   const r = rng(20261030);
   const children = new Map<string, string[]>();
-  for (const [a, b] of INTROS) children.set(a, [...(children.get(a) ?? []), b]);
+  for (const [a, b] of intros) children.set(a, [...(children.get(a) ?? []), b]);
 
   const nodes = new Map<string, GNode>();
   const links: GLink[] = [];
@@ -78,22 +81,30 @@ const LAYOUT = (() => {
   const maxX = Math.max(...list.map((n) => Math.abs(n.x ?? 0))) + 30;
   const maxY = Math.max(...list.map((n) => Math.abs(n.y ?? 0))) + 40;
   return { nodes, links, maxX, maxY };
-})();
+}
+type Layout = ReturnType<typeof buildLayout>;
+const LAYOUTS = new Map<Intros, Layout>();
+function layoutFor(intros: Intros): Layout {
+  let l = LAYOUTS.get(intros);
+  if (!l) LAYOUTS.set(intros, (l = buildLayout(intros)));
+  return l;
+}
+const LAYOUT = layoutFor(INTROS);
 
 /** An introduction chain from the owner to `name`, as node ids. */
-export function chainTo(name: string): string[] {
+export function chainTo(name: string, layout: Layout = LAYOUT): string[] {
   const out: string[] = [];
-  let cur = LAYOUT.nodes.get(name);
+  let cur = layout.nodes.get(name);
   while (cur) {
     out.unshift(cur.id);
-    cur = cur.parent ? LAYOUT.nodes.get(cur.parent) : undefined;
+    cur = cur.parent ? layout.nodes.get(cur.parent) : undefined;
   }
   return out;
 }
 
 /** Graph units → px so the whole graph fits the box with a margin (owner at the centre). */
-function fitScale(width: number, height: number) {
-  return Math.min((width * 0.45) / LAYOUT.maxX, (height * 0.43) / LAYOUT.maxY);
+function fitScale(width: number, height: number, layout: Layout = LAYOUT) {
+  return Math.min((width * 0.45) / layout.maxX, (height * 0.43) / layout.maxY);
 }
 
 /** The `pan` that centres `name` in a `width`×`height` box at `zoom` (camera push-ins). */
@@ -121,6 +132,8 @@ export type NetworkGraphProps = {
   labels?: boolean;
   /** Show the faint ambient acquaintances. */
   ambient?: boolean;
+  /** Who introduced whom (default: INTROS). Pass a stable (module-level) array: layouts are cached per array. */
+  intros?: Intros;
   style?: CSSProperties;
 };
 
@@ -130,18 +143,19 @@ const EDGE_DUR = 0.16;
  * "Who introduced whom" (the app's graph view), as a growing constellation: curved edges draw out
  * from you, avatars pop in with a spring, light pulses run along the introductions.
  */
-export function NetworkGraph({ width, height, grow, theme = "light", zoom = 1, pan = [0, 0], highlight, highlightAmount, labels = true, ambient = true, style }: NetworkGraphProps) {
+export function NetworkGraph({ width, height, grow, theme = "light", zoom = 1, pan = [0, 0], highlight, highlightAmount, labels = true, ambient = true, intros = INTROS, style }: NetworkGraphProps) {
   const frame = useCurrentFrame();
+  const LAYOUT = layoutFor(intros);
   const dark = theme === "dark";
   const unit = Math.min(width, height) / 1080;
-  const fit = fitScale(width, height);
+  const fit = fitScale(width, height, LAYOUT);
   const k = fit * zoom;
   const ox = width / 2 + pan[0];
   const oy = height / 2 + pan[1];
   const at = (n: GNode) => ({ x: ox + (n.x ?? 0) * k, y: oy + (n.y ?? 0) * k });
   const s = unit * zoom;
 
-  const chain = highlight ? chainTo(highlight) : [];
+  const chain = highlight ? chainTo(highlight, LAYOUT) : [];
   const hl = highlight ? (highlightAmount ?? 1) : 0;
   const inChain = new Set(chain);
   const chainEdge = (a: string, b: string) => {

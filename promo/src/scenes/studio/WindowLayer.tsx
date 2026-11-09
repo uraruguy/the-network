@@ -17,9 +17,12 @@ export function WindowLayer({
   dark,
   children,
   band = true,
+  fadeBelow,
   opacity = 1,
   blurId,
 }: {
+  /** Screen y below which the window dissolves into the stage (hides its bottom edge). */
+  fadeBelow?: number;
   frame: number;
   keys: Key[];
   dark: boolean;
@@ -34,7 +37,8 @@ export function WindowLayer({
   const bx = Math.min(22, Math.abs(v.dx) * 0.11 + dolly);
   const by = Math.min(22, Math.abs(v.dy) * 0.11 + dolly);
   const blurred = bx > 0.4 || by > 0.4;
-  const mask = band ? `linear-gradient(to bottom, transparent 0px, transparent ${BAND}px, black ${BAND + 30}px)` : undefined;
+  const below = fadeBelow === undefined ? "" : `, black ${fadeBelow}px, transparent ${fadeBelow + 70}px`;
+  const mask = band ? `linear-gradient(to bottom, transparent 0px, transparent ${BAND}px, black ${BAND + 30}px${below})` : undefined;
   return (
     <AbsoluteFill style={{ opacity, WebkitMaskImage: mask, maskImage: mask, filter: blurred ? `url(#${blurId})` : undefined }}>
       {blurred && (

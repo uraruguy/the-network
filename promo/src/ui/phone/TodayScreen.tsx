@@ -5,6 +5,8 @@ import { DUE, OWNER, STATS, THIS_WEEK, TODAY_LABEL, type FollowUp } from "../../
 import { AppBg, CheckCircle, HomeIndicator, SAT, Screen, TabBar, UndoToast } from "./parts";
 
 const nf = new Intl.NumberFormat("en-GB");
+/** This week holds only Nik's rematch, so the undo toast above the tab bar floats over empty canvas. */
+const WEEK = THIS_WEEK.filter((f) => f.name === "Nik Zupan");
 
 export type TodayProps = {
   /** 0→1: stat tiles count up from zero. */
@@ -59,9 +61,9 @@ export function TodayScreen({ stats = 1, done = 0, fold = 0, toast = 0, scrollY 
         </section>
 
         <section className="mt-8">
-          <SectionTitle title="This week" count={THIS_WEEK.length} />
+          <SectionTitle title="This week" count={WEEK.length} />
           <ul className="surface overflow-hidden rounded-lg">
-            {THIS_WEEK.map((f, i) => (
+            {WEEK.map((f, i) => (
               <Row key={f.name} f={f} first={i === 0} upcoming />
             ))}
           </ul>

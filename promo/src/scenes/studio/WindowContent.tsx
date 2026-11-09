@@ -7,6 +7,7 @@ import { HL_COUNT, ImportSheet, PROPOSALS } from "../../ui/desktop/ImportSheet";
 import { PeoplePage, ROWS, matches } from "../../ui/desktop/People";
 import { DesktopShell } from "../../ui/desktop/Shell";
 import { TodayPage, Toast } from "../../ui/desktop/Today";
+import { COUNTER_LANDS } from "./Bloom";
 import type { Theme } from "./World";
 
 const SEARCH = "lisbon";
@@ -17,7 +18,7 @@ const ASK_CPS = 40;
 /** Page switches happen inside whip moves (peak motion blur). */
 const TO_PEOPLE = 660;
 const TO_GLOBE = 798;
-const TO_CHAT = 1090;
+const TO_CHAT = 1098;
 
 /** Globe page geometry (main-area space) and rotation; shared with the cursor and the flip. */
 export const GLOBE = { w: 1204, h: 900, cx: 520, cy: 500, r: 400 };
@@ -50,7 +51,8 @@ function importState(frame: number) {
     open: Math.max(0, Math.min(1, open)),
     hl: Array.from({ length: HL_COUNT }, (_, i) => progress(frame, 392 + i * 8, 12, EASE.out)),
     reading: frame >= 388 && frame < 446,
-    lift: PROPOSALS.map((_, i) => progress(frame, 446 + i * 7, 28, EASE.inOut)),
+    // One name in the air at a time.
+    lift: PROPOSALS.map((_, i) => progress(frame, 446 + i * 16, 16, EASE.inOut)),
     text: progress(frame, 450, 12, EASE.in),
     cards: progress(frame, 464, 16, EASE.out),
     savePress: Math.max(0, 1 - Math.abs(frame - 570) / 6),
@@ -95,7 +97,7 @@ export function WindowContent({ frame, theme }: { frame: number; theme: Theme })
   const page = navIndex(frame);
   return (
     <DesktopShell active={page} overlay={frame >= 364 && frame < 640 ? <ImportSheet s={importState(frame)} /> : null}>
-      {page === 0 && <TodayPage rows={{ [DUE[0]!.name]: sara }} stats={{ people, cities: 79, due }} peopleBump={bump} />}
+      {page === 0 && <TodayPage rows={{ [DUE[0]!.name]: sara }} stats={{ people, cities: 79, due }} peopleBump={bump} hidePeople={frame < COUNTER_LANDS} imported={frame >= 600} />}
       {page === 1 && (
         <PeoplePage
           total={people}

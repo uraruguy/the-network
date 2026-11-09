@@ -9,7 +9,7 @@ import { PeopleScreen } from "../../ui/phone/PeopleScreen";
 import { PersonScreen, type Filed } from "../../ui/phone/PersonScreen";
 import { TodayScreen } from "../../ui/phone/TodayScreen";
 import { B, LANDING, landAt } from "./beats";
-import { globeRotation } from "./GlobeBreakout";
+import { CLUSTER_ANGLE, RAISE, arcsAt, globeRotation } from "./GlobeBreakout";
 
 /** iOS push: `from` slides 30% left and dims, `to` slides in from the right with an edge shadow. `reverse` pops. */
 function Push({ t, from, to, reverse = false }: { t: number; from: ReactNode; to: ReactNode; reverse?: boolean }) {
@@ -30,6 +30,7 @@ function Push({ t, from, to, reverse = false }: { t: number; from: ReactNode; to
 export const TODAY_SARA_CHECK: [number, number] = [44, 435];
 export const PEOPLE_SEARCH: [number, number] = [150, 165];
 export const GLOBE_TAB: [number, number] = [201, 809];
+export const CHAT_TAB: [number, number] = [273, 809];
 export const QUERY = "aljaz";
 
 /** What has landed on Nik's card by `frame` (0→1 per section) and how bright its flash is. */
@@ -76,21 +77,23 @@ export function PhoneContent({ frame, personRef, personScroll = 0 }: { frame: nu
   } else if (frame < B.globeSwap) {
     screen = people(frame);
     tab = 1;
-  } else if (frame < 1300) {
-    // Crisp tab swap: content switches in 4 frames while the pill slides.
+  } else if (frame < B.chatSwap + 4) {
+    // Crisp tab swaps: content switches in 4 frames while the pill slides.
     screen = (
       <>
         {frame < B.globeSwap + 4 && people(frame)}
         <div style={{ position: "absolute", inset: 0, opacity: progress(frame, B.globeSwap, 4, (t) => t) }}>{globe(frame)}</div>
+        {frame >= B.chatSwap && <div style={{ position: "absolute", inset: 0, opacity: progress(frame, B.chatSwap, 4, (t) => t) }}>{chat(frame)}</div>}
       </>
     );
-    tab = 1 + progress(frame, B.globeSwap, 14, EASE.out);
+    tab = 1 + progress(frame, B.globeSwap, 14, EASE.out) + progress(frame, B.chatSwap, 14, EASE.out);
   } else {
     screen = chat(frame);
     tab = 3;
   }
 
-  const barOut = frame >= B.breakout && frame < 1300 ? progress(frame, B.breakout, 30, EASE.in) : 0;
+  // The tab bar slides away while the globe is out of the phone, and back when it returns.
+  const barOut = frame >= B.breakout && frame < B.chatSwap ? progress(frame, B.breakout, 30, EASE.in) * (1 - progress(frame, B.globeExit + 6, 24, EASE.out)) : 0;
   return (
     <>
       {screen}
@@ -99,6 +102,7 @@ export function PhoneContent({ frame, personRef, personScroll = 0 }: { frame: nu
       <Tap x={TODAY_SARA_CHECK[0]} y={TODAY_SARA_CHECK[1]} t={frame - B.saraTap} hold={8} />
       <Tap x={PEOPLE_SEARCH[0]} y={PEOPLE_SEARCH[1]} t={frame - B.searchTap} hold={6} />
       <Tap x={GLOBE_TAB[0]} y={GLOBE_TAB[1]} t={frame - B.globeTap} hold={5} />
+      <Tap x={CHAT_TAB[0]} y={CHAT_TAB[1]} t={frame - B.chatTap} hold={5} />
       <Tap x={362} y={740} t={frame - B.askSend} hold={5} />
     </>
   );
@@ -124,16 +128,21 @@ function globe(frame: number) {
       tab={-1}
       rotate={globeRotation(frame)}
       reveal={progress(frame, B.globeSwap + 4, 40, EASE.out)}
-      globeHidden={frame >= B.breakout}
-      chromeOut={progress(frame, B.breakout - 8, 24, EASE.in)}
+      globeHidden={frame >= B.breakout && frame < B.globeHome}
+      chromeOut={progress(frame, B.breakout - 8, 24, EASE.in) * (1 - progress(frame, B.globeExit + 4, 24, EASE.out))}
+      arcs={arcsAt(frame)}
+      clusterAngle={CLUSTER_ANGLE}
+      raise={RAISE}
     />
   );
 }
 
 function chat(frame: number) {
+  const p1 = B.askSent + 12;
+  const p2 = B.askSent + 24;
   const pills = [
-    { label: "Searching people", doneLabel: "Searched people", detail: "3 people", t: clamp01((frame - 1432) / 8), done: frame >= 1460 },
-    { label: "Reading notes", doneLabel: "Read notes", detail: "4 notes", t: clamp01((frame - 1444) / 8), done: frame >= 1472 },
+    { label: "Searching people", doneLabel: "Searched people", detail: "3 people", t: clamp01((frame - p1) / 8), done: frame >= p1 + 28 },
+    { label: "Reading notes", doneLabel: "Read notes", detail: "4 notes", t: clamp01((frame - p2) / 8), done: frame >= p2 + 28 },
   ];
   return (
     <ChatScreen
@@ -142,7 +151,7 @@ function chat(frame: number) {
       draft={frame < B.askSent ? typed(ASK.question, frame, B.askType, 52) : ""}
       caret={frame < B.askSent}
       sent={springAt(frame, B.askSent, SPRINGS.snappy)}
-      tools={frame >= 1432 ? pills : []}
+      tools={frame >= p1 ? pills : []}
       answer={progress(frame, B.answer, 14, EASE.out)}
       chars={Math.floor(Math.max(0, frame - B.answer - 2) * 1.8)}
       rows={tween(frame, [B.answer + 18, B.answer + 54], [0, 3], (t) => t)}

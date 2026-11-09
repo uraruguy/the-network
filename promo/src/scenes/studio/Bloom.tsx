@@ -1,5 +1,6 @@
 import { AbsoluteFill, interpolate } from "remotion";
 import { EASE, clamp01, tween } from "../../kit/motion";
+import { INTROS_STUDIO } from "../../data/demo";
 import { NetworkGraph } from "../../ui/common/Graph";
 import { camAt, project } from "./camera";
 import { CAM } from "./camKeys";
@@ -22,26 +23,37 @@ export function Bloom({ frame }: { frame: number }) {
   const mask = "linear-gradient(to bottom, transparent 0, transparent 270px, black 360px), linear-gradient(to right, transparent 0, transparent 330px, black 560px)";
   return (
     <AbsoluteFill style={{ opacity: 1 - tween(frame, [104, 116], [0, 1], EASE.in), WebkitMaskImage: mask, maskImage: mask, WebkitMaskComposite: "source-in", maskComposite: "intersect" }}>
-      <NetworkGraph width={1920} height={1080} grow={grow} theme="dark" zoom={zoom} pan={pan} labels ambient />
+      <NetworkGraph width={1920} height={1080} grow={grow} theme="dark" zoom={zoom} pan={pan} labels ambient intros={INTROS_STUDIO} />
     </AbsoluteFill>
   );
 }
 
-/** Hook, front layer: the big counter ticks to 285, then flies into the People tile. */
+/** The counter lands on this frame; the tile's own number appears on the same frame. */
+export const COUNTER_LANDS = 121;
+/** The tile number's type (text-title2): the counter is this exact text, scaled. */
+const TILE_FONT = { font: '600 22px/28px "Inter Variable", sans-serif', letterSpacing: "-0.012em" };
+const BIG = 150 / 22;
+
+/**
+ * Hook, front layer: the big counter ticks to 285, then flies into the People tile. It is set in
+ * the tile number's exact type and only scaled, so at the landing it is pixel-identical to the
+ * tile's own number, which takes over on the same frame.
+ */
 export function BloomCounter({ frame }: { frame: number }) {
-  if (frame > 132) return null;
+  if (frame >= COUNTER_LANDS) return null;
   const count = Math.round(tween(frame, [0, 80], [128, 285], EASE.out));
-  const fly = tween(frame, [92, 122], [0, 1], EASE.inOut);
+  const fly = tween(frame, [92, COUNTER_LANDS - 1], [0, 1], EASE.inOut);
   const tile = tileAt(frame);
-  const start = { x: 110, y: 610 };
-  const cx = start.x + (tile.x - start.x) * fly;
-  const cy = start.y + (tile.y - start.y) * fly - Math.sin(Math.PI * fly) * 90;
-  const scale = 1 + ((22 * tile.k) / 150 - 1) * fly;
+  const start = { x: 110, y: 610 - (28 * BIG) / 2 };
+  const x = start.x + (tile.x - start.x) * fly;
+  const y = start.y + (tile.y - start.y) * fly - Math.sin(Math.PI * fly) * 90;
+  const scale = BIG + (tile.k - BIG) * fly;
   const labels = 1 - tween(frame, [88, 100], [0, 1]);
+  const ink = tween(frame, [104, COUNTER_LANDS - 2], [0, 1]);
   return (
     <AbsoluteFill>
-      <div style={{ position: "absolute", left: cx, top: cy, transformOrigin: "0 50%", transform: `translateY(-50%) scale(${scale})`, opacity: 1 - tween(frame, [117, 123], [0, 1]) }}>
-        <div style={{ font: '700 150px/1 "Inter Variable", sans-serif', letterSpacing: "-0.05em", color: fly > 0.85 ? "var(--fg)" : "#fff", fontVariantNumeric: "tabular-nums", textShadow: fly > 0.5 ? undefined : "0 6px 30px rgba(0,40,46,0.35)" }}>{count}</div>
+      <div style={{ position: "absolute", left: x, top: y, transformOrigin: "0 0", transform: `scale(${scale})`, ...TILE_FONT, fontVariantNumeric: "tabular-nums", color: `color-mix(in oklab, var(--fg) ${ink * 100}%, white)`, whiteSpace: "nowrap" }}>
+        {count}
       </div>
       <div style={{ position: "absolute", left: 118, top: 700, opacity: clamp01(labels), font: '500 22px "JetBrains Mono Variable", monospace', letterSpacing: "0.16em", color: "rgba(255,255,255,0.85)", lineHeight: 1.7 }}>
         PEOPLE

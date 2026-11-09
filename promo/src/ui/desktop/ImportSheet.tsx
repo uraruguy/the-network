@@ -25,7 +25,7 @@ const HL_TEXT = { person: "var(--accent-strong)", place: "color-mix(in oklab, va
 
 type Proposal = { name: string; facts: string; city?: string; match?: boolean; followUp?: string; cat: keyof typeof CATEGORY };
 export const PROPOSALS: Proposal[] = [
-  { name: "Inês Sampaio", facts: "Product designer · Figma", city: "Lisbon", cat: "friend" },
+  { name: "Inês Sampaio", facts: "Product designer", city: "Lisbon", cat: "friend" },
   { name: "Mateo Fernández", facts: "Founder", city: "Lisbon", match: true, cat: "founder" },
   { name: "Björn Østergaard", facts: "Partner · Index Ventures", match: true, cat: "investor" },
   { name: "Chloé Lefèvre", facts: "Journalist", city: "Paris", match: true, followUp: "next week", cat: "acquaint" },
@@ -65,6 +65,11 @@ function offsetIn(el: HTMLElement, root: HTMLElement): Box {
 }
 
 const arc = (a: Box, b: Box, t: number, lift = 70) => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t - Math.sin(Math.PI * t) * lift });
+/** Quadratic Bézier from a to b through control point c. */
+const via = (a: Box, c: { x: number; y: number }, b: Box, t: number) => {
+  const u = 1 - t;
+  return { x: u * u * a.x + 2 * u * t * c.x + t * t * b.x, y: u * u * a.y + 2 * u * t * c.y + t * t * b.y };
+};
 
 /** Content-area position of the People tile's number (Today: main 106, 277). */
 const TILE = { x: 236 + 106, y: 277 - 10 };
@@ -166,7 +171,7 @@ export function ImportSheet({ s }: { s: ImportState }) {
                         <Avatar name={p.name} size={36} />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <div data-card-name="" className="inline-block truncate text-headline text-fg" style={{ opacity: (s.lift[i] ?? 0) > 0.97 ? 1 : 0 }}>
+                        <div data-card-name="" className="inline-block truncate text-headline text-fg" style={{ opacity: (s.lift[i] ?? 0) >= 1 ? 1 : 0 }}>
                           {p.name}
                         </div>
                         <p className="mt-0.5 flex items-center gap-1.5 truncate text-footnote text-fg-3">
@@ -231,15 +236,31 @@ export function ImportSheet({ s }: { s: ImportState }) {
       {m &&
         PROPOSALS.map((p, i) => {
           const t = s.lift[i] ?? 0;
-          const a = m.spans[i];
+          const span = m.spans[i];
           const b = m.names[i];
-          if (!a || !b || t <= 0 || t >= 1) return null;
-          const at = arc(a, b, t);
+          if (!span || !b || t <= 0 || t >= 1) return null;
+          // The span's text sits inside 2 px / 1 px padding.
+          const a = { ...span, x: span.x + 2, y: span.y + 1 };
+          // Lower-row cards are reached through the gutters (between the columns, then the rows),
+          // so no name flies across another card.
+          const col1 = m.avatars[1];
+          const row1 = m.avatars[2];
+          const gutter = col1 && row1 ? { x: col1.x - 14, y: row1.y - 14 } : { x: b.x, y: b.y };
+          const at = i >= 2 ? via(a, { x: gutter.x, y: gutter.y }, b, t) : arc(a, b, t, 40);
+          const bump = Math.sin(Math.PI * t);
           return (
             <span
               key={`lift-${p.name}`}
-              className="absolute rounded-[6px] px-1 text-headline whitespace-nowrap text-accent-strong"
-              style={{ left: at.x - 4, top: at.y, background: `color-mix(in oklab, var(--accent) ${26 * (1 - t)}%, transparent)`, color: t > 0.6 ? "var(--fg)" : undefined, transform: `scale(${1 + Math.sin(Math.PI * t) * 0.18})`, boxShadow: `0 ${8 * Math.sin(Math.PI * t)}px ${20 * Math.sin(Math.PI * t)}px -6px rgba(0,60,70,0.3)`, zIndex: 60 }}
+              className="absolute text-headline whitespace-nowrap"
+              style={{
+                left: at.x,
+                top: at.y,
+                color: t > 0.5 ? "var(--fg)" : "var(--accent-strong)",
+                transformOrigin: "0 50%",
+                transform: `scale(${1 + bump * 0.16})`,
+                textShadow: `0 ${6 * bump}px ${16 * bump}px rgba(0,60,70,${0.35 * bump})`,
+                zIndex: 60,
+              }}
             >
               {p.name}
             </span>
