@@ -13,12 +13,12 @@ import type { Theme } from "./World";
 const SEARCH = "lisbon";
 const TYPE_AT = 670;
 const TYPE_CPS = 13;
-const ASK_TYPE_AT = 1086;
-const ASK_CPS = 40;
+const ASK_TYPE_AT = 1098;
+const ASK_CPS = 46;
 /** Page switches happen inside whip moves (peak motion blur). */
 const TO_PEOPLE = 660;
 const TO_GLOBE = 798;
-const TO_CHAT = 1098;
+const TO_CHAT = 1100;
 
 /** Globe page geometry (main-area space) and rotation; shared with the cursor and the flip. */
 export const GLOBE = { w: 1204, h: 900, cx: 520, cy: 500, r: 400 };
@@ -51,10 +51,11 @@ function importState(frame: number) {
     open: Math.max(0, Math.min(1, open)),
     hl: Array.from({ length: HL_COUNT }, (_, i) => progress(frame, 392 + i * 8, 12, EASE.out)),
     reading: frame >= 388 && frame < 446,
-    // One name in the air at a time.
-    lift: PROPOSALS.map((_, i) => progress(frame, 446 + i * 16, 16, EASE.inOut)),
-    text: progress(frame, 450, 12, EASE.in),
-    cards: progress(frame, 464, 16, EASE.out),
+    // Every name lifts off its word while the note is fully visible, and lands once the cards are in.
+    lift: PROPOSALS.map((_, i) => progress(frame, 444 + i * 3, 22, EASE.inOut)),
+    // The note fades out while the cards fade in (8 frames of overlap: the sheet is never empty).
+    text: progress(frame, 452, 14, EASE.in),
+    cards: progress(frame, 458, 8, EASE.out),
     savePress: Math.max(0, 1 - Math.abs(frame - 570) / 6),
     file: PROPOSALS.map((_, i) => progress(frame, 576 + i * 6, 30, EASE.inOut)),
     frame,
@@ -88,11 +89,11 @@ export function WindowContent({ frame, theme }: { frame: number; theme: Theme })
   const query = frame < TYPE_AT ? "" : typed(SEARCH, frame, TYPE_AT, TYPE_CPS);
   const rot = globeRotate(frame);
 
-  const sent = springAt(frame, 1142, SPRINGS.smooth);
+  const sent = springAt(frame, 1148, SPRINGS.smooth);
   const pills: { p: Pill; appear: number }[] = [];
-  if (frame >= 1150) pills.push({ p: { label: frame < 1166 ? "Searching people" : "Searched people", detail: "3 people", state: frame < 1166 ? "running" : "done" }, appear: springAt(frame, 1150, SPRINGS.snappy) });
-  if (frame >= 1160) pills.push({ p: { label: frame < 1178 ? "Reading notes" : "Read notes", detail: "4 notes", state: frame < 1178 ? "running" : "done" }, appear: springAt(frame, 1160, SPRINGS.snappy) });
-  const answer = frame >= 1180 ? { lead: springAt(frame, 1180, SPRINGS.smooth), rows: [1188, 1198, 1208].map((a) => springAt(frame, a, SPRINGS.smooth)), tail: springAt(frame, 1222, SPRINGS.smooth) } : null;
+  if (frame >= 1158) pills.push({ p: { label: frame < 1174 ? "Searching people" : "Searched people", detail: "3 people", state: frame < 1174 ? "running" : "done" }, appear: springAt(frame, 1158, SPRINGS.snappy) });
+  if (frame >= 1166) pills.push({ p: { label: frame < 1184 ? "Reading notes" : "Read notes", detail: "4 notes", state: frame < 1184 ? "running" : "done" }, appear: springAt(frame, 1166, SPRINGS.snappy) });
+  const answer = frame >= 1188 ? { lead: springAt(frame, 1188, SPRINGS.smooth), rows: [1196, 1206, 1216].map((a) => springAt(frame, a, SPRINGS.smooth)), tail: springAt(frame, 1228, SPRINGS.smooth) } : null;
 
   const page = navIndex(frame);
   return (
@@ -125,14 +126,26 @@ export function WindowContent({ frame, theme }: { frame: number; theme: Theme })
                 home="Lisbon"
                 reveal={tween(frame, [802, 850], [0, 1], (t) => t)}
                 focus={frame >= 852 ? "Lisbon" : undefined}
-                clusterRadius={46}
+                clusterAngle={0.115}
                 arcs={arcsAt(frame)}
               />
             </div>
           }
         />
       )}
-      {page === 3 && <ChatPage showEmpty={false} typed={typed(QUESTION, frame, ASK_TYPE_AT, ASK_CPS)} caret={frame < 1142 && Math.floor(frame / 24) % 2 === 0} sent={sent} pills={pills} answer={answer} frame={frame} sendPress={Math.max(0, 1 - Math.abs(frame - 1140) / 5)} />}
+      {page === 3 && (
+        <ChatPage
+          thread
+          showEmpty={false}
+          typed={typed(QUESTION, frame, ASK_TYPE_AT, ASK_CPS)}
+          caret={frame < 1148 && Math.floor(frame / 24) % 2 === 0}
+          sent={sent}
+          pills={pills}
+          answer={answer}
+          frame={frame}
+          sendPress={Math.max(0, 1 - Math.abs(frame - 1146) / 5)}
+        />
+      )}
       {saved > 0 && (
         <Toast
           icon="success"

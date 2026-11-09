@@ -52,12 +52,12 @@ const WAYPOINTS: Waypoint[] = [
   { f: 850, at: lisbon, travel: 14 },
   { f: 854, at: lisbon },
   { f: 870, at: off(lisbon, 110, 120), travel: 14 },
-  { f: 1124, at: off(send, 130, 110) },
-  { f: 1138, at: send, travel: 14 },
-  { f: 1142, at: send },
-  { f: 1156, at: off(send, 120, 100), travel: 12 },
+  { f: 1130, at: off(send, 130, 110) },
+  { f: 1144, at: send, travel: 14 },
+  { f: 1148, at: send },
+  { f: 1162, at: off(send, 120, 100), travel: 12 },
 ];
-const CLICKS = [204, 570, 786, 852, 1140];
+const CLICKS = [204, 570, 786, 852, 1146];
 
 /** Visible only around its clicks. */
 const SHOWN: [number, number][] = [
@@ -65,7 +65,7 @@ const SHOWN: [number, number][] = [
   [536, 600],
   [756, 800],
   [832, 890],
-  [1120, 1160],
+  [1126, 1168],
 ];
 
 export function CursorLayer({ frame }: { frame: number }) {

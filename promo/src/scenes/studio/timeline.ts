@@ -5,7 +5,7 @@
  */
 
 /** The light → dark flip: a circle wipe from the Lisbon pin, on the beat. */
-export const FLIP = { start: 960, end: 1000 } as const;
+export const FLIP = { start: 960, end: 986 } as const;
 
 /** Window-space offset of the main area (sidebar 236, title bar 38). */
 export const MAIN = { x: 236, y: 38 } as const;

@@ -15,10 +15,10 @@ export const LISBON_PEOPLE = [
   { name: "Inês Sampaio", sub: "Product designer · Figma", emoji: "🧗☕️", inner: true },
   { name: "Mateo Fernández", sub: "Founder", emoji: "🧗🎾" },
   { name: "Valentina Dubois", sub: "Designer", emoji: "🧗🍽️✈️" },
-  { name: "José Silva", sub: "Architect", emoji: "🚴" },
-  { name: "Camila Sampaio", sub: "Data scientist · Revolut", emoji: "🍸" },
-  { name: "Diego Silva", sub: "Chef", emoji: "🍽️" },
-  { name: "Inês Fernández", sub: "Photographer", emoji: "📷" },
+  { name: "Diego Kim", sub: "Chef", emoji: "🍽️", inner: true },
+  { name: "Maša Kralj", sub: "Data scientist · Revolut", emoji: "🍸" },
+  { name: "Søren Lindqvist", sub: "Architect", emoji: "🚴" },
+  { name: "Teja Habjan", sub: "Photographer", emoji: "📷" },
 ];
 
 /** CityPanel (desktop): the floating 360 px side panel for one city. */

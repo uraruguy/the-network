@@ -24,7 +24,7 @@ export function Outro({ frame, theme }: { frame: number; theme: Theme }) {
   return (
     <AbsoluteFill>
       <AbsoluteFill style={{ opacity: 0.5 * planet, transform: `translateY(${(1 - planet) * 120}px)` }}>
-        <Globe width={1920} height={1080} radius={780} center={[960, 1370]} rotate={[-(20 + 14 * spin), -38]} theme="dark" home="Lisbon" reveal={1} arcs={arcsAt(2000)} labels={false} uiScale={1.5} atmosphere={1.2} />
+        <Globe width={1920} height={1080} radius={780} center={[960, 1370]} rotate={[-(20 + 14 * spin), -38]} theme="dark" home="Lisbon" reveal={1} arcs={arcsAt(2000)} labels={false} uiScale={1.5} atmosphere={1.2} clusterAngle={0.115} />
       </AbsoluteFill>
       <AbsoluteFill style={{ alignItems: "center", paddingTop: 150, flexDirection: "column" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 26 }}>

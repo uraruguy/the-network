@@ -17,12 +17,12 @@ export function WindowLayer({
   dark,
   children,
   band = true,
-  fadeBelow,
+  wipe,
   opacity = 1,
   blurId,
 }: {
-  /** Screen y below which the window dissolves into the stage (hides its bottom edge). */
-  fadeBelow?: number;
+  /** 0..1: reveal the window from the bottom of the frame up, behind a soft 240 px gradient edge. */
+  wipe?: number;
   frame: number;
   keys: Key[];
   dark: boolean;
@@ -37,10 +37,20 @@ export function WindowLayer({
   const bx = Math.min(22, Math.abs(v.dx) * 0.11 + dolly);
   const by = Math.min(22, Math.abs(v.dy) * 0.11 + dolly);
   const blurred = bx > 0.4 || by > 0.4;
-  const below = fadeBelow === undefined ? "" : `, black ${fadeBelow}px, transparent ${fadeBelow + 70}px`;
-  const mask = band ? `linear-gradient(to bottom, transparent 0px, transparent ${BAND}px, black ${BAND + 30}px${below})` : undefined;
+  const bandMask = band ? `linear-gradient(to bottom, transparent 0px, transparent ${BAND}px, black ${BAND + 30}px)` : "linear-gradient(black, black)";
+  const edge = wipe === undefined ? null : 1080 + 240 - wipe * (1080 + 480);
+  const mask = edge === null ? bandMask : `${bandMask}, linear-gradient(to bottom, transparent 0px, transparent ${edge}px, black ${edge + 240}px)`;
   return (
-    <AbsoluteFill style={{ opacity, WebkitMaskImage: mask, maskImage: mask, filter: blurred ? `url(#${blurId})` : undefined }}>
+    <AbsoluteFill
+      style={{
+        opacity,
+        WebkitMaskImage: mask,
+        maskImage: mask,
+        WebkitMaskComposite: edge === null ? undefined : "source-in",
+        maskComposite: edge === null ? undefined : "intersect",
+        filter: blurred ? `url(#${blurId})` : undefined,
+      }}
+    >
       {blurred && (
         <svg width="0" height="0" style={{ position: "absolute" }}>
           <filter id={blurId} x="-5%" y="-5%" width="110%" height="110%">

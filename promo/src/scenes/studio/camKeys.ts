@@ -44,17 +44,18 @@ export const CAM: Key[] = [
   { f: 930, cam: { fx: 1052, fy: 396, zoom: 1.63 } },
   { f: 954, cam: { fx: 920, fy: 524, zoom: 1.48, sx: 960, sy: 650 } },
   { f: 960, cam: {} },
-  // (dark) the planet outgrows the window, which falls back and fades.
-  { f: 1004, cam: { fx: 900, fy: 520, zoom: 1.1, sy: 700, rx: 18 } },
-  // Chat: the window rises over the dimmed planet, tight on the composer…
-  { f: 1100, cam: { fx: 830, fy: 862, zoom: 2.4, sx: 960, sy: 1500, rx: 22 } },
-  { f: 1128, cam: { fx: 830, fy: 862, zoom: 2.4, sx: 960, sy: 470, rx: 0 }, ease: EASE.out },
-  { f: 1142, cam: {} },
-  // …whips up to the conversation, then pushes into the answer card.
-  { f: 1160, cam: { fx: 838, fy: 330, zoom: 1.58, sx: 960, sy: 640 }, ease: WHIP },
-  { f: 1232, cam: { fx: 838, fy: 336, zoom: 1.6 } },
-  { f: 1272, cam: { fx: 838, fy: 380, zoom: 2.2, sx: 960, sy: 640 } },
-  { f: 1304, cam: { fx: 838, fy: 384, zoom: 2.24 } },
+  // The wipe runs on an unchanged shot; only then the window falls back behind the planet.
+  { f: 986, cam: {} },
+  { f: 1012, cam: { fx: 900, fy: 520, zoom: 1.1, sy: 700, rx: 18 } },
+  // Chat: the page wipes in full-frame (thread + composer), the question rises into the
+  // thread, then the camera pushes into the answer card.
+  { f: 1100, cam: { fx: 720, fy: 600, zoom: 1.38, sx: 960, sy: 640, rx: 0, ry: 0 } },
+  { f: 1126, cam: {} },
+  { f: 1144, cam: { fx: 800, fy: 650, zoom: 1.6 } },
+  { f: 1196, cam: { fx: 838, fy: 650, zoom: 1.62 } },
+  { f: 1236, cam: {} },
+  { f: 1272, cam: { fx: 838, fy: 700, zoom: 2.15 } },
+  { f: 1304, cam: { fx: 838, fy: 704, zoom: 2.18 } },
   // MCP: the window falls back behind the terminal.
   { f: 1346, cam: { fx: 720, fy: 469, zoom: 0.62, sx: 600, sy: 760, rx: 16, ry: 18 } },
 ];

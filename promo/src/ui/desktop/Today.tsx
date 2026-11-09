@@ -75,7 +75,7 @@ function Tile({ icon, label, value, accent, bump = 0, hideValue }: { icon: React
 
 /** Reconnect nudges (seed-list names; Inês is imported later in the film, so she can't be here). */
 const RECONNECT: { name: string; ago: string; warmth: keyof typeof WARMTH_COLOR; label: string }[] = [
-  { name: "Diego Silva", ago: "2mo", warmth: "inner", label: "Close" },
+  { name: "Diego Kim", ago: "2mo", warmth: "inner", label: "Close" },
   { name: "Mateo Fernández", ago: "3mo", warmth: "active", label: "Active" },
   { name: "Yuki Tanaka", ago: "2mo", warmth: "active", label: "Active" },
   { name: "Lukas Schröder", ago: "4mo", warmth: "inner", label: "Close" },

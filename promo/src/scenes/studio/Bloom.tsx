@@ -49,10 +49,11 @@ export function BloomCounter({ frame }: { frame: number }) {
   const y = start.y + (tile.y - start.y) * fly - Math.sin(Math.PI * fly) * 90;
   const scale = BIG + (tile.k - BIG) * fly;
   const labels = 1 - tween(frame, [88, 100], [0, 1]);
-  const ink = tween(frame, [104, COUNTER_LANDS - 2], [0, 1]);
+  // Dark before it reaches the (white) window, faded over 7 frames; a soft halo keeps it legible.
+  const ink = tween(frame, [92, 99], [0, 1]);
   return (
     <AbsoluteFill>
-      <div style={{ position: "absolute", left: x, top: y, transformOrigin: "0 0", transform: `scale(${scale})`, ...TILE_FONT, fontVariantNumeric: "tabular-nums", color: `color-mix(in oklab, var(--fg) ${ink * 100}%, white)`, whiteSpace: "nowrap" }}>
+      <div style={{ position: "absolute", left: x, top: y, transformOrigin: "0 0", transform: `scale(${scale})`, ...TILE_FONT, fontVariantNumeric: "tabular-nums", color: `color-mix(in oklab, var(--fg) ${ink * 100}%, white)`, textShadow: `0 0 ${6 / scale}px rgba(255,255,255,${0.9 * ink * (1 - fly)})`, whiteSpace: "nowrap" }}>
         {count}
       </div>
       <div style={{ position: "absolute", left: 118, top: 700, opacity: clamp01(labels), font: '500 22px "JetBrains Mono Variable", monospace', letterSpacing: "0.16em", color: "rgba(255,255,255,0.85)", lineHeight: 1.7 }}>

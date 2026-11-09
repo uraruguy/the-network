@@ -94,23 +94,24 @@ export function PasteKeys({ frame }: { frame: number }) {
 
 /** Window-space centre of the globe at its page geometry. */
 const globeWin = main(GLOBE.cx, GLOBE.cy);
+/** Where the window's globe is when the wipe completes: the planet starts growing from there. */
 const START = (() => {
-  const c = project(camAt(CAM, FLIP.start), globeWin.x, globeWin.y);
+  const c = project(camAt(CAM, FLIP.end), globeWin.x, globeWin.y);
   return { x: c.x, y: c.y, r: GLOBE.r * c.k };
 })();
 
 export function BigGlobe({ frame }: { frame: number }) {
-  if (frame < FLIP.start || frame > 1162) return null;
-  const grow = tween(frame, [FLIP.start, 1000], [0, 1], EASE.inOut);
-  const settle = tween(frame, [992, 1024], [0, 1], EASE.inOut);
-  const out = tween(frame, [1142, 1160], [0, 1], EASE.in);
+  if (frame < FLIP.end || frame > 1130) return null;
+  const grow = tween(frame, [FLIP.end, 1012], [0, 1], EASE.inOut);
+  const settle = tween(frame, [1006, 1032], [0, 1], EASE.inOut);
+  const out = tween(frame, [1110, 1128], [0, 1], EASE.in);
   const x = mix(mix(START.x, 960, grow), 600, settle);
   const y = mix(mix(START.y, 790, grow), 860, settle);
   const r = mix(mix(START.r, 720, grow), 560, settle);
-  const dim = 0.45 * settle + 0.25 * tween(frame, [1092, 1110], [0, 1]);
+  const dim = 0.45 * settle;
   return (
     <AbsoluteFill style={{ opacity: (1 - dim) * (1 - out) }}>
-      <Globe width={1920} height={1080} radius={r} center={[x, y]} rotate={globeRotate(frame)} theme="dark" home="Lisbon" reveal={1} focus="Lisbon" arcs={arcsAt(frame)} uiScale={mix(1.2, 1.7, grow)} atmosphere={1.3} />
+      <Globe width={1920} height={1080} radius={r} center={[x, y]} rotate={globeRotate(frame)} theme="dark" home="Lisbon" reveal={1} focus="Lisbon" arcs={arcsAt(frame)} uiScale={mix(1.48, 1.7, grow)} atmosphere={1.3} clusterAngle={0.115} />
     </AbsoluteFill>
   );
 }
@@ -121,7 +122,7 @@ function PhoneGlobe({ frame }: { frame: number }) {
   const tabs = [Sun, Users, Globe2, MessageCircle, Settings];
   return (
     <div className="absolute inset-0">
-      <Globe width={PHONE_W} height={PHONE_H} radius={186} center={[PHONE_W / 2, 470]} rotate={globeRotate(frame)} theme="dark" home="Lisbon" focus="Lisbon" uiScale={0.85} arcs={arcsAt(frame)} />
+      <Globe width={PHONE_W} height={PHONE_H} radius={186} center={[PHONE_W / 2, 470]} rotate={globeRotate(frame)} theme="dark" home="Lisbon" focus="Lisbon" uiScale={0.85} arcs={arcsAt(frame)} clusterAngle={0.115} />
       <div className="absolute inset-x-0 top-0 px-3" style={{ paddingTop: 60 }}>
         <div className="flex items-start justify-between gap-2">
           <div className="glass-map specular rounded-lg px-4 py-2">
@@ -158,16 +159,18 @@ function PhoneGlobe({ frame }: { frame: number }) {
   );
 }
 
-/** Synced flips in at this frame (Offline before). */
-const SYNCED_AT = 1046;
+/** Offline → Synced morph (text crossfade, width spring, amber → green dot). */
+const SYNC = { from: 1056, to: 1066 };
+const PILL_W = { offline: 690, synced: 290 };
 
 export function PhoneOverlay({ frame }: { frame: number }) {
-  if (frame < 992 || frame > 1104) return null;
+  if (frame < 992 || frame > 1124) return null;
   const enter = springAt(frame, 994, SPRINGS.sheet);
-  const exit = tween(frame, [1092, 1104], [0, 1], EASE.in);
-  const pill = springAt(frame, 1004, SPRINGS.smooth) - exit;
-  const synced = frame >= SYNCED_AT;
-  const pop = synced ? 1 + 0.08 * Math.sin(Math.PI * tween(frame, [SYNCED_AT, SYNCED_AT + 14], [0, 1])) : 1;
+  const exit = tween(frame, [1110, 1122], [0, 1], EASE.in);
+  const pillIn = springAt(frame, 994, SPRINGS.smooth);
+  const morph = tween(frame, [SYNC.from, SYNC.to], [0, 1], EASE.inOut);
+  const width = PILL_W.offline + (PILL_W.synced - PILL_W.offline) * springAt(frame, SYNC.from, SPRINGS.snappy);
+  const pop = 1 + 0.06 * Math.sin(Math.PI * tween(frame, [SYNC.from + 4, SYNC.to + 6], [0, 1]));
   return (
     <AbsoluteFill className="dark" style={{ perspective: 2200 }}>
       <div
@@ -184,28 +187,41 @@ export function PhoneOverlay({ frame }: { frame: number }) {
           <PhoneGlobe frame={frame} />
         </IPhone>
       </div>
+      {/* Over empty sky above the planet, so its size change never uncovers a marker. */}
       <div
-        className="glass-thick specular"
         style={{
           position: "absolute",
-          right: 1920 - 1120,
-          top: 610,
-          display: "flex",
-          alignItems: "center",
-          gap: 22,
-          padding: "22px 36px 22px 30px",
+          left: 130,
+          top: 238,
+          width,
+          height: 92,
           borderRadius: 999,
-          opacity: clamp01(pill),
-          transform: `translateY(${(1 - clamp01(pill)) * 30}px) scale(${pop})`,
-          transformOrigin: "100% 50%",
+          background: "var(--surface-solid)",
+          boxShadow: "inset 0 1px 0 var(--specular-top), 0 0 0 1px var(--hairline-strong), 0 24px 60px -20px rgba(0,0,0,0.7)",
+          opacity: clamp01(pillIn * 2.5) * (1 - exit),
+          transform: `translateY(${(1 - clamp01(pillIn)) * 24}px) scale(${pop})`,
+          transformOrigin: "0 50%",
+          overflow: "hidden",
           color: "var(--fg)",
           font: '650 44px "Inter Variable", sans-serif',
           letterSpacing: "-0.02em",
           whiteSpace: "nowrap",
         }}
       >
-        <span style={{ width: 22, height: 22, borderRadius: 99, background: synced ? "var(--success)" : "var(--warm-dormant)", boxShadow: `0 0 0 7px ${synced ? "var(--success-soft)" : "var(--warning-soft)"}` }} />
-        {synced ? "Synced" : "Offline · 2 changes waiting"}
+        <span
+          style={{
+            position: "absolute",
+            left: 32,
+            top: 35,
+            width: 22,
+            height: 22,
+            borderRadius: 99,
+            background: `color-mix(in oklab, var(--success) ${morph * 100}%, var(--warm-dormant))`,
+            boxShadow: `0 0 0 7px color-mix(in oklab, var(--success-soft) ${morph * 100}%, var(--warning-soft))`,
+          }}
+        />
+        <span style={{ position: "absolute", left: 76, top: 20, opacity: 1 - morph }}>Offline · 2 changes waiting</span>
+        <span style={{ position: "absolute", left: 76, top: 20, opacity: morph }}>Synced</span>
       </div>
     </AbsoluteFill>
   );
@@ -215,7 +231,8 @@ export function PhoneOverlay({ frame }: { frame: number }) {
 
 /** As docs/mcp.md writes it: the header on a continuation line. */
 const CMD_ADD = 'claude mcp add --transport http --scope user network https://your-network/api/mcp \\\n  --header "Authorization: Bearer ntk_…"';
-const CMD_ASK = 'claude -p "Who should I catch up with in Lisbon?"';
+/** Print mode can't prompt for permission, so the MCP tools are allowed up front. */
+const CMD_ASK = 'claude -p "Who should I catch up with in Lisbon?" \\\n  --allowedTools mcp__network';
 
 /**
  * A plain shell transcript with only what the CLI prints (`mcp list`: one line per server;
@@ -234,12 +251,12 @@ export function TerminalOverlay({ frame }: { frame: number }) {
     { kind: "ok", text: "network: https://your-network/api/mcp (HTTP) - ✓ Connected", shown: on(1382) },
     { kind: "dim", text: "# 13 tools: search_people, get_person, list_notes, search_notes, add_note, …", shown: on(1394) },
     { kind: "gap", text: "", shown: on(1416) },
-    { kind: "cmd", text: CMD_ASK, shown: tween(frame, [1418, 1444], [0, 1], (t) => t) },
+    { kind: "cmd", text: CMD_ASK, shown: tween(frame, [1418, 1448], [0, 1], (t) => t) },
     { kind: "dim", text: '# via MCP: network › search_people(city: "Lisbon") · 7 people', shown: on(1452) },
     { kind: "person", text: "You know 7 people in Lisbon. Three worth a catch-up:", shown: on(1468) },
     { kind: "person", text: "- Inês Sampaio — met at Web Summit today; climbs on Thursdays.", shown: on(1478) },
     { kind: "person", text: "- Mateo Fernández — raising a seed round; wants an intro to Björn.", shown: on(1488) },
-    { kind: "person", text: "- Valentina Dubois — introduced you to Inês; you owe her an intro.", shown: on(1498) },
+    { kind: "person", text: "- Valentina Dubois — introduced you to Mateo; you owe her an intro.", shown: on(1498) },
   ];
   return (
     <AbsoluteFill style={{ perspective: 2400, WebkitMaskImage: bandMask, maskImage: bandMask }}>
