@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { DUE } from "../../data/demo";
 import { EASE, SPRINGS, progress, springAt, tween, typed } from "../../kit/motion";
 import { Globe } from "../../ui/common/Globe";
@@ -8,6 +9,7 @@ import { PeoplePage, ROWS, matches } from "../../ui/desktop/People";
 import { DesktopShell } from "../../ui/desktop/Shell";
 import { TodayPage, Toast } from "../../ui/desktop/Today";
 import { COUNTER_LANDS } from "./Bloom";
+import { FLIP } from "./timeline";
 import type { Theme } from "./World";
 
 const SEARCH = "lisbon";
@@ -63,6 +65,13 @@ function importState(frame: number) {
   };
 }
 
+/** Hanako's Due row: ticked by the e-mail's Done, then it folds away (Due 3 → 2). */
+const hanakoRow = (frame: number) => ({ check: progress(frame, 290, 18, EASE.out), collapse: progress(frame, 316, 24, EASE.ios) });
+export const dueAt = (frame: number) => 3 - (hanakoRow(frame).collapse > 0.5 ? 1 : 0);
+
+/** Map overlays as the app draws them while the map moves (opaque, no backdrop blur). */
+const SOLID_MAP = { "--surface-map": "var(--surface-solid)" } as CSSProperties;
+
 function peopleCollapse(frame: number) {
   // Each row folds away the moment the typed prefix stops matching it.
   const out: Record<string, number> = {};
@@ -79,10 +88,11 @@ function peopleCollapse(frame: number) {
   return out;
 }
 
-/** What the app window shows at `frame`: pages, the import sheet and toasts. */
-export function WindowContent({ frame, theme }: { frame: number; theme: Theme }) {
-  const sara = { check: progress(frame, 290, 18, EASE.out), collapse: progress(frame, 316, 24, EASE.ios) };
-  const due = 3 - (sara.collapse > 0.5 ? 1 : 0);
+/**
+ * What the app window shows at `frame`: pages, the import sheet and toasts. `chrome` drops the
+ * background and the globe (the planet is drawn outside the window then), keeping the UI on top.
+ */
+export function WindowContent({ frame, theme, part = "all" }: { frame: number; theme: Theme; part?: "all" | "chrome" }) {
   const people = peopleAt(frame);
   const bump = Math.max(0, Math.sin(Math.PI * tween(frame, [604, 628], [0, 1], (t) => t)));
   const saved = tween(frame, [596, 612], [0, 1], EASE.out) - tween(frame, [652, 662], [0, 1], EASE.in);
@@ -98,8 +108,8 @@ export function WindowContent({ frame, theme }: { frame: number; theme: Theme })
 
   const page = navIndex(frame);
   return (
-    <DesktopShell active={page} overlay={frame >= 364 && frame < 640 ? <ImportSheet s={importState(frame)} /> : null}>
-      {page === 0 && <TodayPage rows={{ [DUE[0]!.name]: sara }} stats={{ people, cities: 79, due }} peopleBump={bump} hidePeople={frame < COUNTER_LANDS} imported={frame >= 600} />}
+    <DesktopShell active={page} bg={part === "all"} overlay={frame >= 364 && frame < 640 ? <ImportSheet s={importState(frame)} /> : null}>
+      {page === 0 && <TodayPage rows={{ [DUE[0]!.name]: hanakoRow(frame) }} stats={{ people, cities: 79, due: dueAt(frame) }} peopleBump={bump} hidePeople={frame < COUNTER_LANDS} imported={frame >= 600} />}
       {page === 1 && (
         <PeoplePage
           total={people}
@@ -111,28 +121,31 @@ export function WindowContent({ frame, theme }: { frame: number; theme: Theme })
         />
       )}
       {page === 2 && (
-        <GlobePage
-          count={`${people} people · 79 cities`}
-          panel={springAt(frame, 856, SPRINGS.smooth)}
-          panelWidth={300}
-          globe={
-            <div className="absolute inset-0" style={{ filter: theme === "light" ? "saturate(1.45) contrast(1.08)" : undefined }}>
-              <Globe
-                width={GLOBE.w}
-                height={GLOBE.h}
-                radius={GLOBE.r}
-                center={[GLOBE.cx, GLOBE.cy]}
-                rotate={rot}
-                theme={theme}
-                home="Lisbon"
-                reveal={tween(frame, [802, 850], [0, 1], (t) => t)}
-                focus={frame >= 852 ? "Lisbon" : undefined}
-                clusterAngle={0.115}
-                arcs={arcsAt(frame)}
-              />
-            </div>
-          }
-        />
+        <div className="absolute inset-0" data-map-moving={theme === "dark" ? "" : undefined} style={theme === "dark" ? SOLID_MAP : undefined}>
+          <GlobePage
+            count={`${people} people · 79 cities`}
+            panel={springAt(frame, 856, SPRINGS.smooth)}
+            panelWidth={300}
+            exit={tween(frame, [FLIP.end, 994], [0, 1], EASE.in)}
+            globe={
+              part === "chrome" ? null : <div className="absolute inset-0" style={{ filter: theme === "light" ? "saturate(1.45) contrast(1.08)" : undefined }}>
+                <Globe
+                  width={GLOBE.w}
+                  height={GLOBE.h}
+                  radius={GLOBE.r}
+                  center={[GLOBE.cx, GLOBE.cy]}
+                  rotate={rot}
+                  theme={theme}
+                  home="Lisbon"
+                  reveal={tween(frame, [802, 850], [0, 1], (t) => t)}
+                  focus={frame >= 852 ? "Lisbon" : undefined}
+                  clusterAngle={0.115}
+                  arcs={arcsAt(frame)}
+                />
+              </div>
+            }
+          />
+        </div>
       )}
       {page === 3 && (
         <ChatPage
@@ -153,7 +166,8 @@ export function WindowContent({ frame, theme }: { frame: number; theme: Theme })
           title="Saved to Anna Kowalska"
           description="1 new person · 1 reminder"
           action="Open note"
-          style={{ right: "auto", left: "50%", bottom: 40, opacity: saved, transform: `translateX(-50%) translateY(${(1 - saved) * 24}px) scale(${1.5 * (0.96 + 0.04 * saved)})`, transformOrigin: "50% 100%" }}
+          solid
+          style={{ right: "auto", left: "50%", bottom: 40, transform: `translateX(-50%) translateY(${(1 - saved) * 190}px) scale(${1.5 * (0.96 + 0.04 * saved)})`, transformOrigin: "50% 100%" }}
         />
       )}
     </DesktopShell>

@@ -73,21 +73,23 @@ function Tile({ icon, label, value, accent, bump = 0, hideValue }: { icon: React
   );
 }
 
-/** Reconnect nudges (seed-list names; Anna is imported later in the film, so she can't be here). */
+/**
+ * Reconnect nudges: Close/Active people 60+ days without contact, who never get a People row in
+ * the film (Juan's row reads "now" only after the import, when he leaves this list). Three rows
+ * before and after (Ivan + Juan share one), so the column never reflows.
+ */
 const RECONNECT: { name: string; ago: string; warmth: keyof typeof WARMTH_COLOR; label: string }[] = [
   { name: "Ivan Ivanov", ago: "2mo", warmth: "inner", label: "Close" },
   { name: "Juan Pérez", ago: "3mo", warmth: "active", label: "Active" },
-  { name: "Hong Gil-dong", ago: "2mo", warmth: "active", label: "Active" },
   { name: "Matti Meikäläinen", ago: "4mo", warmth: "inner", label: "Close" },
+  { name: "Zhang San", ago: "2mo", warmth: "active", label: "Active" },
 ];
-
-const AFTER_IMPORT_NUDGE = { name: "Janez Novak", ago: "2mo", warmth: "active" as const, label: "Active" };
 const IMPORTED_NOTE = { icon: FileText, title: "Web Summit Lisbon, day 2", who: "Anna Kowalska", when: "now" };
 
 const RECENT = [
   { icon: Phone, title: "Call: she's in Berlin 12–15 May for a client workshop", who: "Hanako Yamada", when: "2h ago" },
   { icon: Users, title: "Coffee at Fuglen after the design conference", who: "Hanako Yamada", when: "5h ago" },
-  { icon: MessageSquare, title: "Sent Ola the intro to the Index team", who: "Ola Nordmann", when: "Yesterday" },
+  { icon: MessageSquare, title: "Sent Ola the intro to Sven", who: "Ola Nordmann", when: "Yesterday" },
   { icon: FileText, title: "Padel: lost 6–4 6–3, rematch on Saturday", who: "John Doe", when: "Tue" },
 ];
 
@@ -153,7 +155,7 @@ export function TodayPage({
         <div className="min-w-0 space-y-8">
           <Section title="Reconnect" caption="Close people you haven't talked to in two months" action={<span className="font-medium text-accent-text">See all</span>}>
             <div className="flex flex-wrap gap-2 pt-0.5 pb-1">
-              {(imported ? [...RECONNECT.filter((m) => m.name !== "Juan Pérez"), AFTER_IMPORT_NUDGE] : RECONNECT).map((m) => {
+              {(imported ? RECONNECT.filter((m) => m.name !== "Juan Pérez") : RECONNECT).map((m) => {
                 const name = m.name;
                 return (
                   <span key={name} className="surface flex h-14 max-w-[15rem] shrink-0 items-center gap-2.5 rounded-full pr-4 pl-2">
@@ -205,9 +207,9 @@ export function TodayPage({
 }
 
 /** Toast (ui/Toast.tsx) as the desktop viewport shows it: bottom-right, 380 wide, glass-thick. */
-export function Toast({ title, who, description, action, icon = "undo", style }: { title: string; who?: string; description?: string; action?: string; icon?: "undo" | "success"; style?: React.CSSProperties }) {
+export function Toast({ title, who, description, action, icon = "undo", solid, style }: { title: string; who?: string; description?: string; action?: string; icon?: "undo" | "success"; solid?: boolean; style?: React.CSSProperties }) {
   return (
-    <div className="glass-thick specular elevation-e3 absolute rounded-xl text-fg" style={{ width: 380, right: 24, bottom: 24, ...style }}>
+    <div className={cn("specular elevation-e3 absolute rounded-xl text-fg", solid ? "surface" : "glass-thick")} style={{ width: 380, right: 24, bottom: 24, ...(solid && { backgroundColor: "var(--surface-solid)" }), ...style }}>
       <div className="flex min-h-[52px] items-center gap-3 py-2 pr-2 pl-4">
         <span className="grid shrink-0 place-items-center">
           {icon === "undo" ? (

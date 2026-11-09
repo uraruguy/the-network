@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { AbsoluteFill } from "remotion";
 import { MacWindow } from "../../devices/MacWindow";
 import { camAt, camTransform, camVelocity, ORIGIN, PERSPECTIVE, type Key } from "./camera";
@@ -20,6 +20,8 @@ export function WindowLayer({
   wipe,
   opacity = 1,
   blurId,
+  frameStyle,
+  rim = true,
 }: {
   /** 0..1: reveal the window from the bottom of the frame up, behind a soft 240 px gradient edge. */
   wipe?: number;
@@ -30,6 +32,9 @@ export function WindowLayer({
   band?: boolean;
   opacity?: number;
   blurId: string;
+  /** Overrides on the window frame (e.g. a transparent one for a chrome-only pass). */
+  frameStyle?: CSSProperties;
+  rim?: boolean;
 }) {
   const cam = camAt(keys, frame);
   const v = camVelocity(keys, frame, cam.fx, cam.fy);
@@ -60,8 +65,10 @@ export function WindowLayer({
       )}
       <AbsoluteFill style={{ perspective: PERSPECTIVE, perspectiveOrigin: `${ORIGIN[0]}px ${ORIGIN[1]}px` }}>
         <div style={{ position: "absolute", left: 0, top: 0, transformOrigin: "0 0", transform: camTransform(cam) }}>
-          {dark && <div style={{ position: "absolute", inset: 0, borderRadius: 16, boxShadow: "0 0 0 1px rgba(95,240,244,0.16), 0 0 120px -10px rgba(52,219,227,0.28)" }} />}
-          <MacWindow dark={dark}>{children}</MacWindow>
+          {dark && rim && <div style={{ position: "absolute", inset: 0, borderRadius: 16, boxShadow: "0 0 0 1px rgba(95,240,244,0.16), 0 0 120px -10px rgba(52,219,227,0.28)" }} />}
+          <MacWindow dark={dark} style={frameStyle}>
+            {children}
+          </MacWindow>
         </div>
       </AbsoluteFill>
     </AbsoluteFill>

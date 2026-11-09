@@ -22,11 +22,11 @@ export const LISBON_PEOPLE = [
 ];
 
 /** CityPanel (desktop): the floating 360 px side panel for one city. */
-function CityPanel({ appear, top, width }: { appear: number; top: number; width: number }) {
+function CityPanel({ appear, top, width, exit }: { appear: number; top: number; width: number; exit: number }) {
   return (
     <aside
       className="glass-map specular absolute z-20 flex flex-col overflow-hidden rounded-xl"
-      style={{ width, right: 24, bottom: 24, top, opacity: appear, transform: `translateX(${(1 - appear) * 24}px)` }}
+      style={{ width, right: 24, bottom: 24, top, opacity: appear, transform: `translateX(${(1 - appear) * 24 + exit * (width + 48)}px)` }}
     >
       <div className="flex items-start gap-3 px-5 pt-4 pb-3">
         <div className="min-w-0 flex-1">
@@ -70,13 +70,13 @@ function CityPanel({ appear, top, width }: { appear: number; top: number; width:
 /**
  * The full-bleed Globe page at desktop size (1204×900 main area): the globe (passed in), the
  * floating MapHeader with view switch, the map filter bar, Apple-Maps-style controls and the
- * city panel.
+ * city panel. `exit` (0..1) slides the header, the panel and the map controls out of the page's edges.
  */
-export function GlobePage({ globe, panel = 0, panelWidth = 360, count = "285 people · 79 cities" }: { globe: ReactNode; panel?: number; panelWidth?: number; count?: string }) {
+export function GlobePage({ globe, panel = 0, panelWidth = 360, count = "285 people · 79 cities", exit = 0 }: { globe: ReactNode; panel?: number; panelWidth?: number; count?: string; exit?: number }) {
   return (
     <div className="absolute inset-0">
       {globe}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 px-6 pt-6">
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 px-6 pt-6" style={exit > 0 ? { transform: `translateY(${-exit * 220}px)` } : undefined}>
         <div className="flex items-start justify-between gap-2">
           <div className="glass-map specular min-w-0 rounded-lg px-4 py-2">
             <h1 className="text-title3 leading-tight text-fg">Globe</h1>
@@ -104,7 +104,7 @@ export function GlobePage({ globe, panel = 0, panelWidth = 360, count = "285 peo
           </div>
         </div>
       </div>
-      <div className="absolute z-10 flex flex-col items-end gap-2.5" style={{ right: panel > 0.02 ? 24 + panelWidth + 16 : 24, bottom: 24 }}>
+      <div className="absolute z-10 flex flex-col items-end gap-2.5" style={{ right: panel > 0.02 ? 24 + panelWidth + 16 : 24, bottom: 24, transform: exit > 0 ? `translateY(${exit * 260}px)` : undefined }}>
         <Capsule>
           <Control icon={<Plus />} />
           <Divider />
@@ -118,7 +118,7 @@ export function GlobePage({ globe, panel = 0, panelWidth = 360, count = "285 peo
           <Control icon={<Route />} on />
         </Capsule>
       </div>
-      {panel > 0 && <CityPanel appear={panel} top={96} width={panelWidth} />}
+      {panel > 0 && <CityPanel appear={panel} top={96} width={panelWidth} exit={exit} />}
     </div>
   );
 }

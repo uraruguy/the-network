@@ -33,11 +33,11 @@ export function AppBg() {
  * The ≥lg app frame (`overlay`: viewport-fixed layers such as dialogs, over the sidebar too): glass sidebar (logo, nav with the sliding accent pill, sync status) and the
  * main area. `active` may be fractional while the pill slides between items.
  */
-export function DesktopShell({ active, children, overlay, sync = "Synced", syncTone = "ok" }: { active: number; children: ReactNode; overlay?: ReactNode; sync?: string; syncTone?: "ok" | "offline" | "waiting" }) {
+export function DesktopShell({ active, children, overlay, sync = "Synced", syncTone = "ok", bg = true }: { active: number; children: ReactNode; overlay?: ReactNode; sync?: string; syncTone?: "ok" | "offline" | "waiting"; bg?: boolean }) {
   const on = Math.round(active);
   return (
     <div className="absolute inset-0 overflow-hidden text-fg">
-      <AppBg />
+      {bg && <AppBg />}
       <aside className="absolute inset-y-0 left-0 z-30 p-4" style={{ width: SIDEBAR_W }}>
         <div className="glass specular flex h-full flex-col rounded-xl p-3">
           <div className="flex items-center gap-2.5 rounded-sm px-2 pt-2 pb-5">

@@ -99,9 +99,13 @@ const globeWin = main(GLOBE.cx, GLOBE.cy);
 /** Where the window's globe is when the wipe completes: the planet starts growing from there. */
 const START = (() => {
   const c = project(camAt(CAM, FLIP.end), globeWin.x, globeWin.y);
-  return { x: c.x, y: c.y, r: GLOBE.r * c.k };
+  return { x: c.x, y: c.y, r: GLOBE.r * c.k, k: c.k };
 })();
 
+/**
+ * Drawn at the window globe's logical size and scaled up (that scale eases to 1 as it grows), and
+ * masked under the headline band like the window: the hand-off at FLIP.end is pixel-identical.
+ */
 export function BigGlobe({ frame }: { frame: number }) {
   if (frame < FLIP.end || frame > 1130) return null;
   const grow = tween(frame, [FLIP.end, 1012], [0, 1], EASE.inOut);
@@ -111,9 +115,14 @@ export function BigGlobe({ frame }: { frame: number }) {
   const y = mix(mix(START.y, 790, grow), 860, settle);
   const r = mix(mix(START.r, 720, grow), 560, settle);
   const dim = 0.45 * settle;
+  const s = mix(START.k, 1, grow);
+  const band = tween(frame, [FLIP.end, 1004], [0, 1], EASE.inOut);
+  const mask = band < 1 ? `linear-gradient(to bottom, rgba(0,0,0,${band}) ${BAND}px, black ${BAND + 30}px)` : undefined;
   return (
-    <AbsoluteFill style={{ opacity: (1 - dim) * (1 - out) }}>
-      <Globe width={1920} height={1080} radius={r} center={[x, y]} rotate={globeRotate(frame)} theme="dark" home="Lisbon" reveal={1} focus="Lisbon" arcs={arcsAt(frame)} uiScale={mix(1.48, 1.7, grow)} atmosphere={1.3} clusterAngle={0.115} />
+    <AbsoluteFill style={{ opacity: (1 - dim) * (1 - out), WebkitMaskImage: mask, maskImage: mask }}>
+      <div style={{ position: "absolute", left: 0, top: 0, transformOrigin: "0 0", transform: `scale(${s})` }}>
+        <Globe width={1920 / s} height={1080 / s} radius={r / s} center={[x / s, y / s]} rotate={globeRotate(frame)} theme="dark" home="Lisbon" reveal={1} focus="Lisbon" arcs={arcsAt(frame)} uiScale={mix(1.48, 1.7, grow) / s} atmosphere={mix(1, 1.3, grow)} clusterAngle={0.115} />
+      </div>
     </AbsoluteFill>
   );
 }
@@ -164,14 +173,18 @@ function PhoneGlobe({ frame }: { frame: number }) {
 /** Offline → Synced morph (text crossfade, width spring, amber → green dot). */
 const SYNC = { from: 1056, to: 1066 };
 const PILL_W = { offline: 690, synced: 290 };
+const PILL_H = 92;
+/** Once the window's UI is gone: the pill pops in as its dot and unrolls to the text (opaque). */
+const PILL_AT = 1000;
 
 export function PhoneOverlay({ frame }: { frame: number }) {
   if (frame < 992 || frame > 1124) return null;
   const enter = springAt(frame, 994, SPRINGS.sheet);
   const exit = tween(frame, [1110, 1122], [0, 1], EASE.in);
-  const pillIn = springAt(frame, 994, SPRINGS.smooth);
+  const dot = springAt(frame, PILL_AT, SPRINGS.snappy);
+  const unroll = springAt(frame, PILL_AT + 2, SPRINGS.snappy);
   const morph = tween(frame, [SYNC.from, SYNC.to], [0, 1], EASE.inOut);
-  const width = PILL_W.offline + (PILL_W.synced - PILL_W.offline) * springAt(frame, SYNC.from, SPRINGS.snappy);
+  const width = mix(PILL_H, PILL_W.offline, unroll) + (PILL_W.synced - PILL_W.offline) * springAt(frame, SYNC.from, SPRINGS.snappy);
   const pop = 1 + 0.06 * Math.sin(Math.PI * tween(frame, [SYNC.from + 4, SYNC.to + 6], [0, 1]));
   return (
     <AbsoluteFill className="dark" style={{ perspective: 2200 }}>
@@ -182,7 +195,7 @@ export function PhoneOverlay({ frame }: { frame: number }) {
           top: 236,
           transformOrigin: "0 0",
           transform: `translateY(${(1 - enter) * 900 + exit * 900}px) rotateX(${(1 - enter) * 18}deg) scale(0.9)`,
-          opacity: clamp01(enter * 1.4) * (1 - exit),
+          opacity: 1 - exit,
         }}
       >
         <IPhone dark rim="rgba(95,240,244,0.2)">
@@ -196,13 +209,13 @@ export function PhoneOverlay({ frame }: { frame: number }) {
           left: 130,
           top: 238,
           width,
-          height: 92,
+          height: PILL_H,
           borderRadius: 999,
           background: "var(--surface-solid)",
           boxShadow: "inset 0 1px 0 var(--specular-top), 0 0 0 1px var(--hairline-strong), 0 24px 60px -20px rgba(0,0,0,0.7)",
-          opacity: clamp01(pillIn * 2.5) * (1 - exit),
-          transform: `translateY(${(1 - clamp01(pillIn)) * 24}px) scale(${pop})`,
-          transformOrigin: "0 50%",
+          opacity: frame >= PILL_AT ? 1 - exit : 0,
+          transform: `scale(${dot * pop})`,
+          transformOrigin: `${PILL_H / 2}px 50%`,
           overflow: "hidden",
           color: "var(--fg)",
           font: '650 44px "Inter Variable", sans-serif',

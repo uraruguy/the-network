@@ -3,7 +3,7 @@ import { DUE, OWNER, TODAY_LABEL } from "../../data/demo";
 
 const ROLE: Record<string, string> = {
   "Hanako Yamada": "Designer, Studio Mono",
-  "Max Mustermann": "Founder, Wise",
+  "Max Mustermann": "Founder",
   "Marie Dupont": "Designer",
 };
 

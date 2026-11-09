@@ -2,6 +2,28 @@ import { useCurrentFrame } from "remotion";
 import { EASE, SPRINGS, springAt, tween } from "../../kit/motion";
 
 export type Seg = { text: string; accent?: boolean };
+/** The kicker's data changes at `at`: the differing characters roll over (an odometer tick). */
+export type KickerTick = { text: string; at: number };
+
+function Tick({ from, to, at }: { from: string; to: string; at: number }) {
+  const frame = useCurrentFrame();
+  const t = springAt(frame, at, SPRINGS.snappy);
+  let head = 0;
+  while (head < from.length && from[head] === to[head]) head++;
+  let tail = 0;
+  while (tail < from.length - head && from[from.length - 1 - tail] === to[to.length - 1 - tail]) tail++;
+  const cell = (text: string, y: number) => <span style={{ gridArea: "1 / 1", transform: `translateY(${y * 100}%)` }}>{text}</span>;
+  return (
+    <>
+      {from.slice(0, head)}
+      <span style={{ display: "inline-grid", height: "1lh", overflow: "hidden", verticalAlign: "top" }}>
+        {cell(from.slice(head, from.length - tail), -t)}
+        {cell(to.slice(head, to.length - tail), 1 - t)}
+      </span>
+      {from.slice(from.length - tail)}
+    </>
+  );
+}
 
 /** Accent words: bright aqua on the teal stage, the logo gradient on the dark stage. */
 const ACCENT = "linear-gradient(100deg, #b4fbfc 0%, #6ff2f6 45%, #3fe0e6 100%)";
@@ -14,6 +36,7 @@ const ACCENT_DARK = "linear-gradient(100deg, #5ff0f4 0%, #2cc9d0 45%, #12a3ab 10
 export function Title({
   lines,
   kicker,
+  tick,
   at,
   out,
   size = 66,
@@ -23,6 +46,7 @@ export function Title({
 }: {
   lines: Seg[][];
   kicker?: string;
+  tick?: KickerTick;
   at: number;
   out?: number;
   size?: number;
@@ -62,7 +86,7 @@ export function Title({
             transform: `translateY(${(1 - k) * 12}px)`,
           }}
         >
-          {kicker}
+          {tick ? <Tick from={kicker} to={tick.text} at={tick.at} /> : kicker}
         </div>
       )}
       {lines.map((line, li) => (

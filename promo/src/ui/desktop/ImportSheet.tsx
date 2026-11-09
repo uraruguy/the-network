@@ -11,7 +11,7 @@ export const NOTE: Run[][] = [
   [{ t: "Met " }, { t: "Anna Kowalska", hl: "person", p: 0 }, { t: ", product designer at Figma." }],
   [{ t: "Climbs on Thursdays." }],
   [{ t: "Juan Pérez", hl: "person", p: 1 }, { t: " is raising a seed round." }],
-  [{ t: "Intro him to " }, { t: "Sven", hl: "person", p: 2 }, { t: " at Index." }],
+  [{ t: "Intro him to " }, { t: "Sven", hl: "person", p: 2 }, { t: ", the investor." }],
   [{ t: "Jan Jansen", hl: "person", p: 3 }, { t: " wants the draft " }, { t: "next week", hl: "date" }, { t: "." }],
 ];
 export const HL_COUNT = NOTE.flat().filter((r) => r.hl).length;
@@ -27,7 +27,7 @@ type Proposal = { name: string; facts: string; city?: string; match?: boolean; f
 export const PROPOSALS: Proposal[] = [
   { name: "Anna Kowalska", facts: "Product designer", city: "Lisbon", cat: "friend" },
   { name: "Juan Pérez", facts: "Founder", city: "Lisbon", match: true, cat: "founder" },
-  { name: "Sven Svensson", facts: "Partner · Index Ventures", match: true, cat: "investor" },
+  { name: "Sven Svensson", facts: "Investor", match: true, cat: "investor" },
   { name: "Jan Jansen", facts: "Journalist", city: "Paris", match: true, followUp: "next week", cat: "acquaint" },
 ];
 
