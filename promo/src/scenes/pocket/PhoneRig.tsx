@@ -19,7 +19,8 @@ export function PhoneRig({ pose, blur = 0, children, overlay }: { pose: Pose; bl
         transformOrigin: "50% 50%",
         transform: `perspective(2200px) rotateX(${pose.rx}deg) rotateY(${pose.ry}deg) rotateZ(${pose.rz}deg) scale(${pose.s})`,
         opacity: pose.o,
-        filter: [blur > 0.4 ? `blur(${blur.toFixed(2)}px)` : "", pose.dim > 0.001 ? `brightness(${1 - pose.dim})` : ""].join(" ") || undefined,
+        // Always filtered (even at 0) so rasterisation never switches between frames.
+        filter: `blur(${Math.max(0, blur).toFixed(3)}px) brightness(${(1 - pose.dim).toFixed(4)})`,
       }}
     >
       <IPhone glare={0.35} rim="rgba(120,230,235,0.16)" time="15:42">

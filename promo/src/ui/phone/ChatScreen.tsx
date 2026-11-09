@@ -77,7 +77,7 @@ export function ChatScreen({ frame, draft = "", caret = false, sent = 0, tools =
         )}
 
         {answer > 0 && (
-          <div className="pt-2 pr-6" style={{ height: answer < 1 ? 56 * answer : undefined, opacity: clamp01(answer * 1.4), transform: `scale(${0.94 + 0.06 * answer})`, transformOrigin: "0 0" }}>
+          <div className="pr-6" style={{ paddingTop: 8 * answer, height: answer < 1 ? 55 * answer : undefined, opacity: clamp01(answer * 1.4), transform: `scale(${0.94 + 0.06 * answer})`, transformOrigin: "0 0" }}>
             <div className="surface w-full rounded-lg rounded-bl-xs px-4 py-3 text-body text-fg">
               <p>
                 {ASK.answerLead.slice(0, chars)}

@@ -72,7 +72,7 @@ export function GlobeBreakout({ cam }: { cam: (f: number) => Pose }) {
   const pose = cam(frame);
   const tl = project(pose, 0, 0);
   const br = project(pose, 402, 874);
-  const open = progress(frame, B.breakout, 12, EASE.out) * (1 - progress(frame, B.globeBack - 14, 12, EASE.in));
+  const open = progress(frame, B.breakout, 12, EASE.inOut) * (1 - progress(frame, B.globeBack - 14, 12, EASE.inOut));
   const e = 900 * open;
   const clip = open >= 1 ? undefined : `inset(${tl.y - e}px ${1080 - br.x - e}px ${1350 - br.y - e}px ${tl.x - e}px round ${60 * tl.k * (1 - open)}px)`;
   return (

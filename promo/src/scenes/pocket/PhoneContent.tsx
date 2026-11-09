@@ -116,7 +116,7 @@ function people(frame: number) {
     if (frame >= f) {
       prev = QUERY.slice(0, i);
       query = QUERY.slice(0, i + 1);
-      k = progress(frame, f, 10, EASE.ios);
+      k = progress(frame, f, 10, EASE.inOut);
     }
   });
   return <PeopleScreen tab={-1} frame={frame} query={query} prevQuery={prev} k={k} caret={frame >= B.searchTap + 4} focused={progress(frame, B.searchTap + 2, 8)} />;
@@ -128,7 +128,8 @@ function globe(frame: number) {
       tab={-1}
       rotate={globeRotation(frame)}
       reveal={progress(frame, B.globeSwap + 4, 40, EASE.out)}
-      globeHidden={frame >= B.breakout && frame < B.globeBack - 2}
+      globeHidden={frame >= B.breakout && frame < B.globeBack}
+      globeOpacity={frame >= B.globeBack ? progress(frame, B.globeBack, B.globeHome - B.globeBack, (q) => q) : 1}
       chromeOut={progress(frame, B.breakout - 8, 24, EASE.in) * (1 - progress(frame, B.globeExit + 4, 24, EASE.out))}
       arcs={arcsAt(frame)}
       clusterAngle={CLUSTER_ANGLE}

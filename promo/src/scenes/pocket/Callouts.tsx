@@ -45,7 +45,7 @@ export function Callouts({ cam, anchors, scroll }: { cam: (f: number) => Pose; a
         const a = anchors[c.id];
         if (!a || frame < c.at || frame > c.out + 18) return null;
         const t = springAt(frame, c.at, SPRINGS.smooth);
-        const out = progress(frame, c.out, 16, EASE.in);
+        const out = progress(frame, c.out, 16, EASE.out);
         const vis = clamp01(t * 1.6) * (1 - out);
         const p = project(pose, a.x + a.w - 34, a.y + a.h / 2 - scroll(frame));
         const draw = progress(frame, c.at + 4, 16, EASE.out);

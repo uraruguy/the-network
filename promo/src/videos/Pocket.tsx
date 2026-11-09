@@ -83,7 +83,7 @@ const TITLE_TOP = 168;
 function Kicker({ text, at, out }: { text: string; at: number; out: number }) {
   const frame = useCurrentFrame();
   const i = springAt(frame, at, SPRINGS.snappy);
-  const o = progress(frame, out, 8, EASE.in);
+  const o = progress(frame, out, 10, EASE.inOut);
   if (i <= 0.001 || o >= 1) return null;
   return (
     <div
