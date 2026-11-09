@@ -63,21 +63,36 @@ const target = `loudnorm=I=${out.integrated}:TP=${out.truePeak}:LRA=${out.lra}`;
 const chain = (...parts) => parts.flat().filter(Boolean).join(",");
 
 // Source window must be long enough (offset + 30 s of output at the stretched tempo).
-const srcDur = Number(run("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", audio]).stdout);
+const [srcRate, srcDur] = run("ffprobe", ["-v", "error", "-select_streams", "a:0", "-show_entries", "stream=sample_rate:format=duration", "-of", "csv=p=0", audio]).stdout.split(/\s+/).filter(Boolean).map(Number);
 if (track.offset + D * track.tempo > srcDur) fail(`${id}: offset ${track.offset} + ${D}s×${track.tempo} runs past the track end (${srcDur}s)`);
 
 // Pass 1: measure the window exactly as it will sound (stretched, trimmed, faded).
-const m = loudnormJson(ffmpeg(["-i", audio, "-af", chain(head, fades, `${target}:print_format=json`), "-f", "null", "-"]).stderr);
+const measure = (pre) => loudnormJson(ffmpeg(["-i", audio, "-af", chain(head, pre, fades, `${target}:print_format=json`), "-f", "null", "-"]).stderr);
+let pre = [];
+let m = measure(pre);
+const first = m;
+if (Number(m.input_tp) + out.integrated - Number(m.input_i) > out.truePeak) {
+  // Linear gain alone would push the source's few inter-sample overs past the peak target, and
+  // loudnorm would fall back to dynamic gain riding. Instead pre-gain to the target and catch
+  // those overs with a 4x-oversampled, latency-compensated limiter (beats don't move), then
+  // measure again so pass 2 stays linear.
+  const ceiling = 10 ** ((out.truePeak - 0.3) / 20);
+  pre = [`volume=${(out.integrated - Number(m.input_i)).toFixed(2)}dB`, "aresample=192000", `alimiter=limit=${ceiling.toFixed(4)}:attack=1:release=50:level=false:latency=true`, `aresample=${srcRate}`];
+  m = measure(pre);
+}
 
 // Pass 2: normalise (linear when possible), resample, fade, exact length; copy the video stream.
 const norm = `${target}:measured_I=${m.input_i}:measured_TP=${m.input_tp}:measured_LRA=${m.input_lra}:measured_thresh=${m.input_thresh}:offset=${m.target_offset}:linear=true:print_format=json`;
-const audioChain = chain(head, norm, `aresample=${out.sampleRate}`, "aformat=sample_fmts=fltp:channel_layouts=stereo", fades, `apad=whole_len=${samples}`, `atrim=end_sample=${samples}`);
+const audioChain = chain(head, pre, norm, `aresample=${out.sampleRate}`, "aformat=sample_fmts=fltp:channel_layouts=stereo", fades, `apad=whole_len=${samples}`, `atrim=end_sample=${samples}`);
 const pass2 = ffmpeg([
   "-y", "-i", video, "-i", audio,
   "-filter_complex", `[1:a]${audioChain}[a]`,
   "-map", "0:v:0", "-map", "[a]",
   "-c:v", "copy",
   "-c:a", out.codec, "-b:a", out.bitrate, "-ar", String(out.sampleRate), "-ac", String(out.channels),
+  // ffmpeg's native AAC: noise substitution and intensity stereo are low-bitrate tools that buy
+  // nothing at 256k, and PNS synthesises noise that overshoots on transients (+3 dB true peak).
+  ...(out.codec === "aac" ? ["-aac_pns", "0", "-aac_is", "0"] : []),
   "-movflags", "+faststart", "-shortest", "-t", String(D),
   dest,
 ]);
@@ -101,6 +116,6 @@ const checks = [
 ];
 console.log(`${path.relative(process.cwd(), dest)}  ←  "${track.title}" by ${track.artist} (${track.page})`);
 console.log(`  ${track.bpm} BPM → 120 (atempo ${track.tempo}), source ${track.offset}s–${(track.offset + D * track.tempo).toFixed(3)}s, downbeat at 0, beats every 0.5 s`);
-console.log(`  loudnorm: window ${m.input_i} LUFS / ${m.input_tp} dBTP / LRA ${m.input_lra} → ${applied.normalization_type} gain ${(out.integrated - m.input_i).toFixed(2)} dB`);
+console.log(`  loudnorm: window ${first.input_i} LUFS / ${first.input_tp} dBTP / LRA ${first.input_lra}${pre.length ? `; overs limited after ${pre[0].slice(7)} pre-gain` : ""} → ${applied.normalization_type} gain ${(out.integrated - m.input_i).toFixed(2)} dB`);
 for (const [label, ok] of checks) console.log(`  ${ok ? "ok  " : "FAIL"} ${label}`);
 if (checks.some(([, ok]) => !ok)) process.exit(1);
