@@ -76,23 +76,28 @@ function Key({ k }: { k: string }) {
 
 export function PasteKeys({ frame }: { frame: number }) {
   if (frame < 338 || frame > 370) return null;
-  // Opaque, and in/out by scale only: nothing ever shows through it.
+  // Opaque, in/out by scale only, over the empty margin left of the Due list.
   const a = Math.max(0, springAt(frame, 338, SPRINGS.pop) - tween(frame, [360, 370], [0, 1], EASE.in));
   const press = Math.max(0, 1 - Math.abs(frame - 354) / 5);
   if (a <= 0.01) return null;
   return (
-    <div style={{ position: "absolute", left: 960, top: 640, transform: `translate(-50%, -50%) scale(${a})`, display: "flex", alignItems: "center", gap: 20, padding: "22px 40px 22px 24px", borderRadius: 40, background: "#ffffff", boxShadow: "0 0 0 1px rgba(10,40,50,0.08), 0 30px 70px -20px rgba(0,30,40,0.5)" }}>
-      {["⌘", "V"].map((k) => (
-        <span key={k} style={{ transform: `translateY(${press * 5}px)` }}>
-          <Key k={k} />
-        </span>
-      ))}
-      <span style={{ marginLeft: 8, font: '650 58px "Inter Variable", sans-serif', letterSpacing: "-0.02em", color: "#0d1a1c" }}>Paste</span>
+    <div style={{ position: "absolute", left: 209, top: 620, transform: `translate(-50%, -50%) scale(${0.85 * a})`, display: "flex", flexDirection: "column", alignItems: "center", gap: 10, padding: "22px 24px 18px", borderRadius: 40, background: "#ffffff", boxShadow: "0 0 0 1px rgba(10,40,50,0.08), 0 30px 70px -20px rgba(0,30,40,0.5)" }}>
+      <span style={{ display: "flex", gap: 16 }}>
+        {["⌘", "V"].map((k) => (
+          <span key={k} style={{ transform: `translateY(${press * 5}px)` }}>
+            <Key k={k} />
+          </span>
+        ))}
+      </span>
+      <span style={{ font: '650 58px "Inter Variable", sans-serif', letterSpacing: "-0.02em", color: "#0d1a1c" }}>Paste</span>
     </div>
   );
 }
 
 /* ---------- The dark planet outgrows the window (flip → phone beat) ---------- */
+
+/** The offline beat (planet, phone, pill) leaves together, before the chat comes in. */
+export const SCENE_OUT = 1108;
 
 /** Window-space centre of the globe at its page geometry. */
 const globeWin = main(GLOBE.cx, GLOBE.cy);
@@ -110,7 +115,7 @@ export function BigGlobe({ frame }: { frame: number }) {
   if (frame < FLIP.end || frame > 1130) return null;
   const grow = tween(frame, [FLIP.end, 1012], [0, 1], EASE.inOut);
   const settle = tween(frame, [1006, 1032], [0, 1], EASE.inOut);
-  const out = tween(frame, [1110, 1128], [0, 1], EASE.in);
+  const out = tween(frame, [SCENE_OUT, SCENE_OUT + 6], [0, 1], EASE.in);
   const x = mix(mix(START.x, 960, grow), 600, settle);
   const y = mix(mix(START.y, 790, grow), 860, settle);
   const r = mix(mix(START.r, 720, grow), 560, settle);
@@ -173,8 +178,8 @@ function PhoneGlobe({ frame }: { frame: number }) {
   );
 }
 
-/** Offline → Synced morph (text crossfade, width spring, amber → green dot). */
-const SYNC = { from: 1056, to: 1066 };
+/** Offline → Synced: the label rolls (old up and out, new up and in), the width springs, the dot turns green. */
+const SYNC = { from: 1052, to: 1062 };
 const PILL_W = { offline: 690, synced: 290 };
 const PILL_H = 92;
 /** Once the window's UI is gone: the pill pops in as its dot and unrolls to the text (opaque). */
@@ -183,7 +188,7 @@ const PILL_AT = 1000;
 export function PhoneOverlay({ frame }: { frame: number }) {
   if (frame < 992 || frame > 1124) return null;
   const enter = springAt(frame, 994, SPRINGS.sheet);
-  const exit = tween(frame, [1110, 1122], [0, 1], EASE.in);
+  const exit = tween(frame, [SCENE_OUT, SCENE_OUT + 6], [0, 1], EASE.in);
   const dot = springAt(frame, PILL_AT, SPRINGS.snappy);
   const unroll = springAt(frame, PILL_AT + 2, SPRINGS.snappy);
   const morph = tween(frame, [SYNC.from, SYNC.to], [0, 1], EASE.inOut);
@@ -238,8 +243,8 @@ export function PhoneOverlay({ frame }: { frame: number }) {
             boxShadow: `0 0 0 7px color-mix(in oklab, var(--success-soft) ${morph * 100}%, var(--warning-soft))`,
           }}
         />
-        <span style={{ position: "absolute", left: 76, top: 20, opacity: 1 - morph }}>Offline · 2 changes waiting</span>
-        <span style={{ position: "absolute", left: 76, top: 20, opacity: morph }}>Synced</span>
+        <span style={{ position: "absolute", left: 76, top: 20, transform: `translateY(${-morph * PILL_H}px)` }}>Offline · 2 changes waiting</span>
+        <span style={{ position: "absolute", left: 76, top: 20, transform: `translateY(${(1 - morph) * PILL_H}px)` }}>Synced</span>
       </div>
     </AbsoluteFill>
   );
@@ -259,7 +264,7 @@ const CMD_ASK = 'claude -p "Who should I catch up with in Lisbon?" \\\n  --allow
 export function TerminalOverlay({ frame }: { frame: number }) {
   if (frame < 1316 || frame > 1626) return null;
   const enter = springAt(frame, 1316, SPRINGS.sheet);
-  const exit = tween(frame, [1602, 1624], [0, 1], EASE.in);
+  const exit = tween(frame, [1594, 1612], [0, 1], EASE.inOut);
   const push = tween(frame, [1490, 1560], [0, 1], EASE.inOut);
   const on = (f: number) => (frame >= f ? springAt(frame, f, SPRINGS.snappy) : 0);
   const lines: TermLine[] = [

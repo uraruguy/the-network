@@ -4,7 +4,7 @@ import { AppBg } from "../../ui/desktop/Shell";
 import { Bloom, BloomCounter } from "./Bloom";
 import { CAM } from "./camKeys";
 import { Outro } from "./Outro";
-import { BigGlobe, EmailOverlay, PasteKeys, PhoneOverlay, TerminalOverlay } from "./Overlays";
+import { BigGlobe, EmailOverlay, PasteKeys, PhoneOverlay, SCENE_OUT, TerminalOverlay } from "./Overlays";
 import { StudioStage } from "./Stage";
 import { FLIP } from "./timeline";
 import { Title, type KickerTick, type Seg } from "./Title";
@@ -52,8 +52,8 @@ export function World({ frame, theme }: { frame: number; theme: Theme }) {
   const split = dark && frame >= SPLIT.from && frame < SPLIT.to;
   // The page UI slides out of the window (opaque), then the sidebar fades.
   const chromeOpacity = 1 - tween(frame, [992, 1000], [0, 1], EASE.inOut);
-  // Chat: the page arrives full-frame behind a soft bottom-up wipe (no hard edges).
-  const wipe = frame >= 1100 && frame < 1130 ? tween(frame, [1100, 1128], [0, 1], EASE.inOut) : undefined;
+  // Chat: once the offline beat is gone, the page arrives full-frame behind a soft bottom-up wipe.
+  const wipe = frame >= 1100 && frame < 1130 ? tween(frame, [SCENE_OUT + 6, 1126], [0, 1], EASE.out) : undefined;
   // Outgoing layers sit underneath incoming ones: the planet stays under the (fading) window,
   // and after the offline beat the phone goes under the incoming chat window.
   const phoneOnTop = frame < 1050;

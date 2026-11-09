@@ -50,19 +50,21 @@ function navIndex(frame: number) {
 }
 
 function importState(frame: number) {
-  const open = springAt(frame, 370, SPRINGS.smooth) - tween(frame, [578, 596], [0, 1], EASE.in);
   return {
-    open: Math.max(0, Math.min(1, open)),
+    open: progress(frame, 370, 16, EASE.out),
+    // Save: the avatars leave their cards first, then the sheet slides out; the dim clears last.
+    out: progress(frame, 580, 12, EASE.in),
+    dim: progress(frame, 370, 12, EASE.out) * (1 - tween(frame, [590, 598], [0, 1], EASE.inOut)),
     hl: Array.from({ length: HL_COUNT }, (_, i) => progress(frame, 392 + i * 8, 12, EASE.out)),
     reading: frame >= 388 && frame < 446,
     // Every name lifts off its word while the note is fully visible, and lands once the cards are in.
     lift: PROPOSALS.map((_, i) => progress(frame, 444 + i * 3, 22, EASE.inOut)),
-    // The cards (opaque) wipe in top-down over the note, which stays until it is covered:
-    // the sheet is never empty and nothing shows through.
-    text: progress(frame, 466, 6, EASE.in),
-    cards: progress(frame, 456, 10, EASE.inOut),
+    // Out, then in: the note step is gone (the lifted names float over a blank sheet) before
+    // the cards rise in under them.
+    text: progress(frame, 452, 6, EASE.inOut),
+    cards: progress(frame, 459, 8, EASE.out),
     savePress: Math.max(0, 1 - Math.abs(frame - 570) / 6),
-    file: PROPOSALS.map((_, i) => progress(frame, 576 + i * 6, 30, EASE.inOut)),
+    file: PROPOSALS.map((_, i) => progress(frame, 572 + i * 2, 34, EASE.inOut)),
     frame,
   };
 }

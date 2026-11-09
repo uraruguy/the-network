@@ -32,15 +32,20 @@ export const PROPOSALS: Proposal[] = [
 ];
 
 export type ImportState = {
+  /** 0..1: the sheet slides up into place (opaque; nothing shows through it). */
   open: number;
+  /** 0..1: the sheet slides down out of the window after Save. */
+  out: number;
+  /** 0..1: the dim + blur behind the sheet (held until the sheet is gone). */
+  dim: number;
   /** Per highlighted run (scan order), 0..1. */
   hl: number[];
   reading: boolean;
   /** Per person: the name chip's flight from the text to its card (0..1). */
   lift: number[];
-  /** The note text fades out (0..1) before the cards fade in (so there's no double exposure). */
+  /** The note step fades out (0..1) before the cards arrive: the two steps never overlap. */
   text: number;
-  /** Cards fade in (0..1). */
+  /** The cards rise in (0..1) once the note step is gone. */
   cards: number;
   savePress: number;
   /** Per person: the avatar's flight from its card into the People tile (0..1). */
@@ -76,7 +81,7 @@ const via = (a: Box, c: { x: number; y: number }, b: Box, t: number) => {
 const TILE = { x: 236 + 106, y: 277 - 10 };
 
 /**
- * QuickImportSheet as the desktop dialog (600 wide, glass-thick) over a white, blurred window.
+ * QuickImportSheet as the desktop dialog (600 wide) over a white, blurred window.
  * It opens with the note already pasted; the AI pass highlights it; the people's names lift out
  * of the text into their proposal cards; Save files them (avatars fly into the People tile).
  */
@@ -102,11 +107,11 @@ export function ImportSheet({ s }: { s: ImportState }) {
   let k = 0;
   return (
     <div ref={root} className="absolute inset-0 z-50">
-      <div className="absolute inset-0" style={{ background: "color-mix(in oklab, var(--bg) 55%, transparent)", backdropFilter: "blur(8px) saturate(1.2)", WebkitBackdropFilter: "blur(8px) saturate(1.2)", opacity: s.open }} />
+      <div className="absolute inset-0" style={{ background: "color-mix(in oklab, var(--bg) 55%, transparent)", backdropFilter: "blur(8px) saturate(1.2)", WebkitBackdropFilter: "blur(8px) saturate(1.2)", opacity: s.dim }} />
       <div className="absolute inset-0 grid place-items-center" style={{ padding: "24px 16px" }}>
         <div
-          className="glass-thick specular elevation-e4 relative flex flex-col overflow-hidden text-fg"
-          style={{ width: 600, height: 765, borderRadius: 28, opacity: Math.min(1, s.open * 1.5), transform: `translateY(${(1 - s.open) * 10}px) scale(${0.96 + 0.04 * s.open})` }}
+          className="surface specular elevation-e4 relative flex flex-col overflow-hidden text-fg"
+          style={{ width: 600, height: 765, borderRadius: 28, backgroundColor: "var(--surface-solid)", transform: `translateY(${(1 - s.open) * 860 + s.out * 900}px)` }}
         >
           <div className="relative shrink-0 px-3 pt-3 pb-1">
             <div className="grid min-h-11 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
@@ -156,10 +161,9 @@ export function ImportSheet({ s }: { s: ImportState }) {
             <div
               className="absolute inset-x-0 top-0 bottom-0 px-5 pt-1"
               style={{
-                background: "var(--surface-solid)",
                 visibility: s.cards > 0 ? "visible" : "hidden",
-                WebkitMaskImage: `linear-gradient(to bottom, black 0%, black ${s.cards * 110 - 10}%, transparent ${s.cards * 110}%)`,
-                maskImage: `linear-gradient(to bottom, black 0%, black ${s.cards * 110 - 10}%, transparent ${s.cards * 110}%)`,
+                opacity: s.cards,
+                transform: `translateY(${(1 - s.cards) * 16}px)`,
               }}
             >
               <div className="space-y-1.5 pb-3">

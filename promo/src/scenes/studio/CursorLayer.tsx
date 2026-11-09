@@ -31,7 +31,8 @@ const lisbon = (frame: number) => {
 };
 
 const save = win(IMPORT.primary.x - 30, IMPORT.primary.y);
-const showOnGlobe = inMain(869, 69);
+/** The sidebar's Globe item ("Show on globe" would carry the Lisbon filter; the film shows everyone). */
+const sidebarGlobe = win(120, 242);
 const send = inMain(958, 828);
 
 /** Each click: approach, click, step off the label so the payoff stays clear. */
@@ -45,9 +46,9 @@ const WAYPOINTS: Waypoint[] = [
   { f: 566, at: save, travel: 22 },
   { f: 572, at: save },
   { f: 588, at: off(save, 120, 110), travel: 14 },
-  { f: 762, at: off(showOnGlobe, 120, 110) },
-  { f: 784, at: showOnGlobe, travel: 22 },
-  { f: 788, at: showOnGlobe },
+  { f: 762, at: off(sidebarGlobe, 150, 110) },
+  { f: 784, at: sidebarGlobe, travel: 22 },
+  { f: 788, at: sidebarGlobe },
   { f: 836, at: off(lisbon, 140, 120) },
   { f: 850, at: lisbon, travel: 14 },
   { f: 854, at: lisbon },
