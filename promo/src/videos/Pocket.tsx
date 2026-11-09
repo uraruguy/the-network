@@ -49,7 +49,7 @@ const cam = track([
   [1632, { x: 540, y: 1100, s: 0.62, rx: 16, ry: 0, rz: 0, o: 0, dim: 0.4 }, EASE.in],
 ]);
 
-/** Nik's card scrolls (inside the phone) from follow-ups down to older notes and how you met. */
+/** John's card scrolls (inside the phone) from follow-ups down to older notes and how you met. */
 export const personScroll = (f: number) => 470 * progress(f, 792, 42, EASE.inOut);
 
 /** Kickers carry data. Each holds its slot from `at` to `out`; consecutive ones swap in place. */

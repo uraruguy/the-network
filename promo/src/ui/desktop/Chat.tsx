@@ -7,11 +7,11 @@ export const QUESTION = "Who do I know in Lisbon who climbs?";
 export const ANSWER = {
   lead: "Three people in Lisbon climb:",
   rows: [
-    { name: "Inês Sampaio", line: "Product designer at Figma · boulders on Thursdays. You met her at Web Summit today." },
-    { name: "Mateo Fernández", line: "Founder · raising a seed round. Invited you on a climbing trip to Sintra." },
-    { name: "Valentina Dubois", line: "Designer · climbs at Lisbon Boulder Lab. She introduced you to Mateo." },
+    { name: "Anna Kowalska", line: "Product designer at Figma · boulders on Thursdays. You met her at Web Summit today." },
+    { name: "Juan Pérez", line: "Founder · raising a seed round. Invited you on a climbing trip to Sintra." },
+    { name: "Marie Dupont", line: "Designer · climbs at Lisbon Boulder Lab. She introduced you to Juan." },
   ],
-  tail: "Want me to plan a session with Inês on Thursday?",
+  tail: "Want me to plan a session with Anna on Thursday?",
 };
 
 export type Pill = { label: string; detail?: string; state: "running" | "done"; write?: boolean };
@@ -61,10 +61,10 @@ function Answer({ lead, rows, tail }: { lead: number; rows: number[]; tail: numb
   );
 }
 
-/** Earlier today's exchanges (they match Today: Sara's Berlin note, Nik's padel follow-up). */
+/** Earlier today's exchanges (they match Today: Hanako's Berlin note, John's padel follow-up). */
 const HISTORY: { q: string; pill: Pill; a: string }[] = [
-  { q: "Add a note to Sara: she's in Berlin 12–15 May for a client workshop", pill: { label: "Note added", detail: "Sara Rossi", state: "done", write: true }, a: "Added to Sara Rossi's notes." },
-  { q: "Remind me about the padel rematch with Nik tomorrow", pill: { label: "Follow-up scheduled", detail: "Nik Zupan", state: "done", write: true }, a: "Done. It's in tomorrow's digest." },
+  { q: "Add a note to Hanako: she's in Berlin 12–15 May for a client workshop", pill: { label: "Note added", detail: "Hanako Yamada", state: "done", write: true }, a: "Added to Hanako Yamada's notes." },
+  { q: "Remind me about the padel rematch with John tomorrow", pill: { label: "Follow-up scheduled", detail: "John Doe", state: "done", write: true }, a: "Done. It's in tomorrow's digest." },
 ];
 
 function UserBubble({ text, style }: { text: string; style?: React.CSSProperties }) {

@@ -33,7 +33,7 @@ export const GLOBE_TAB: [number, number] = [201, 809];
 export const CHAT_TAB: [number, number] = [273, 809];
 export const QUERY = "aljaz";
 
-/** What has landed on Nik's card by `frame` (0→1 per section) and how bright its flash is. */
+/** What has landed on John's card by `frame` (0→1 per section) and how bright its flash is. */
 export function filedAt(frame: number): { filed: Filed; glow: Filed } {
   const filed = {} as Filed;
   const glow = {} as Filed;

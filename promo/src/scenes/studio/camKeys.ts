@@ -18,7 +18,7 @@ export const CAM: Key[] = [
   // The digest arrives: the window steps left and turns towards it.
   { f: 174, cam: { zoom: 0.6, sx: 560, sy: 660, ry: 14 } },
   { f: 262, cam: { zoom: 0.58, sx: 540, ry: 15 } },
-  // Whip onto Sara's row: it checks itself off (synced from the e-mail).
+  // Whip onto Hanako's row: it checks itself off (synced from the e-mail).
   { f: 282, cam: { fx: 560, fy: 452, zoom: 2.2, sx: 960, sy: 620, ry: 0 }, ease: WHIP },
   { f: 362, cam: { fx: 570, fy: 456, zoom: 2.24 } },
   // Import: whip up into the pasted note, then onto the cards, then down to Save.

@@ -15,12 +15,12 @@ const bandMask = `linear-gradient(to bottom, transparent 0px, transparent ${BAND
 
 /* ---------- Digest e-mail (Today) ---------- */
 
-/** Card-space position of Sara's Done button (under the 44 px label row). */
+/** Card-space position of Hanako's Done button (under the 44 px label row). */
 const DONE = { x: 97, y: 44 + 288 };
 const REST = { x: 1110 + DONE.x, y: 360 + DONE.y };
 const PUSHED = { x: 900, y: 650 };
 const pushAt = (frame: number) => tween(frame, [176, 200], [0, 1], EASE.inOut);
-/** Screen position of Sara's Done button at `frame` (the cursor aims here). */
+/** Screen position of Hanako's Done button at `frame` (the cursor aims here). */
 export const emailDone = (frame: number) => {
   const p = pushAt(frame);
   return { x: mix(REST.x, PUSHED.x, p), y: mix(REST.y, PUSHED.y, p) };
@@ -58,7 +58,7 @@ export function EmailOverlay({ frame }: { frame: number }) {
         <div style={{ height: 44, display: "flex", alignItems: "center", gap: 8, font: '500 15px "JetBrains Mono Variable", monospace', letterSpacing: "0.12em", color: "#ffffff", textTransform: "uppercase" }}>
           <span style={{ width: 8, height: 8, borderRadius: 9, background: "#7ef3f6", boxShadow: "0 0 0 4px rgba(126,243,246,0.25)" }} /> Daily digest · 07:00
         </div>
-        <DigestEmail done={{ "Sara Rossi": done }} press={{ "Sara Rossi": press }} />
+        <DigestEmail done={{ "Hanako Yamada": done }} press={{ "Hanako Yamada": press }} />
       </div>
     </AbsoluteFill>
   );
@@ -256,9 +256,9 @@ export function TerminalOverlay({ frame }: { frame: number }) {
     { kind: "cmd", text: CMD_ASK, shown: tween(frame, [1418, 1448], [0, 1], (t) => t) },
     { kind: "dim", text: '# via MCP: network › search_people(city: "Lisbon") · 7 people', shown: on(1452) },
     { kind: "person", text: "You know 7 people in Lisbon. Three worth a catch-up:", shown: on(1468) },
-    { kind: "person", text: "- Inês Sampaio — met at Web Summit today; climbs on Thursdays.", shown: on(1478) },
-    { kind: "person", text: "- Mateo Fernández — raising a seed round; wants an intro to Björn.", shown: on(1488) },
-    { kind: "person", text: "- Valentina Dubois — introduced you to Mateo; you owe her an intro.", shown: on(1498) },
+    { kind: "person", text: "- Anna Kowalska — met at Web Summit today; climbs on Thursdays.", shown: on(1478) },
+    { kind: "person", text: "- Juan Pérez — raising a seed round; wants an intro to Sven.", shown: on(1488) },
+    { kind: "person", text: "- Marie Dupont — introduced you to Juan; you owe her an intro.", shown: on(1498) },
   ];
   return (
     <AbsoluteFill style={{ perspective: 2400, WebkitMaskImage: bandMask, maskImage: bandMask }}>

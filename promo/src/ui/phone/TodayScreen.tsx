@@ -5,15 +5,15 @@ import { DUE, OWNER, STATS, THIS_WEEK, TODAY_LABEL, type FollowUp } from "../../
 import { AppBg, CheckCircle, HomeIndicator, SAT, Screen, TabBar, UndoToast } from "./parts";
 
 const nf = new Intl.NumberFormat("en-GB");
-/** This week holds only Nik's rematch, so the undo toast above the tab bar floats over empty canvas. */
-const WEEK = THIS_WEEK.filter((f) => f.name === "Nik Zupan");
+/** This week holds only John's rematch, so the undo toast above the tab bar floats over empty canvas. */
+const WEEK = THIS_WEEK.filter((f) => f.name === "John Doe");
 
 export type TodayProps = {
   /** 0→1: stat tiles count up from zero. */
   stats?: number;
-  /** 0→1: Sara's follow-up checkbox pops. */
+  /** 0→1: Hanako's follow-up checkbox pops. */
   done?: number;
-  /** 0→1: Sara's row folds away (and the counters drop by one). */
+  /** 0→1: Hanako's row folds away (and the counters drop by one). */
   fold?: number;
   /** 0→1: the undo toast rises. */
   toast?: number;
@@ -71,7 +71,7 @@ export function TodayScreen({ stats = 1, done = 0, fold = 0, toast = 0, scrollY 
 
       </div>
       {tab >= 0 && <TabBar active={tab} />}
-      {toast > 0 && <UndoToast t={toast} title="Done" who="Sara Rossi" description="Send her the deck from Tuesday" />}
+      {toast > 0 && <UndoToast t={toast} title="Done" who="Hanako Yamada" description="Send her the deck from Tuesday" />}
       {tab >= 0 && <HomeIndicator />}
     </Screen>
   );

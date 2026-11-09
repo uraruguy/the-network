@@ -73,22 +73,22 @@ function Tile({ icon, label, value, accent, bump = 0, hideValue }: { icon: React
   );
 }
 
-/** Reconnect nudges (seed-list names; Inês is imported later in the film, so she can't be here). */
+/** Reconnect nudges (seed-list names; Anna is imported later in the film, so she can't be here). */
 const RECONNECT: { name: string; ago: string; warmth: keyof typeof WARMTH_COLOR; label: string }[] = [
-  { name: "Diego Kim", ago: "2mo", warmth: "inner", label: "Close" },
-  { name: "Mateo Fernández", ago: "3mo", warmth: "active", label: "Active" },
-  { name: "Yuki Tanaka", ago: "2mo", warmth: "active", label: "Active" },
-  { name: "Lukas Schröder", ago: "4mo", warmth: "inner", label: "Close" },
+  { name: "Ivan Ivanov", ago: "2mo", warmth: "inner", label: "Close" },
+  { name: "Juan Pérez", ago: "3mo", warmth: "active", label: "Active" },
+  { name: "Hong Gil-dong", ago: "2mo", warmth: "active", label: "Active" },
+  { name: "Matti Meikäläinen", ago: "4mo", warmth: "inner", label: "Close" },
 ];
 
-const AFTER_IMPORT_NUDGE = { name: "Ana Kolenič", ago: "2mo", warmth: "active" as const, label: "Active" };
-const IMPORTED_NOTE = { icon: FileText, title: "Web Summit Lisbon, day 2", who: "Inês Sampaio", when: "now" };
+const AFTER_IMPORT_NUDGE = { name: "Janez Novak", ago: "2mo", warmth: "active" as const, label: "Active" };
+const IMPORTED_NOTE = { icon: FileText, title: "Web Summit Lisbon, day 2", who: "Anna Kowalska", when: "now" };
 
 const RECENT = [
-  { icon: Phone, title: "Call: she's in Berlin 12–15 May for a client workshop", who: "Sara Rossi", when: "2h ago" },
-  { icon: Users, title: "Coffee at Fuglen after the design conference", who: "Sara Rossi", when: "5h ago" },
-  { icon: MessageSquare, title: "Sent Ola the intro to the Index team", who: "Ola Müller", when: "Yesterday" },
-  { icon: FileText, title: "Padel: lost 6–4 6–3, rematch next week", who: "Nik Zupan", when: "Tue" },
+  { icon: Phone, title: "Call: she's in Berlin 12–15 May for a client workshop", who: "Hanako Yamada", when: "2h ago" },
+  { icon: Users, title: "Coffee at Fuglen after the design conference", who: "Hanako Yamada", when: "5h ago" },
+  { icon: MessageSquare, title: "Sent Ola the intro to the Index team", who: "Ola Nordmann", when: "Yesterday" },
+  { icon: FileText, title: "Padel: lost 6–4 6–3, rematch next week", who: "John Doe", when: "Tue" },
 ];
 
 /**
@@ -105,7 +105,7 @@ export function TodayPage({
 }: {
   /** The hook's counter is flying into this number: keep it hidden until it lands. */
   hidePeople?: boolean;
-  /** After the paste import: Mateo leaves Reconnect, the new note tops Recent notes. */
+  /** After the paste import: Juan leaves Reconnect, the new note tops Recent notes. */
   imported?: boolean;
   rows?: Record<string, RowState>;
   stats?: { people: number; cities: number; due: number };
@@ -153,7 +153,7 @@ export function TodayPage({
         <div className="min-w-0 space-y-8">
           <Section title="Reconnect" caption="Close people you haven't talked to in two months" action={<span className="font-medium text-accent-text">See all</span>}>
             <div className="flex flex-wrap gap-2 pt-0.5 pb-1">
-              {(imported ? [...RECONNECT.filter((m) => m.name !== "Mateo Fernández"), AFTER_IMPORT_NUDGE] : RECONNECT).map((m) => {
+              {(imported ? [...RECONNECT.filter((m) => m.name !== "Juan Pérez"), AFTER_IMPORT_NUDGE] : RECONNECT).map((m) => {
                 const name = m.name;
                 return (
                   <span key={name} className="surface flex h-14 max-w-[15rem] shrink-0 items-center gap-2.5 rounded-full pr-4 pl-2">

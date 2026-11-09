@@ -33,7 +33,7 @@ const CALLOUTS = [
 const BOX_Y = 1168;
 
 /**
- * Scene 3: two lower-third callouts on Nik's card, each with a leader line up into the section
+ * Scene 3: two lower-third callouts on John's card, each with a leader line up into the section
  * it explains. They say what the screen can't (the digest, the import), never repeat it.
  */
 export function Callouts({ cam, anchors, scroll }: { cam: (f: number) => Pose; anchors: Anchors; scroll: (f: number) => number }) {

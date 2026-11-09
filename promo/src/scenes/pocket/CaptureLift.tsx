@@ -14,19 +14,19 @@ const TARGET = { x: 540 - (W * SCALE) / 2, y: 474 };
 const CHIP_SCALE = 2.15;
 
 type Phrase = { label: string; target: string; icon: LucideIcon; color: string; section: (typeof LANDING)[number] };
-/** One chip per detected phrase, coloured like its marker; `section` is where it lands on Nik's card. */
+/** One chip per detected phrase, coloured like its marker; `section` is where it lands on John's card. */
 const PHRASES: Phrase[] = [
-  { label: "Note", target: "Nik Zupan", icon: NotebookPen, color: "var(--palette-violet)", section: "note" },
+  { label: "Note", target: "John Doe", icon: NotebookPen, color: "var(--palette-violet)", section: "note" },
   { label: "Moving to", target: "Lisbon", icon: MapPin, color: "var(--palette-sky)", section: "moving" },
-  { label: "Intro", target: "Valentina Dubois", icon: Link2, color: "var(--palette-rose)", section: "intro" },
+  { label: "Intro", target: "Marie Dupont", icon: Link2, color: "var(--palette-rose)", section: "intro" },
   { label: "Follow-up", target: "in 2 weeks", icon: Bell, color: "var(--palette-amber)", section: "padel" },
 ];
 
 /** The note, one clause per line (no orphans); `p` marks the phrase the AI picks out. */
 const LINES: { t: string; p?: number }[][] = [
-  [{ t: "Coffee with " }, { t: "Nik Zupan", p: 0 }, { t: "." }],
+  [{ t: "Coffee with " }, { t: "John Doe", p: 0 }, { t: "." }],
   [{ t: "Moving to " }, { t: "Lisbon", p: 1 }, { t: " in March," }],
-  [{ t: "wants an intro to " }, { t: "Valentina", p: 2 }, { t: "." }],
+  [{ t: "wants an intro to " }, { t: "Marie", p: 2 }, { t: "." }],
   [{ t: "Padel rematch " }, { t: "in 2 weeks", p: 3 }, { t: "." }],
 ];
 const WORDS = LINES.flat().reduce((n, s) => n + s.t.split(/\s+/).filter(Boolean).length, 0);
@@ -35,7 +35,7 @@ const WORDS = LINES.flat().reduce((n, s) => n + s.t.split(/\s+/).filter(Boolean)
  * Scene 2: the quick-capture field lifts out of the phone, the note appears word by word, sends,
  * and the AI marks the person, place, intro and date. Each mark launches its own chip into a
  * left-aligned stack (paths in line order, so they never cross). After a beat, the chips fly
- * into the sections of Nik's card they changed.
+ * into the sections of John's card they changed.
  */
 export function CaptureLift({ cam, anchors }: { cam: (f: number) => Pose; anchors: Anchors }) {
   const frame = useCurrentFrame();
@@ -126,7 +126,7 @@ export function CaptureLift({ cam, anchors }: { cam: (f: number) => Pose; anchor
                   <span className="grid size-4 place-items-center rounded-full bg-accent-fill text-accent-fg">
                     <Check size={11} strokeWidth={3.2} />
                   </span>
-                  <span className="text-fg-2">Filed to Nik Zupan · 2 follow-ups</span>
+                  <span className="text-fg-2">Filed to John Doe · 2 follow-ups</span>
                 </>
               ) : (
                 <>
@@ -139,7 +139,7 @@ export function CaptureLift({ cam, anchors }: { cam: (f: number) => Pose; anchor
         </div>
       )}
 
-      {/* chips: word → stack → Nik's card */}
+      {/* chips: word → stack → John's card */}
       {PHRASES.map((p, i) => {
         // Bottom phrase first: each later chip starts and lands above the earlier ones, so paths never cross.
         const start = B.chipLaunch + (PHRASES.length - 1 - i) * B.chipStep;
@@ -152,7 +152,7 @@ export function CaptureLift({ cam, anchors }: { cam: (f: number) => Pose; anchor
         let cy = mix(from.y, slot.y, t);
         let sc = mix(0.6, CHIP_SCALE, t);
         let o = clamp01(t * 3);
-        // Second flight: into the section of Nik's card it changed.
+        // Second flight: into the section of John's card it changed.
         const order = LANDING.indexOf(p.section);
         const go = B.toCard + order * B.toCardStep;
         const a = anchors[p.section];

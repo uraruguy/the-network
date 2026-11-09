@@ -4,9 +4,9 @@ import { Avatar } from "../../kit/Avatar";
 import { clamp01 } from "../../kit/motion";
 import { AppBg, Chip, HomeIndicator, InsetGroup, SAT, Screen, TabBar } from "./parts";
 
-/** Nik Zupan's card: the person the quick capture was about (the README's "Padel rematch" row). */
+/** John Doe's card: the person the quick capture was about (the README's "Padel rematch" row). */
 export const NIK = {
-  name: "Nik Zupan",
+  name: "John Doe",
   role: "Software engineer · Bolt",
   city: "Ljubljana",
   flag: "🇸🇮",
@@ -90,7 +90,7 @@ export function PersonScreen({ scrollY = 0, rootRef, tab = 1, filed = NOTHING_FI
               }
             >
               <Grow t={filed.intro} h={60}>
-                <FollowUpRow anchor="intro" title="Intro to Valentina Dubois" when="This week" tone="text-accent-text" bg={flashBg(glow.intro)} />
+                <FollowUpRow anchor="intro" title="Intro to Marie Dupont" when="This week" tone="text-accent-text" bg={flashBg(glow.intro)} />
               </Grow>
               <FollowUpRow
                 anchor="padel"
@@ -118,7 +118,7 @@ export function PersonScreen({ scrollY = 0, rootRef, tab = 1, filed = NOTHING_FI
                 <section className="space-y-1.5 pb-5">
                   <h3 className="px-4 text-footnote font-semibold tracking-[0.02em] text-fg-3 uppercase">Today</h3>
                   <ul className="surface overflow-hidden rounded-lg">
-                    <NoteRow anchor="note" title="Coffee with Nik Zupan." body="Moving to Lisbon in March, wants an intro to Valentina." time="15:42" bg={flashBg(glow.note)} />
+                    <NoteRow anchor="note" title="Coffee with John Doe." body="Moving to Lisbon in March, wants an intro to Marie." time="15:42" bg={flashBg(glow.note)} />
                   </ul>
                 </section>
               </Grow>

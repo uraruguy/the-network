@@ -150,7 +150,7 @@ export function WindowContent({ frame, theme }: { frame: number; theme: Theme })
       {saved > 0 && (
         <Toast
           icon="success"
-          title="Saved to Inês Sampaio"
+          title="Saved to Anna Kowalska"
           description="1 new person · 1 reminder"
           action="Open note"
           style={{ right: "auto", left: "50%", bottom: 40, opacity: saved, transform: `translateX(-50%) translateY(${(1 - saved) * 24}px) scale(${1.5 * (0.96 + 0.04 * saved)})`, transformOrigin: "50% 100%" }}

@@ -36,9 +36,9 @@ export const arcsAt = (frame: number): GlobeArc[] => ARCS.map(([to, at]) => ({ t
 
 /** Name chips, offset from their pins with a short leader line (never on top of a cluster). */
 const NAMED: { city: string; name: string; label: string; at: number; dx: number; dy: number }[] = [
-  { city: "Lisbon", name: "Valentina Dubois", label: "Valentina · Lisbon", at: 1140 + ARC + 2, dx: -20, dy: 118 },
-  { city: "Copenhagen", name: "Max Larsen", label: "Max · Copenhagen", at: 1172 + ARC + 2, dx: -110, dy: -150 },
-  { city: "Tokyo", name: "Sara Rossi", label: "Sara · Tokyo", at: 1228 + ARC + 2, dx: -190, dy: 96 },
+  { city: "Lisbon", name: "Marie Dupont", label: "Marie · Lisbon", at: 1140 + ARC + 2, dx: -20, dy: 118 },
+  { city: "Copenhagen", name: "Max Mustermann", label: "Max · Copenhagen", at: 1172 + ARC + 2, dx: -110, dy: -150 },
+  { city: "Tokyo", name: "Hanako Yamada", label: "Hanako · Tokyo", at: 1228 + ARC + 2, dx: -190, dy: 96 },
 ];
 const CITY = new Map(CITIES.map((c) => [c.name, c]));
 

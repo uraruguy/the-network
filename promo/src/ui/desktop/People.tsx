@@ -5,13 +5,13 @@ import { Button, FilterPill, SearchField, WARMTH_COLOR, cn } from "./parts";
 
 /** The Lisbon people the search lands on (from the import + the globe data). */
 export const LISBON: Person[] = [
-  { name: "Inês Sampaio", city: "Lisbon", flag: "🇵🇹", role: "Product designer", company: "Figma", warmth: "inner", last: "now", acts: ["🧗", "☕"] },
-  { name: "Mateo Fernández", city: "Lisbon", flag: "🇵🇹", role: "Founder", warmth: "active", last: "now", acts: ["🧗", "🎾"] },
-  { name: "Valentina Dubois", city: "Lisbon", flag: "🇵🇹", role: "Designer", warmth: "active", last: "3w", acts: ["🧗", "🍽️", "✈️"] },
-  { name: "Søren Lindqvist", city: "Lisbon", flag: "🇵🇹", role: "Architect", warmth: "active", last: "2mo", acts: ["🚴"] },
-  { name: "Maša Kralj", city: "Lisbon", flag: "🇵🇹", role: "Data scientist", company: "Revolut", warmth: "dormant", last: "5mo", acts: ["🍸"] },
-  { name: "Diego Kim", city: "Lisbon", flag: "🇵🇹", role: "Chef", warmth: "inner", last: "2mo", acts: ["🍽️"] },
-  { name: "Teja Habjan", city: "Lisbon", flag: "🇵🇹", role: "Photographer", warmth: "dormant", last: "1y", acts: ["📷"] },
+  { name: "Anna Kowalska", city: "Lisbon", flag: "🇵🇹", role: "Product designer", company: "Figma", warmth: "inner", last: "now", acts: ["🧗", "☕"] },
+  { name: "Juan Pérez", city: "Lisbon", flag: "🇵🇹", role: "Founder", warmth: "active", last: "now", acts: ["🧗", "🎾"] },
+  { name: "Marie Dupont", city: "Lisbon", flag: "🇵🇹", role: "Designer", warmth: "active", last: "3w", acts: ["🧗", "🍽️", "✈️"] },
+  { name: "João Santos", city: "Lisbon", flag: "🇵🇹", role: "Architect", warmth: "active", last: "2mo", acts: ["🚴"] },
+  { name: "Rita Ferreira", city: "Lisbon", flag: "🇵🇹", role: "Data scientist", company: "Revolut", warmth: "dormant", last: "5mo", acts: ["🍸"] },
+  { name: "Ivan Ivanov", city: "Lisbon", flag: "🇵🇹", role: "Chef", warmth: "inner", last: "2mo", acts: ["🍽️"] },
+  { name: "Tiago Costa", city: "Lisbon", flag: "🇵🇹", role: "Photographer", warmth: "dormant", last: "1y", acts: ["📷"] },
 ];
 
 /** The list, A–Z like the app's default "Name" sort: the README screenshot's rows plus the Lisbon seven. */
@@ -139,7 +139,7 @@ export function PeoplePage({
             <div className="px-4 py-3">
               <div className="text-headline text-fg">Web Summit Lisbon, day 2</div>
               <div className="mt-0.5 text-footnote text-fg-2">
-                Inês Sampaio · Met Inês Sampaio, product designer at Figma. Climbs on Thursdays.
+                Anna Kowalska · Met Anna Kowalska, product designer at Figma. Climbs on Thursdays.
               </div>
             </div>
           </div>

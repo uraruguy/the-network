@@ -2,9 +2,9 @@ import { Logo } from "../../kit/Logo";
 import { DUE, OWNER, TODAY_LABEL } from "../../data/demo";
 
 const ROLE: Record<string, string> = {
-  "Sara Rossi": "Designer, Studio Mono",
-  "Max Larsen": "Founder, Wise",
-  "Valentina Dubois": "Designer",
+  "Hanako Yamada": "Designer, Studio Mono",
+  "Max Mustermann": "Founder, Wise",
+  "Marie Dupont": "Designer",
 };
 
 const SANS = '"Inter Variable", -apple-system, sans-serif';

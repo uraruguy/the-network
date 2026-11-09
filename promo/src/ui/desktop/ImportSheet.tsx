@@ -8,11 +8,11 @@ import { Button, CATEGORY, Spinner, ToggleChip } from "./parts";
 export type Run = { t: string; hl?: "person" | "place" | "date"; p?: number };
 export const NOTE: Run[][] = [
   [{ t: "Web Summit " }, { t: "Lisbon", hl: "place" }, { t: ", day 2 ☕" }],
-  [{ t: "Met " }, { t: "Inês Sampaio", hl: "person", p: 0 }, { t: ", product designer at Figma." }],
+  [{ t: "Met " }, { t: "Anna Kowalska", hl: "person", p: 0 }, { t: ", product designer at Figma." }],
   [{ t: "Climbs on Thursdays." }],
-  [{ t: "Mateo Fernández", hl: "person", p: 1 }, { t: " is raising a seed round." }],
-  [{ t: "Intro him to " }, { t: "Björn", hl: "person", p: 2 }, { t: " at Index." }],
-  [{ t: "Chloé Lefèvre", hl: "person", p: 3 }, { t: " wants the draft " }, { t: "next week", hl: "date" }, { t: "." }],
+  [{ t: "Juan Pérez", hl: "person", p: 1 }, { t: " is raising a seed round." }],
+  [{ t: "Intro him to " }, { t: "Sven", hl: "person", p: 2 }, { t: " at Index." }],
+  [{ t: "Jan Jansen", hl: "person", p: 3 }, { t: " wants the draft " }, { t: "next week", hl: "date" }, { t: "." }],
 ];
 export const HL_COUNT = NOTE.flat().filter((r) => r.hl).length;
 
@@ -25,10 +25,10 @@ const HL_TEXT = { person: "var(--accent-strong)", place: "color-mix(in oklab, va
 
 type Proposal = { name: string; facts: string; city?: string; match?: boolean; followUp?: string; cat: keyof typeof CATEGORY };
 export const PROPOSALS: Proposal[] = [
-  { name: "Inês Sampaio", facts: "Product designer", city: "Lisbon", cat: "friend" },
-  { name: "Mateo Fernández", facts: "Founder", city: "Lisbon", match: true, cat: "founder" },
-  { name: "Björn Østergaard", facts: "Partner · Index Ventures", match: true, cat: "investor" },
-  { name: "Chloé Lefèvre", facts: "Journalist", city: "Paris", match: true, followUp: "next week", cat: "acquaint" },
+  { name: "Anna Kowalska", facts: "Product designer", city: "Lisbon", cat: "friend" },
+  { name: "Juan Pérez", facts: "Founder", city: "Lisbon", match: true, cat: "founder" },
+  { name: "Sven Svensson", facts: "Partner · Index Ventures", match: true, cat: "investor" },
+  { name: "Jan Jansen", facts: "Journalist", city: "Paris", match: true, followUp: "next week", cat: "acquaint" },
 ];
 
 export type ImportState = {

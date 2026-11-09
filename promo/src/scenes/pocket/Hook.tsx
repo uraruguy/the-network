@@ -12,11 +12,11 @@ const F = 470;
 
 /** Memory fragments: what a card remembers about someone. Readable mid-depth chips. */
 const MEMORIES = [
-  { name: "Ana Kolenič", note: "Met at Web Summit", x: 250, y: 560 },
-  { name: "Valentina Dubois", note: "Lives in Lisbon", x: 800, y: 700 },
-  { name: "Inês Sampaio", note: "Owes you an intro", x: 300, y: 880 },
-  { name: "Nik Zupan", note: "Padel on Sundays", x: 770, y: 1060 },
-  { name: "Sara Rossi", note: "Introduced by Max", x: 330, y: 1220 },
+  { name: "Janez Novak", note: "Met at Web Summit", x: 250, y: 560 },
+  { name: "Marie Dupont", note: "Lives in Lisbon", x: 800, y: 700 },
+  { name: "Anna Kowalska", note: "Owes you an intro", x: 300, y: 880 },
+  { name: "John Doe", note: "Padel on Sundays", x: 770, y: 1060 },
+  { name: "Hanako Yamada", note: "Introduced by Max", x: 330, y: 1220 },
 ];
 
 type Item = { name: string; note?: string; X: number; Y: number; z: number; side: number };

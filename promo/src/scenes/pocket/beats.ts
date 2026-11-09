@@ -23,7 +23,7 @@ export const B = {
   filed: 534,
   pushToCard: 560,
   cardOut: 590,
-  /** Chips leave the stack for Nik's card sections, in this order. */
+  /** Chips leave the stack for John's card sections, in this order. */
   toCard: 600,
   toCardStep: 4,
   toCardFlight: 24,
@@ -55,6 +55,6 @@ export const B = {
   end: 1600,
 } as const;
 
-/** Section each filed chip lands in on Nik's card, in flight order. */
+/** Section each filed chip lands in on John's card, in flight order. */
 export const LANDING = ["moving", "padel", "intro", "note"] as const;
 export const landAt = (i: number) => B.toCard + i * B.toCardStep + B.toCardFlight;

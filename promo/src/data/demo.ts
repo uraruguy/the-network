@@ -1,8 +1,8 @@
 /**
- * Demo data for the videos. Every name comes from the public repo: the README screenshots (Alex,
- * Sara Rossi, Max Larsen, Valentina Dubois, Nik Zupan, Ola Müller, the Aarav/Aljaž rows) and the
- * first/last-name, role, company and tag lists in scripts/dev/seed-people.ts. Dates follow the
- * screenshots: today is Friday 30 October.
+ * Demo data for the videos. Every person is fictional: well-known placeholder names from many
+ * countries (John Doe, Max Mustermann, Marie Dupont, Hanako Yamada, Janez Novak, Juan Pérez…) or
+ * very common ones, never a real, identifiable person. The same cast seeds the README screenshots
+ * (scripts/dev/seed-demo.ts). Today is Friday 30 October.
  */
 
 export const OWNER = "Alex";
@@ -31,26 +31,30 @@ export type Person = {
   acts?: string[];
 };
 
-/** The People list exactly as in docs/screenshots/people.jpg, continued alphabetically. */
+/** The People list, sorted by name like the app. The five Josés feed the accent-insensitive search. */
 export const PEOPLE: Person[] = [
-  { name: "Aarav García", city: "Köln", flag: "🇩🇪", role: "Head of Growth", company: "Figma", warmth: "active", last: "1y" },
-  { name: "Aarav Lindqvist", city: "Warsaw", flag: "🇵🇱", role: "Product designer", warmth: "active", last: "4mo", acts: ["🍽️", "🥪", "✈️"] },
-  { name: "Aarav Santos", city: "Vienna", flag: "🇦🇹", role: "Product manager", warmth: "active", acts: ["🎲"] },
-  { name: "Aarav Zupan", city: "Düsseldorf", flag: "🇩🇪", role: "Co-founder & CEO", warmth: "active", acts: ["🍽️", "🎾"] },
-  { name: "Aljaž Jovanović", city: "Hamburg", flag: "🇩🇪", warmth: "dormant", last: "1y", acts: ["🤺", "🏋️"] },
-  { name: "Aljaž Nowak", city: "Tokyo", flag: "🇯🇵", warmth: "dormant", last: "1mo", acts: ["⚽", "🥾"] },
-  { name: "Aljaž Santos", city: "London", flag: "🇬🇧", role: "Head of Growth", warmth: "dormant", last: "1y", acts: ["🥾"] },
-  { name: "Aljaž van der Berg", city: "Delhi", flag: "🇮🇳", role: "Chef", warmth: "active", last: "8h", acts: ["🏋️"] },
-  { name: "Aljaž Wang", city: "Munich", flag: "🇩🇪", role: "Founder", company: "Notion", warmth: "archive", last: "1y" },
-  { name: "Amara Kos", city: "Ljubljana", flag: "🇸🇮", role: "Photographer", warmth: "dormant", last: "1mo", acts: ["📷"] },
-  { name: "Ana Kolenič", city: "Ljubljana", flag: "🇸🇮", role: "Software engineer", company: "Linear", warmth: "active", last: "2w", acts: ["🧗", "☕"] },
-  { name: "Björn Østergaard", city: "Copenhagen", flag: "🇩🇰", role: "Partner", company: "Index Ventures", warmth: "active", last: "3w" },
-  { name: "Chloé Lefèvre", city: "Paris", flag: "🇫🇷", role: "Journalist", warmth: "dormant", last: "5mo", acts: ["📚"] },
+  { name: "Ali Hassan", city: "Dubai", flag: "🇦🇪", role: "Founder", warmth: "active", last: "2w", acts: ["☕"] },
+  { name: "Anna Kowalska", city: "Lisbon", flag: "🇵🇹", role: "Product designer", company: "Figma", warmth: "active", last: "8h", acts: ["🧗"] },
+  { name: "Hong Gil-dong", city: "Seoul", flag: "🇰🇷", role: "Software engineer", warmth: "dormant", last: "4mo", acts: ["🍽️", "✈️"] },
+  { name: "Jan Jansen", city: "Paris", flag: "🇫🇷", role: "Journalist", warmth: "dormant", last: "5mo", acts: ["📚"] },
+  { name: "Janez Novak", city: "Ljubljana", flag: "🇸🇮", role: "Software engineer", company: "Linear", warmth: "active", last: "2w", acts: ["🧗", "☕"] },
+  { name: "Joe Bloggs", city: "Köln", flag: "🇩🇪", role: "Head of Growth", company: "Figma", warmth: "active", last: "1y" },
+  { name: "José García", city: "Madrid", flag: "🇪🇸", role: "Chef", warmth: "active", last: "3w", acts: ["🍽️"] },
+  { name: "José López", city: "Mexico City", flag: "🇲🇽", role: "Architect", warmth: "dormant", last: "1y", acts: ["🥾"] },
+  { name: "José Martínez", city: "Barcelona", flag: "🇪🇸", role: "Product manager", warmth: "active", last: "1mo", acts: ["🎾", "🍽️"] },
+  { name: "José Rodríguez", city: "Buenos Aires", flag: "🇦🇷", role: "Photographer", warmth: "dormant", last: "6mo", acts: ["📷"] },
+  { name: "José Santos", city: "Porto", flag: "🇵🇹", role: "Founder", warmth: "active", last: "2w", acts: ["⚽"] },
+  { name: "Kenji Sato", city: "Tokyo", flag: "🇯🇵", warmth: "dormant", last: "1mo", acts: ["⚽", "🥾"] },
+  { name: "Marko Marković", city: "Belgrade", flag: "🇷🇸", role: "Data scientist", warmth: "archive", last: "1y" },
+  { name: "Petra Kovač", city: "Ljubljana", flag: "🇸🇮", role: "Photographer", warmth: "dormant", last: "1mo", acts: ["📷"] },
+  { name: "Raj Kumar", city: "Delhi", flag: "🇮🇳", role: "Chef", warmth: "active", last: "8h", acts: ["🏋️"] },
+  { name: "Sven Svensson", city: "Copenhagen", flag: "🇩🇰", role: "Partner", company: "Index Ventures", warmth: "active", last: "3w" },
+  { name: "Wang Wei", city: "Munich", flag: "🇩🇪", role: "Founder", company: "Notion", warmth: "archive", last: "1y" },
 ];
 
-/** The featured cast (Today, person card, follow-ups) from the README screenshots. */
-export const SARA: Person & { note: string } = {
-  name: "Sara Rossi",
+/** The featured cast (Today, person card, follow-ups); the README screenshots use the same people. */
+export const HANAKO: Person & { note: string } = {
+  name: "Hanako Yamada",
   role: "Designer",
   company: "Studio Mono",
   city: "Tokyo",
@@ -61,22 +65,22 @@ export const SARA: Person & { note: string } = {
 
 export type FollowUp = { name: string; text: string; when: string; due?: boolean };
 export const DUE: FollowUp[] = [
-  { name: "Sara Rossi", text: "Send her the deck from Tuesday", when: "Today", due: true },
-  { name: "Max Larsen", text: "Ask how the Copenhagen move went", when: "Today", due: true },
-  { name: "Valentina Dubois", text: "Intro to the design studio in Lisbon", when: "Today", due: true },
+  { name: "Hanako Yamada", text: "Send her the deck from Tuesday", when: "Today", due: true },
+  { name: "Max Mustermann", text: "Ask how the Copenhagen move went", when: "Today", due: true },
+  { name: "Marie Dupont", text: "Intro to the design studio in Lisbon", when: "Today", due: true },
 ];
 export const THIS_WEEK: FollowUp[] = [
-  { name: "Nik Zupan", text: "Padel rematch", when: "Tomorrow" },
-  { name: "Ola Müller", text: "Congratulate on the new role", when: "Sun, 1 Nov" },
+  { name: "John Doe", text: "Padel rematch", when: "Tomorrow" },
+  { name: "Ola Nordmann", text: "Congratulate on the new role", when: "Sun, 1 Nov" },
 ];
-export const RECONNECT = ["Inês Sampaio", "Mateo Fernández", "Yuki Tanaka", "Lukas Schröder"];
+export const RECONNECT = ["Anna Kowalska", "Juan Pérez", "Hong Gil-dong", "Matti Meikäläinen"];
 
 export type NoteKind = "note" | "meeting" | "call" | "message";
 export type Note = { kind: NoteKind; title: string; body?: string; time: string; day: string };
 
-/** Sara Rossi's card (docs/screenshots/person.jpg), with richer notes behind it. */
-export const SARA_CARD = {
-  ...SARA,
+/** Hanako Yamada's card (docs/screenshots/person.jpg), with richer notes behind it. */
+export const HANAKO_CARD = {
+  ...HANAKO,
   categories: [
     { name: "Design", color: "var(--palette-violet)" },
     { name: "Clients", color: "var(--palette-teal)" },
@@ -84,7 +88,7 @@ export const SARA_CARD = {
   tags: ["design community", "conference speakers"],
   activities: ["☕", "🎨", "✈️"],
   metAt: "Design conference, Tokyo",
-  introducedBy: "Max Larsen",
+  introducedBy: "Max Mustermann",
   notes: [
     { kind: "call", title: "Call: she's in Berlin 12–15 May for a client workshop", time: "13:15", day: "Today" },
     { kind: "meeting", title: "Coffee at Fuglen after the design conference", body: "Wants to move Studio Mono to a 4-day week. Loves the Lisbon studio idea.", time: "09:40", day: "Today" },
@@ -94,12 +98,12 @@ export const SARA_CARD = {
 
 /** What the quick capture box turns into (Capture.tsx → AI filing). */
 export const CAPTURE = {
-  text: "Coffee with Nik Zupan. He's moving to Lisbon in March and wants an intro to Valentina. Padel rematch in 2 weeks!",
+  text: "Coffee with John Doe. He's moving to Lisbon in March and wants an intro to Marie. Padel rematch in 2 weeks!",
   filed: [
-    { icon: "note", label: "Note", target: "Nik Zupan" },
+    { icon: "note", label: "Note", target: "John Doe" },
     { icon: "city", label: "Moving to", target: "Lisbon" },
     { icon: "bell", label: "Follow-up", target: "in 2 weeks" },
-    { icon: "link", label: "Intro", target: "Valentina Dubois" },
+    { icon: "link", label: "Intro", target: "Marie Dupont" },
   ],
 };
 
@@ -107,12 +111,12 @@ export const CAPTURE = {
 export const ASK = {
   question: "Who do I know in Lisbon who climbs?",
   tools: ["Searching people", "Reading notes"],
-  toolCalls: ['search_people({ city: "Lisbon", activities: ["Climbing"] })', 'list_notes({ person: "Inês Sampaio" })'],
+  toolCalls: ['search_people({ city: "Lisbon", activities: ["Climbing"] })', 'list_notes({ person: "Anna Kowalska" })'],
   answerLead: "Three people in Lisbon climb:",
   answer: [
-    { name: "Inês Sampaio", line: "Product designer at Figma. Bouldering on Thursdays." },
-    { name: "Mateo Fernández", line: "Founder. Asked you to join a climbing trip to Sintra." },
-    { name: "Valentina Dubois", line: "Moves to Lisbon in May. You owe her an intro." },
+    { name: "Anna Kowalska", line: "Product designer at Figma. Bouldering on Thursdays." },
+    { name: "Juan Pérez", line: "Founder. Asked you to join a climbing trip to Sintra." },
+    { name: "Marie Dupont", line: "Moves to Lisbon in May. You owe her an intro." },
   ],
 };
 
@@ -126,24 +130,24 @@ export const CITIES: City[] = [
   { name: "London", lat: 51.5074, lng: -0.1278, count: 24 },
   { name: "Paris", lat: 48.8566, lng: 2.3522, count: 12 },
   { name: "Amsterdam", lat: 52.3676, lng: 4.9041, count: 9 },
-  { name: "Copenhagen", lat: 55.6761, lng: 12.5683, count: 7, face: "Max Larsen" },
+  { name: "Copenhagen", lat: 55.6761, lng: 12.5683, count: 7, face: "Max Mustermann" },
   { name: "Stockholm", lat: 59.3293, lng: 18.0686, count: 5 },
   { name: "Zagreb", lat: 45.815, lng: 15.9819, count: 9 },
   { name: "Milan", lat: 45.4642, lng: 9.19, count: 8 },
   { name: "Zurich", lat: 47.3769, lng: 8.5417, count: 6 },
   { name: "Barcelona", lat: 41.3874, lng: 2.1686, count: 9 },
-  { name: "Lisbon", lat: 38.7223, lng: -9.1393, count: 7, face: "Valentina Dubois" },
+  { name: "Lisbon", lat: 38.7223, lng: -9.1393, count: 7, face: "Marie Dupont" },
   { name: "Athens", lat: 37.9838, lng: 23.7275, count: 3 },
   { name: "Istanbul", lat: 41.0082, lng: 28.9784, count: 3 },
-  { name: "Dubai", lat: 25.2048, lng: 55.2708, count: 2, face: "Leila Haddad" },
+  { name: "Dubai", lat: 25.2048, lng: 55.2708, count: 2, face: "Ali Hassan" },
   { name: "Bangalore", lat: 12.9716, lng: 77.5946, count: 4 },
-  { name: "Delhi", lat: 28.6139, lng: 77.209, count: 6, face: "Aljaž van der Berg" },
+  { name: "Delhi", lat: 28.6139, lng: 77.209, count: 6, face: "Raj Kumar" },
   { name: "Singapore", lat: 1.3521, lng: 103.8198, count: 4 },
-  { name: "Tokyo", lat: 35.6762, lng: 139.6503, count: 6, face: "Sara Rossi" },
+  { name: "Tokyo", lat: 35.6762, lng: 139.6503, count: 6, face: "Hanako Yamada" },
   { name: "Seoul", lat: 37.5665, lng: 126.978, count: 3 },
   { name: "Sydney", lat: -33.8688, lng: 151.2093, count: 3 },
-  { name: "Cape Town", lat: -33.9249, lng: 18.4241, count: 2, face: "Amara Mensah" },
-  { name: "Nairobi", lat: -1.2921, lng: 36.8219, count: 1, face: "Kofi Mensah" },
+  { name: "Cape Town", lat: -33.9249, lng: 18.4241, count: 2, face: "Thabo Nkosi" },
+  { name: "Nairobi", lat: -1.2921, lng: 36.8219, count: 1, face: "Grace Mwangi" },
   { name: "New York City", lat: 40.7128, lng: -74.006, count: 11 },
   { name: "San Francisco", lat: 37.7749, lng: -122.4194, count: 9 },
   { name: "Toronto", lat: 43.6532, lng: -79.3832, count: 3 },
@@ -153,49 +157,49 @@ export const CITIES: City[] = [
 
 /** Who introduced whom (the graph). `from` introduced `to`; Alex is the owner at the centre. */
 export const INTROS: [string, string][] = [
-  ["Alex", "Max Larsen"],
-  ["Max Larsen", "Sara Rossi"],
-  ["Sara Rossi", "Valentina Dubois"],
-  ["Valentina Dubois", "Inês Sampaio"],
-  ["Inês Sampaio", "Mateo Fernández"],
-  ["Alex", "Nik Zupan"],
-  ["Nik Zupan", "Ana Kolenič"],
-  ["Nik Zupan", "Aljaž Nowak"],
-  ["Ana Kolenič", "Rok Potočnik"],
-  ["Alex", "Ola Müller"],
-  ["Ola Müller", "Lukas Schröder"],
-  ["Ola Müller", "Björn Østergaard"],
-  ["Björn Østergaard", "Yuki Tanaka"],
-  ["Max Larsen", "Aarav García"],
-  ["Aarav García", "Priya Patel"],
-  ["Alex", "Chloé Lefèvre"],
-  ["Chloé Lefèvre", "Amara Kos"],
-  ["Sara Rossi", "Aljaž Wang"],
-  ["Yuki Tanaka", "Mei Kim"],
-  ["Lukas Schröder", "Hannah Taylor"],
+  ["Alex", "Max Mustermann"],
+  ["Max Mustermann", "Hanako Yamada"],
+  ["Hanako Yamada", "Marie Dupont"],
+  ["Marie Dupont", "Anna Kowalska"],
+  ["Anna Kowalska", "Juan Pérez"],
+  ["Alex", "John Doe"],
+  ["John Doe", "Janez Novak"],
+  ["John Doe", "Kenji Sato"],
+  ["Janez Novak", "Marko Marković"],
+  ["Alex", "Ola Nordmann"],
+  ["Ola Nordmann", "Matti Meikäläinen"],
+  ["Ola Nordmann", "Sven Svensson"],
+  ["Sven Svensson", "Hong Gil-dong"],
+  ["Max Mustermann", "Joe Bloggs"],
+  ["Joe Bloggs", "Zhang San"],
+  ["Alex", "Jan Jansen"],
+  ["Jan Jansen", "Petra Kovač"],
+  ["Hanako Yamada", "Wang Wei"],
+  ["Hong Gil-dong", "Li Si"],
+  ["Matti Meikäläinen", "Jane Smith"],
 ];
 
 /**
- * The Studio film's graph: INTROS without Inês Sampaio, who is created later in that film by the
- * paste import (Valentina introduced Mateo instead).
+ * The Studio film's graph: INTROS without Anna Kowalska, who is created later in that film by the
+ * paste import (Marie introduced Juan instead).
  */
 export const INTROS_STUDIO: [string, string][] = [
-  ...INTROS.filter(([a, b]) => a !== "Inês Sampaio" && b !== "Inês Sampaio"),
-  ["Valentina Dubois", "Mateo Fernández"],
+  ...INTROS.filter(([a, b]) => a !== "Anna Kowalska" && b !== "Anna Kowalska"),
+  ["Marie Dupont", "Juan Pérez"],
 ];
 
-/** A large, deterministic crowd of names (the seed script's lists) for swarms and counters. */
+/** A large, deterministic crowd of generic names (common first names, placeholder or most-common surnames). */
 const FIRST = [
-  "Žan", "Ana", "Luka", "Nika", "Matej", "Špela", "Tjaša", "Rok", "Urška", "Jure", "Maša", "Gašper", "Eva", "Nejc", "Teja", "Aljaž",
-  "Ivana", "Marko", "Petra", "Filip", "Lucija", "Domen", "Klara", "Tine", "Zoë", "Søren", "Åsa", "Björn", "Jürgen", "Chloé", "José",
-  "Inês", "Mateusz", "Łucja", "Đorđe", "Miloš", "Emma", "Oliver", "Sofia", "Lukas", "Mia", "Noah", "Hannah", "Leon", "Amelia", "Ethan",
-  "Yuki", "Aarav", "Priya", "Chen", "Mei", "Omar", "Leila", "Mateo", "Valentina", "Camila", "Diego", "Isabella", "Kofi", "Amara",
+  "Anna", "Maria", "John", "Jane", "Max", "Erika", "Ola", "Kari", "Jan", "Janez", "Marija", "Ivan", "Petra", "Marko", "Ana", "José",
+  "Juan", "Carlos", "Sofia", "Emma", "Lucas", "Noah", "Mia", "Leon", "Hanna", "Sven", "Matti", "Maija", "Hanako", "Taro", "Kenji", "Wei",
+  "Ali", "Fatima", "Omar", "Grace", "Thabo", "Raj", "Pedro", "João", "Rita", "Tiago", "Elena", "Luca", "Giulia", "Marie", "Jean", "Pierre",
+  "David", "Daniel", "Laura", "Paul", "Peter", "Eva", "Tom", "Nina", "Sara", "Lena", "Oscar", "Zoë",
 ];
 const LAST = [
-  "Nartnik", "Habjan", "Kolenič", "Kunstelj", "Zupančič", "Potočnik", "Kos", "Verbič", "Gorjup", "Turk", "Bračič", "Kralj", "Zadnik", "Hribar",
-  "Lukić", "Pavković", "Jovanović", "Østergaard", "Lindqvist", "Müller", "Schröder", "Dubois", "Lefèvre", "García", "Fernández",
-  "Nowak", "Wiśniewski", "Smith", "Johnson", "Brown", "Taylor", "Wilson", "Rossi", "Bianchi", "Tanaka", "Sato", "Kim", "Park", "Sandhu",
-  "Patel", "Wang", "Li", "Haddad", "Mensah", "Silva", "Sampaio", "O'Brien", "MacLeod", "van der Berg", "De Luca",
+  "Doe", "Smith", "Bloggs", "Novak", "Horvat", "Kovač", "Mustermann", "Müller", "Schmidt", "Rossi", "Bianchi", "Dupont", "Martin",
+  "García", "Pérez", "López", "Silva", "Santos", "Costa", "Jansen", "de Vries", "Nordmann", "Hansen", "Andersson", "Svensson", "Virtanen",
+  "Nagy", "Popescu", "Petrović", "Yılmaz", "Cohen", "Hassan", "Kim", "Lee", "Park", "Wang", "Li", "Zhang", "Chen", "Yamada", "Sato",
+  "Suzuki", "Nguyen", "Singh", "Kumar", "Mwangi", "Okafor", "Brown", "Wilson", "Taylor",
 ];
 export function crowd(n: number, seed = 7): string[] {
   let s = seed >>> 0;

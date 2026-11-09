@@ -12,13 +12,13 @@ function Control({ icon, on }: { icon: ReactNode; on?: boolean }) {
 const Divider = () => <span className="h-[0.5px] w-6 bg-separator" />;
 
 export const LISBON_PEOPLE = [
-  { name: "Inês Sampaio", sub: "Product designer · Figma", emoji: "🧗☕️", inner: true },
-  { name: "Mateo Fernández", sub: "Founder", emoji: "🧗🎾" },
-  { name: "Valentina Dubois", sub: "Designer", emoji: "🧗🍽️✈️" },
-  { name: "Diego Kim", sub: "Chef", emoji: "🍽️", inner: true },
-  { name: "Maša Kralj", sub: "Data scientist · Revolut", emoji: "🍸" },
-  { name: "Søren Lindqvist", sub: "Architect", emoji: "🚴" },
-  { name: "Teja Habjan", sub: "Photographer", emoji: "📷" },
+  { name: "Anna Kowalska", sub: "Product designer · Figma", emoji: "🧗☕️", inner: true },
+  { name: "Juan Pérez", sub: "Founder", emoji: "🧗🎾" },
+  { name: "Marie Dupont", sub: "Designer", emoji: "🧗🍽️✈️" },
+  { name: "Ivan Ivanov", sub: "Chef", emoji: "🍽️", inner: true },
+  { name: "Rita Ferreira", sub: "Data scientist · Revolut", emoji: "🍸" },
+  { name: "João Santos", sub: "Architect", emoji: "🚴" },
+  { name: "Tiago Costa", sub: "Photographer", emoji: "📷" },
 ];
 
 /** CityPanel (desktop): the floating 360 px side panel for one city. */

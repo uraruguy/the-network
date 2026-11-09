@@ -6,9 +6,9 @@ import { AppBg, Caret, CHROME_BOTTOM, HomeIndicator, SAT, Screen, TabBar } from 
 
 /** Answer rows, worded to fit two lines each in the phone's message bubble. */
 const ANSWER = [
-  { name: "Inês Sampaio", line: "Designer at Figma. Boulders on Thursdays." },
-  { name: "Mateo Fernández", line: "Founder. Invited you to climb in Sintra." },
-  { name: "Valentina Dubois", line: "Moved there in May. You owe her an intro." },
+  { name: "Anna Kowalska", line: "Designer at Figma. Boulders on Thursdays." },
+  { name: "Juan Pérez", line: "Founder. Invited you to climb in Sintra." },
+  { name: "Marie Dupont", line: "Moved there in May. You owe her an intro." },
 ];
 const ROW_H = 42;
 const ROW_GAP = 10;
@@ -51,7 +51,7 @@ export function ChatScreen({ frame, draft = "", caret = false, sent = 0, tools =
               <Pill done label="Checked follow-ups" detail="3 this week" frame={frame} />
             </div>
             <div className="surface rounded-lg rounded-bl-xs px-4 py-3 text-body text-fg">
-              Two are due today: <Link>Max Larsen</Link> and <Link>Valentina Dubois</Link>. Later this week: <Link>Nik</Link>&apos;s intro to Valentina.
+              Two are due today: <Link>Max Mustermann</Link> and <Link>Marie Dupont</Link>. Later this week: <Link>John</Link>&apos;s intro to Marie.
             </div>
           </div>
         </div>

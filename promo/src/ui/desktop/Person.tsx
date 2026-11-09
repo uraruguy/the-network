@@ -12,7 +12,7 @@ function QuickAction({ icon, label }: { icon: React.ReactNode; label: string }) 
 }
 
 /**
- * PersonDetail at desktop width (max-w-2xl column): Inês Sampaio, freshly created by the paste
+ * PersonDetail at desktop width (max-w-2xl column): Anna Kowalska, freshly created by the paste
  * import. `scroll` moves the page; `avatarIn` (0..1) lets the avatar grow in from the list row.
  */
 export function PersonPage({ scroll = 0, avatarIn = 1 }: { scroll?: number; avatarIn?: number }) {
@@ -33,9 +33,9 @@ export function PersonPage({ scroll = 0, avatarIn = 1 }: { scroll?: number; avat
         </div>
         <header className="flex flex-col items-center px-2 pt-2 pb-5 text-center">
           <span className="elevation-e2 rounded-full" style={{ transform: `scale(${0.4 + 0.6 * avatarIn})`, opacity: Math.min(1, avatarIn * 2) }}>
-            <Avatar name="Inês Sampaio" size={104} />
+            <Avatar name="Anna Kowalska" size={104} />
           </span>
-          <h1 className="mt-3.5 max-w-full text-title1 text-fg">Inês Sampaio</h1>
+          <h1 className="mt-3.5 max-w-full text-title1 text-fg">Anna Kowalska</h1>
           <p className="mt-1 text-subhead text-fg-2">Product designer · Figma</p>
           <p className="mt-1.5 flex items-center justify-center gap-x-1.5 text-footnote text-fg-3">
             <span>🇵🇹</span> Lisbon <span>·</span> <span className="tabular-nums">13:42 · 1h behind</span>
@@ -80,12 +80,12 @@ export function PersonPage({ scroll = 0, avatarIn = 1 }: { scroll?: number; avat
               <div className="surface overflow-hidden rounded-lg px-4 py-3">
                 <div className="truncate text-headline text-fg">Web Summit Lisbon, day 2</div>
                 <div className="mt-0.5 truncate text-subhead">
-                  <span className="text-fg-2">16:20</span> <span className="text-fg-3">Met Inês Sampaio, product designer at Figma. Climbs on Thursdays.</span>
+                  <span className="text-fg-2">16:20</span> <span className="text-fg-3">Met Anna Kowalska, product designer at Figma. Climbs on Thursdays.</span>
                 </div>
               </div>
             </div>
             <InsetGroup>
-              <ListRow icon={<ClipboardPaste />} label="Paste from Apple Notes" description="AI files it as notes on Inês" chevron last />
+              <ListRow icon={<ClipboardPaste />} label="Paste from Apple Notes" description="AI files it as notes on Anna" chevron last />
             </InsetGroup>
           </section>
           <InsetGroup header="Do together" headerAction={<span className="font-medium text-accent-text">Edit</span>}>
@@ -106,10 +106,10 @@ export function PersonPage({ scroll = 0, avatarIn = 1 }: { scroll?: number; avat
           </InsetGroup>
           <InsetGroup header="How we met">
             <div className="relative px-4 py-3 after:absolute after:right-0 after:bottom-0 after:left-4 after:h-[0.5px] after:bg-separator">
-              <p className="text-body text-fg">Web Summit Lisbon, day 2. Valentina sat us at the same table.</p>
+              <p className="text-body text-fg">Web Summit Lisbon, day 2. Marie sat us at the same table.</p>
             </div>
             <ListRow label="Met in" value="🇵🇹 Lisbon" />
-            <ListRow leading={<Avatar name="Valentina Dubois" size={30} />} label="Valentina Dubois" description="Introduced you" chevron last />
+            <ListRow leading={<Avatar name="Marie Dupont" size={30} />} label="Marie Dupont" description="Introduced you" chevron last />
           </InsetGroup>
         </div>
       </div>

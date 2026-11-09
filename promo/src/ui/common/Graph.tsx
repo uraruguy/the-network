@@ -11,7 +11,7 @@ type GLink = SimulationLinkDatum<GNode> & { s: string; t: string; ambient: boole
 
 const WARMTH = new Map<string, Warmth>(PEOPLE.map((p) => [p.name, p.warmth]));
 const warmthOf = (name: string): Warmth =>
-  WARMTH.get(name) ?? (["Sara Rossi", "Max Larsen", "Nik Zupan", "Valentina Dubois"].includes(name) ? "inner" : "active");
+  WARMTH.get(name) ?? (["Hanako Yamada", "Max Mustermann", "John Doe", "Marie Dupont"].includes(name) ? "inner" : "active");
 
 type Intros = readonly (readonly [string, string])[];
 
