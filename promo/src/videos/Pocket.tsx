@@ -59,8 +59,8 @@ const KICKERS: { text: string; at: number; out: number }[] = [
   { text: "2 due today", at: 254, out: 368 },
   { text: "AI capture", at: 374, out: 634 },
   { text: "One card per person", at: 640, out: 898 },
-  { text: "aljaz = Aljaž", at: 906, out: 1082 },
-  { text: "285 people · 79 cities", at: 1088, out: 1330 },
+  { text: "aljaz = Aljaž", at: 906, out: 1054 },
+  { text: "285 people · 79 cities", at: 1062, out: 1330 },
   { text: "Works with Claude via MCP", at: 1356, out: 1596 },
 ];
 
@@ -71,8 +71,8 @@ const HEADLINES: { lines: Line[]; at: number; out: number; size?: number; dy?: n
   { lines: ["Never miss", [{ text: "a " }, accent("follow-up.")]], at: 150, out: 368 },
   { lines: ["Jot it down.", [{ text: "AI " }, accent("files it.")]], at: 378, out: 632 },
   { lines: ["How you met.", [accent("What they said.")]], at: 644, out: 896 },
-  { lines: ["Find anyone", [{ text: "in a " }, accent("second.")]], at: 910, out: 1080 },
-  { lines: ["Your people,", [accent("on a globe.")]], at: 1092, out: 1328 },
+  { lines: ["Find anyone", [{ text: "in a " }, accent("second.")]], at: 910, out: 1050 },
+  { lines: ["Your people,", [accent("on a globe.")]], at: 1064, out: 1328 },
   { lines: [[{ text: "Ask your " }, accent("network.")]], at: 1360, out: 1596 },
   { lines: [[{ text: "…or ask " }, accent("Claude.")]], at: 1470, out: 1596, dy: 96 },
 ];
@@ -171,7 +171,8 @@ export function Pocket() {
   return (
     <DarkStage>
       <Hook sink={sink} />
-      <Band strength={1 - progress(frame, B.end, 24, EASE.inOut)}>
+      {/* The mask lifts only once the last headline has faded (out 1596 + 16). */}
+      <Band strength={1 - progress(frame, B.end + 12, 24, EASE.inOut)}>
         <PhoneRig pose={pose} blur={blur}>
           <PhoneContent frame={frame} personRef={personRef} personScroll={personScroll(frame)} />
         </PhoneRig>

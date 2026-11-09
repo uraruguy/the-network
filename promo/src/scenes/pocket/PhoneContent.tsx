@@ -77,19 +77,13 @@ export function PhoneContent({ frame, personRef, personScroll = 0 }: { frame: nu
   } else if (frame < B.globeSwap) {
     screen = people(frame);
     tab = 1;
-  } else if (frame < B.chatSwap + 4) {
-    // Crisp tab swaps: content switches in 4 frames while the pill slides.
-    screen = (
-      <>
-        {frame < B.globeSwap + 4 && people(frame)}
-        <div style={{ position: "absolute", inset: 0, opacity: progress(frame, B.globeSwap, 4, (t) => t) }}>{globe(frame)}</div>
-        {frame >= B.chatSwap && <div style={{ position: "absolute", inset: 0, opacity: progress(frame, B.chatSwap, 4, (t) => t) }}>{chat(frame)}</div>}
-      </>
-    );
-    tab = 1 + progress(frame, B.globeSwap, 14, EASE.out) + progress(frame, B.chatSwap, 14, EASE.out);
+  } else if (frame < B.chatSwap) {
+    // Tab swaps are instant on the tap's release frame; only the pill slides.
+    screen = globe(frame);
+    tab = 1 + progress(frame, B.globeSwap, 14, EASE.out);
   } else {
     screen = chat(frame);
-    tab = 3;
+    tab = 2 + progress(frame, B.chatSwap, 14, EASE.out);
   }
 
   // The tab bar slides away while the globe is out of the phone, and back when it returns.
@@ -101,8 +95,8 @@ export function PhoneContent({ frame, personRef, personScroll = 0 }: { frame: nu
       <HomeIndicator />
       <Tap x={TODAY_SARA_CHECK[0]} y={TODAY_SARA_CHECK[1]} t={frame - B.saraTap} hold={8} />
       <Tap x={PEOPLE_SEARCH[0]} y={PEOPLE_SEARCH[1]} t={frame - B.searchTap} hold={6} />
-      <Tap x={GLOBE_TAB[0]} y={GLOBE_TAB[1]} t={frame - B.globeTap} hold={5} />
-      <Tap x={CHAT_TAB[0]} y={CHAT_TAB[1]} t={frame - B.chatTap} hold={5} />
+      <Tap x={GLOBE_TAB[0]} y={GLOBE_TAB[1]} t={frame - B.globeTap} hold={B.globeSwap - B.globeTap} />
+      <Tap x={CHAT_TAB[0]} y={CHAT_TAB[1]} t={frame - B.chatTap} hold={B.chatSwap - B.chatTap} />
       <Tap x={362} y={740} t={frame - B.askSend} hold={5} />
     </>
   );

@@ -29,7 +29,7 @@ export const B = {
   toCardFlight: 24,
   // Card
   calloutA: 700,
-  calloutB: 816,
+  calloutB: 800,
   popToPeople: 896,
   // Search
   searchTap: 924,

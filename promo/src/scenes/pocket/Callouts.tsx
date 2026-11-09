@@ -25,8 +25,9 @@ export function measureAnchors(root: HTMLElement): Anchors {
 }
 
 const CALLOUTS = [
-  { id: "followups", at: B.calloutA, out: B.calloutA + 92, label: "Follow-ups find you", value: "Daily e-mail digest · Done or Snooze in one tap" },
-  { id: "older", at: B.calloutB, out: 872, label: "Bring your notes", value: "Years of Apple Notes, filed by AI" },
+  { id: "followups", at: B.calloutA, out: 784, label: "Follow-ups find you", value: "Daily e-mail digest · Done or Snooze in one tap" },
+  // Held ~1.2 s; its fade-out ends by f894, before the People list slides in at f896.
+  { id: "older", at: B.calloutB, out: 878, label: "Bring your notes", value: "Years of Apple Notes, filed by AI" },
 ] as const;
 
 const BOX_Y = 1168;
