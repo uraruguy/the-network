@@ -6,13 +6,13 @@ import { ChatScreen } from "../../ui/phone/ChatScreen";
 import { GlobeScreen } from "../../ui/phone/GlobeScreen";
 import { HomeIndicator, Tap, TabBar } from "../../ui/phone/parts";
 import { PeopleScreen } from "../../ui/phone/PeopleScreen";
-import { PersonScreen } from "../../ui/phone/PersonScreen";
+import { PersonScreen, type Filed } from "../../ui/phone/PersonScreen";
 import { TodayScreen } from "../../ui/phone/TodayScreen";
-import { BREAK_AT, globeRotation } from "./GlobeBreakout";
+import { B, LANDING, landAt } from "./beats";
+import { globeRotation } from "./GlobeBreakout";
 
-/** iOS push: `from` slides 30% left and dims, `to` slides in from the right with an edge shadow. */
+/** iOS push: `from` slides 30% left and dims, `to` slides in from the right with an edge shadow. `reverse` pops. */
 function Push({ t, from, to, reverse = false }: { t: number; from: ReactNode; to: ReactNode; reverse?: boolean }) {
-  // reverse = pop: `from` (the detail) slides out to the right, `to` (the list) comes back from -30%.
   const a = reverse
     ? { transform: `translateX(${t * PHONE_W}px)`, boxShadow: `-12px 0 30px rgba(0,30,40,${0.18 * (1 - t)})` }
     : { transform: `translateX(${-0.3 * t * PHONE_W}px)`, filter: `brightness(${1 - 0.06 * t})` };
@@ -29,70 +29,77 @@ function Push({ t, from, to, reverse = false }: { t: number; from: ReactNode; to
 
 export const TODAY_SARA_CHECK: [number, number] = [44, 435];
 export const PEOPLE_SEARCH: [number, number] = [150, 165];
-export const PERSON_BACK: [number, number] = [52, 82];
+export const GLOBE_TAB: [number, number] = [201, 809];
 export const QUERY = "aljaz";
-export const QUERY_AT = [1012, 1020, 1028, 1036, 1044];
 
-/** The screen of the phone at any frame: which screen, its animation state, in-app transitions. */
-export function PhoneContent({ frame, personRef, personScroll }: { frame: number; personRef?: Ref<HTMLDivElement>; personScroll: number }) {
-  // ---- Today (0–735) ------------------------------------------------------
+/** What has landed on Nik's card by `frame` (0→1 per section) and how bright its flash is. */
+export function filedAt(frame: number): { filed: Filed; glow: Filed } {
+  const filed = {} as Filed;
+  const glow = {} as Filed;
+  LANDING.forEach((k, i) => {
+    const land = landAt(i);
+    filed[k] = progress(frame, land - 2, 14, EASE.ios);
+    glow[k] = frame < land ? 0 : (frame - land) / 12;
+  });
+  return { filed, glow };
+}
+
+/** The phone's screen at any frame: which screen, its animation state, in-app transitions, taps. */
+export function PhoneContent({ frame, personRef, personScroll = 0 }: { frame: number; personRef?: Ref<HTMLDivElement>; personScroll?: number }) {
   const today = (
     <TodayScreen
       tab={-1}
-      stats={progress(frame, 196, 60, EASE.out)}
-      done={progress(frame, 305, 22, EASE.out)}
-      fold={progress(frame, 330, 24, EASE.ios)}
-      toast={springAt(frame, 342, SPRINGS.snappy) * (1 - progress(frame, 432, 14, EASE.in))}
-      captureLifted={frame >= 424 && frame < 700 ? 1 : 0}
+      stats={1}
+      done={progress(frame, B.saraDone, 22, EASE.out)}
+      fold={progress(frame, B.saraFold, 24, EASE.ios)}
+      toast={springAt(frame, B.toast, SPRINGS.snappy)}
+      captureLifted={frame >= B.lift ? 1 : 0}
     />
   );
-  const person = <PersonScreen tab={-1} scrollY={personScroll} rootRef={personRef} />;
+  const { filed, glow } = filedAt(frame);
+  const person = <PersonScreen tab={-1} rootRef={personRef} filed={filed} glow={glow} scrollY={personScroll} />;
 
   let screen: ReactNode;
   let tab = 0;
-  if (frame < 700) {
+  if (frame < B.pushToCard) {
     screen = today;
-  } else if (frame < 736) {
-    const t = progress(frame, 700, 34, EASE.ios);
+  } else if (frame < B.pushToCard + 30) {
+    const t = progress(frame, B.pushToCard, 30, EASE.ios);
     screen = <Push t={t} from={today} to={person} />;
     tab = t;
-  } else if (frame < 972) {
+  } else if (frame < B.popToPeople) {
     screen = person;
     tab = 1;
-  } else if (frame < 1006) {
-    const t = progress(frame, 972, 32, EASE.ios);
-    screen = <Push reverse t={t} from={person} to={people(frame)} />;
+  } else if (frame < B.popToPeople + 30) {
+    screen = <Push reverse t={progress(frame, B.popToPeople, 30, EASE.ios)} from={person} to={people(frame)} />;
     tab = 1;
-  } else if (frame < 1160) {
+  } else if (frame < B.globeSwap) {
     screen = people(frame);
     tab = 1;
-  } else if (frame < 1182) {
-    const t = progress(frame, 1160, 20, EASE.out);
+  } else if (frame < 1300) {
+    // Crisp tab swap: content switches in 4 frames while the pill slides.
     screen = (
       <>
-        {people(frame)}
-        <div style={{ position: "absolute", inset: 0, opacity: t }}>{globe(frame)}</div>
+        {frame < B.globeSwap + 4 && people(frame)}
+        <div style={{ position: "absolute", inset: 0, opacity: progress(frame, B.globeSwap, 4, (t) => t) }}>{globe(frame)}</div>
       </>
     );
-    tab = 1 + progress(frame, 1158, 22, EASE.ios);
-  } else if (frame < 1400) {
-    screen = globe(frame);
-    tab = 2;
+    tab = 1 + progress(frame, B.globeSwap, 14, EASE.out);
   } else {
     screen = chat(frame);
     tab = 3;
   }
 
-  const barOut = frame >= 1236 && frame < 1400 ? progress(frame, 1236, 30, EASE.in) : 0;
+  const barOut = frame >= B.breakout && frame < 1300 ? progress(frame, B.breakout, 30, EASE.in) : 0;
   return (
     <>
       {screen}
       <TabBar active={tab} y={barOut * 120} />
       <HomeIndicator />
-      <Tap x={TODAY_SARA_CHECK[0]} y={TODAY_SARA_CHECK[1]} t={frame - 298} hold={9} />
-      <Tap x={PERSON_BACK[0]} y={PERSON_BACK[1]} t={frame - 962} hold={8} />
-      <Tap x={PEOPLE_SEARCH[0]} y={PEOPLE_SEARCH[1]} t={frame - 1000} hold={7} />
-      <Tap x={362} y={740} t={frame - 1519} hold={6} />
+      <Tap x={TODAY_SARA_CHECK[0]} y={TODAY_SARA_CHECK[1]} t={frame - B.saraTap} hold={8} />
+      <Tap x={PEOPLE_SEARCH[0]} y={PEOPLE_SEARCH[1]} t={frame - B.searchTap} hold={6} />
+      <Tap x={GLOBE_TAB[0]} y={GLOBE_TAB[1]} t={frame - B.globeTap} hold={5} />
+      <Tap x={362} y={740} t={frame - B.askSend} hold={5} />
     </>
   );
 }
@@ -101,14 +108,14 @@ function people(frame: number) {
   let query = "";
   let prev = "";
   let k = 1;
-  QUERY_AT.forEach((f, i) => {
+  B.typeAt.forEach((f, i) => {
     if (frame >= f) {
       prev = QUERY.slice(0, i);
       query = QUERY.slice(0, i + 1);
-      k = progress(frame, f, 12, EASE.ios);
+      k = progress(frame, f, 10, EASE.ios);
     }
   });
-  return <PeopleScreen tab={-1} frame={frame} query={query} prevQuery={prev} k={k} caret={frame >= 1004} focused={progress(frame, 1002, 8)} />;
+  return <PeopleScreen tab={-1} frame={frame} query={query} prevQuery={prev} k={k} caret={frame >= B.searchTap + 4} focused={progress(frame, B.searchTap + 2, 8)} />;
 }
 
 function globe(frame: number) {
@@ -116,31 +123,29 @@ function globe(frame: number) {
     <GlobeScreen
       tab={-1}
       rotate={globeRotation(frame)}
-      reveal={progress(frame, 1176, 46, EASE.out)}
-      globeHidden={frame >= BREAK_AT}
-      chromeOut={progress(frame, 1226, 26, EASE.in)}
+      reveal={progress(frame, B.globeSwap + 4, 40, EASE.out)}
+      globeHidden={frame >= B.breakout}
+      chromeOut={progress(frame, B.breakout - 8, 24, EASE.in)}
     />
   );
 }
 
 function chat(frame: number) {
-  const q = ASK.question;
-  const draft = frame < 1524 ? typed(q, frame, 1480, 52) : "";
   const pills = [
-    { label: "Searching people", doneLabel: "Searched people", detail: "3 people", t: clamp01((frame - 1538) / 8), done: frame >= 1570 },
-    { label: "Reading notes", doneLabel: "Read notes", detail: "4 notes", t: clamp01((frame - 1552) / 8), done: frame >= 1584 },
+    { label: "Searching people", doneLabel: "Searched people", detail: "3 people", t: clamp01((frame - 1432) / 8), done: frame >= 1460 },
+    { label: "Reading notes", doneLabel: "Read notes", detail: "4 notes", t: clamp01((frame - 1444) / 8), done: frame >= 1472 },
   ];
   return (
     <ChatScreen
       tab={-1}
       frame={frame}
-      draft={draft}
-      caret={frame >= 1472 && frame < 1524}
-      sent={springAt(frame, 1524, SPRINGS.snappy)}
-      tools={frame >= 1538 ? pills : []}
-      answer={progress(frame, 1580, 14, EASE.out)}
-      chars={Math.floor(Math.max(0, frame - 1584) * 1.8)}
-      rows={tween(frame, [1600, 1636], [0, 3], (t) => t)}
+      draft={frame < B.askSent ? typed(ASK.question, frame, B.askType, 52) : ""}
+      caret={frame < B.askSent}
+      sent={springAt(frame, B.askSent, SPRINGS.snappy)}
+      tools={frame >= 1432 ? pills : []}
+      answer={progress(frame, B.answer, 14, EASE.out)}
+      chars={Math.floor(Math.max(0, frame - B.answer - 2) * 1.8)}
+      rows={tween(frame, [B.answer + 18, B.answer + 54], [0, 3], (t) => t)}
     />
   );
 }

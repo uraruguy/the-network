@@ -1,72 +1,160 @@
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { Headline, type Line } from "../kit/Headline";
-import { EASE, progress } from "../kit/motion";
+import { EASE, SPRINGS, clamp01, progress, springAt } from "../kit/motion";
 import { DarkStage } from "../kit/Stage";
+import { B } from "../scenes/pocket/beats";
 import { CaptureLift } from "../scenes/pocket/CaptureLift";
 import { Callouts, measureAnchors, type Anchors } from "../scenes/pocket/Callouts";
-import { BASE, focus, project, speed, track } from "../scenes/pocket/camera";
+import { focus, project, speed, track, type Pose } from "../scenes/pocket/camera";
 import { GlobeBreakout } from "../scenes/pocket/GlobeBreakout";
-import { Hook, HookCopy } from "../scenes/pocket/Hook";
+import { Hook } from "../scenes/pocket/Hook";
 import { Outro } from "../scenes/pocket/Outro";
 import { PhoneContent } from "../scenes/pocket/PhoneContent";
 import { PhoneRig } from "../scenes/pocket/PhoneRig";
 
-const OFF = { x: 540, y: 1960, s: 1, rx: 26, ry: 0, rz: 0, o: 1, dim: 0 };
-const LEFT = { x: 300, y: 985, s: 1.22, rx: 0, ry: -9, rz: 0, o: 1, dim: 0 };
+const OFF: Pose = { x: 540, y: 1960, s: 1.04, rx: 26, ry: 0, rz: 0, o: 1, dim: 0 };
+const RISE: Pose = { x: 540, y: 1000, s: 1.32, rx: 4, ry: 0, rz: 0, o: 1, dim: 0 };
+const RECEDE: Pose = { x: 540, y: 1150, s: 0.9, rx: 14, ry: 0, rz: 0, o: 1, dim: 0.66 };
+const ARRIVE: Pose = { x: 540, y: 920, s: 1.0, rx: 0, ry: 0, rz: 0, o: 1, dim: 0 };
+const TABS: Pose = { x: 540, y: 860, s: 1.15, rx: 0, ry: 0, rz: 0, o: 1, dim: 0 };
 
-/** The phone's camera for the whole film (see STORYBOARD.md, Pocket). */
+/** The phone's camera for the whole film. It never parks at a base pose between chapters. */
 const cam = track([
   [0, OFF],
-  [96, OFF],
-  [186, BASE],
-  [246, { ...BASE, s: 1.14, y: 928 }, EASE.inOut],
-  [292, focus(201, 452, 2.0, 540, 860)],
-  [334, focus(201, 456, 2.04, 540, 860), EASE.inOut],
-  [390, focus(201, 560, 1.55, 540, 862)],
-  [416, focus(201, 562, 1.56, 540, 862), EASE.inOut],
-  [456, { x: 540, y: 1010, s: 0.95, rx: 12, ry: 0, rz: 0, o: 1, dim: 0.62 }],
-  [672, { x: 540, y: 1000, s: 0.97, rx: 11, dim: 0.62 }, EASE.inOut],
-  [724, LEFT],
-  [940, { ...LEFT, y: 975, s: 1.26 }, EASE.inOut],
-  [988, BASE],
-  [1000, BASE, EASE.inOut],
-  [1026, focus(201, 300, 1.8, 540, 822)],
-  [1138, focus(201, 345, 1.92, 540, 822), EASE.inOut],
-  [1176, BASE],
-  [1232, { ...BASE, s: 1.16, y: 925 }, EASE.inOut],
-  [1300, { x: 540, y: 1760, s: 0.92, rx: 32, ry: 0, rz: 0, o: 0, dim: 0.3 }, EASE.in],
-  [1428, { ...OFF, o: 1, dim: 0 }],
-  [1480, focus(201, 610, 1.7, 540, 880)],
-  [1522, focus(201, 614, 1.72, 540, 880), EASE.inOut],
-  [1554, focus(201, 300, 1.75, 540, 880), EASE.inOut],
-  [1640, focus(201, 306, 1.8, 540, 880), EASE.inOut],
-  [1682, { x: 540, y: 1100, s: 0.62, rx: 16, ry: 0, rz: 0, o: 0, dim: 0.4 }, EASE.in],
+  [60, OFF],
+  [130, RISE, EASE.out],
+  [196, focus(201, 368, 2.0, 540, 480)],
+  [336, focus(201, 372, 2.06, 540, 480), EASE.inOut],
+  [392, RECEDE],
+  [588, { ...RECEDE, y: 1140, s: 0.92, rx: 13 }, EASE.inOut],
+  [640, ARRIVE],
+  [700, focus(201, 490, 1.8, 540, 480)],
+  [790, focus(201, 496, 1.84, 540, 480), EASE.inOut],
+  [886, focus(201, 494, 1.86, 540, 480), EASE.inOut],
+  [930, focus(201, 68, 1.6, 540, 480)],
+  [1028, focus(201, 74, 1.68, 540, 480), EASE.inOut],
+  [1058, TABS],
+  [1062, TABS, EASE.inOut],
+  [1112, focus(201, 512, 1.25, 540, 905)],
+  [1180, { x: 540, y: 1560, s: 1.0, rx: 30, ry: 0, rz: 0, o: 0, dim: 0.3 }, EASE.in],
+  [1336, { ...OFF, o: 1 }],
+  [1392, focus(201, 560, 1.6, 540, 860), EASE.out],
+  [1470, focus(201, 566, 1.66, 540, 852), EASE.inOut],
+  [1596, focus(201, 570, 1.7, 540, 848), EASE.inOut],
+  [1632, { x: 540, y: 1100, s: 0.62, rx: 16, ry: 0, rz: 0, o: 0, dim: 0.4 }, EASE.in],
 ]);
 
-const personScroll = (f: number) => 300 * progress(f, 792, 40, EASE.inOut) + 420 * progress(f, 856, 38, EASE.inOut);
+/** Nik's card scrolls (inside the phone) from follow-ups down to older notes and how you met. */
+export const personScroll = (f: number) => 470 * progress(f, 792, 42, EASE.inOut);
 
-const CHAPTERS: { at: number; out: number; kicker: string; lines: Line[]; sub?: string; size?: number }[] = [
-  { at: 188, out: 404, kicker: "01 · Follow-ups", lines: ["Never forget", [{ text: "to " }, { text: "reach out.", accent: true }]] },
-  { at: 428, out: 668, kicker: "02 · Quick capture", lines: ["Jot it down.", [{ text: "AI " }, { text: "files it.", accent: true }]] },
-  { at: 702, out: 944, kicker: "03 · A card for everyone", lines: ["Everything you know,", [{ text: "in one place.", accent: true }]], size: 84 },
-  { at: 972, out: 1150, kicker: "04 · Search", lines: ["Find anyone", [{ text: "in a " }, { text: "second.", accent: true }]] },
-  { at: 1182, out: 1416, kicker: "05 · Globe", lines: ["Your people,", [{ text: "on a globe.", accent: true }]] },
-  {
-    at: 1450,
-    out: 1640,
-    kicker: "06 · AI assistant",
-    lines: [[{ text: "Ask your " }, { text: "network.", accent: true }]],
-    sub: "Your own key. Or ask from Claude, ChatGPT or Cursor via MCP.",
-  },
+/** Depth of field on the phone while the capture card floats in front of it. */
+const dof = (f: number) => 7 * progress(f, 340, 50, EASE.inOut) * (1 - progress(f, 588, 44, EASE.inOut));
+
+/** Kickers carry data. Each holds its slot from `at` to `out`; consecutive ones swap in place. */
+const KICKERS: { text: string; at: number; out: number }[] = [
+  { text: "Open source · Self-hosted", at: -30, out: 140 },
+  { text: "3 due today", at: 146, out: 250 },
+  { text: "2 due today", at: 254, out: 368 },
+  { text: "AI capture", at: 374, out: 634 },
+  { text: "One card per person", at: 640, out: 898 },
+  { text: "aljaz = Aljaž", at: 906, out: 1082 },
+  { text: "285 people · 79 cities", at: 1088, out: 1330 },
+  { text: "Works with Claude via MCP", at: 1356, out: 1596 },
 ];
+
+const accent = (text: string) => ({ text, accent: true });
+const HEADLINES: { lines: Line[]; at: number; out: number; size?: number; dy?: number }[] = [
+  { lines: ["You meet", [accent("hundreds"), { text: " of people." }]], at: -60, out: 56, size: 88 },
+  { lines: ["Remember", [accent("every one.")]], at: 66, out: 140, size: 88 },
+  { lines: ["Never miss", [{ text: "a " }, accent("follow-up.")]], at: 150, out: 368 },
+  { lines: ["Jot it down.", [{ text: "AI " }, accent("files it.")]], at: 378, out: 632 },
+  { lines: ["How you met.", [accent("What they said.")]], at: 644, out: 896 },
+  { lines: ["Find anyone", [{ text: "in a " }, accent("second.")]], at: 910, out: 1080 },
+  { lines: ["Your people,", [accent("on a globe.")]], at: 1092, out: 1328 },
+  { lines: [[{ text: "Ask your " }, accent("network.")]], at: 1360, out: 1596 },
+  { lines: [[{ text: "…or ask " }, accent("Claude.")]], at: 1470, out: 1596, dy: 96 },
+];
+
+const TOP = 92;
+const TITLE_TOP = 168;
+
+function Kicker({ text, at, out }: { text: string; at: number; out: number }) {
+  const frame = useCurrentFrame();
+  const i = springAt(frame, at, SPRINGS.snappy);
+  const o = progress(frame, out, 8, EASE.in);
+  if (i <= 0.001 || o >= 1) return null;
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: 80,
+        top: TOP,
+        fontFamily: "var(--font-mono)",
+        fontSize: 25,
+        lineHeight: 1.2,
+        fontWeight: 500,
+        letterSpacing: "0.14em",
+        textTransform: "uppercase",
+        color: "#7fe6ea",
+        padding: "7px 16px",
+        borderRadius: 999,
+        border: "1px solid rgba(95,240,244,0.28)",
+        background: "rgba(95,240,244,0.07)",
+        opacity: clamp01(i * 1.5) * (1 - o),
+        transform: `translateY(${(1 - i) * 16 - o * 14}px)`,
+        whiteSpace: "nowrap",
+      }}
+    >
+      {text}
+    </div>
+  );
+}
+
+/** "aljaz → Aljaž": a small mono hint next to the search field while the results hold. */
+function SearchHint({ pose }: { pose: Pose }) {
+  const frame = useCurrentFrame();
+  if (frame < B.hint || frame > 1050) return null;
+  const t = springAt(frame, B.hint, SPRINGS.pop) * (1 - progress(frame, 1028, 14, EASE.in));
+  const p = project(pose, 300, 213);
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: p.x,
+        top: p.y,
+        transform: `translate(-50%, -50%) scale(${0.7 + 0.3 * t})`,
+        opacity: t,
+        fontFamily: "var(--font-mono)",
+        fontSize: 30,
+        lineHeight: 1.2,
+        padding: "10px 22px",
+        borderRadius: 999,
+        background: "rgba(3,22,22,0.9)",
+        border: "1px solid rgba(127,230,234,0.35)",
+        color: "#dffafa",
+        whiteSpace: "nowrap",
+        boxShadow: "0 16px 40px -14px rgba(0,0,0,0.6)",
+      }}
+    >
+      aljaz <span style={{ color: "#7fe6ea" }}>→</span> <span style={{ color: "#5ff0f4", fontWeight: 600 }}>Aljaž</span>
+    </div>
+  );
+}
+
+/** Everything under the headline band fades out above it, so no app text ghosts behind the copy. */
+function Band({ strength, children }: { strength: number; children: ReactNode }) {
+  const a = 1 - strength;
+  const mask = `linear-gradient(180deg, rgba(0,0,0,${a}) 0px, rgba(0,0,0,${a}) 372px, #000 466px)`;
+  return <AbsoluteFill style={{ WebkitMaskImage: mask, maskImage: mask }}>{children}</AbsoluteFill>;
+}
 
 /** The phone video (1080×1350, 30 s): see STORYBOARD.md → Pocket. */
 export function Pocket() {
   const frame = useCurrentFrame();
   const pose = cam(frame);
   // Filters apply before the transform, so divide by the scale to get canvas pixels.
-  const blur = Math.min(1.8, Math.max(0, (speed(cam, frame) - 6) * 0.045)) / pose.s;
+  const blur = (Math.min(1.8, Math.max(0, (speed(cam, frame) - 6) * 0.045)) + dof(frame)) / pose.s;
   const personRef = useRef<HTMLDivElement>(null);
   const [anchors, setAnchors] = useState<Anchors>({});
   useLayoutEffect(() => {
@@ -82,23 +170,24 @@ export function Pocket() {
   return (
     <DarkStage>
       <Hook sink={sink} />
-      <PhoneRig pose={pose} blur={blur}>
-        <PhoneContent frame={frame} personRef={personRef} personScroll={personScroll(frame)} />
-      </PhoneRig>
-      <GlobeBreakout cam={cam} />
-      <CaptureLift cam={cam} />
-      <Callouts cam={cam} anchors={anchors} scroll={personScroll} />
-      <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(3,16,15,0.97) 0px, rgba(3,16,15,0.93) 330px, rgba(3,16,15,0.55) 420px, rgba(3,16,15,0) 530px)", opacity: frame < 1652 ? progress(frame, 70, 40, EASE.inOut) : 1 - progress(frame, 1652, 20) }} />
-      <HookCopy />
-      {CHAPTERS.map((c) =>
-        frame >= c.at - 12 && frame <= c.out + 20 ? (
-          <AbsoluteFill key={c.kicker} style={{ padding: "92px 80px" }}>
-            <Headline at={c.at} out={c.out} kicker={c.kicker} lines={c.lines} sub={c.sub} size={c.size ?? 92} />
-          </AbsoluteFill>
+      <Band strength={1 - progress(frame, B.end, 24, EASE.inOut)}>
+        <PhoneRig pose={pose} blur={blur}>
+          <PhoneContent frame={frame} personRef={personRef} personScroll={personScroll(frame)} />
+        </PhoneRig>
+        <GlobeBreakout cam={cam} />
+        <CaptureLift cam={cam} anchors={anchors} />
+        <Callouts cam={cam} anchors={anchors} scroll={personScroll} />
+        <SearchHint pose={pose} />
+      </Band>
+      {KICKERS.map((k) => (frame >= k.at - 2 && frame <= k.out + 10 ? <Kicker key={k.text} {...k} /> : null))}
+      {HEADLINES.map((h, i) =>
+        frame >= h.at - 12 && frame <= h.out + 20 ? (
+          <div key={i} style={{ position: "absolute", left: 80, top: TITLE_TOP + (h.dy ?? 0) }}>
+            <Headline at={h.at} out={h.out} lines={h.lines} size={h.size ?? 92} />
+          </div>
         ) : null,
       )}
       <Outro />
     </DarkStage>
   );
 }
-

@@ -41,17 +41,17 @@ for (const frame of frames) {
   files.push(output);
 }
 if (files.length > 1) {
+  // Label each frame, then tile with ffmpeg's tile filter (xstack crashes on large grids).
   const sheet = path.resolve("out/stills", `${name}.jpg`);
-  const inputs = files.flatMap((f) => ["-i", f]);
-  const label = (i) => `[${i}:v]drawtext=text='${frames[i]}':x=12:y=12:fontsize=28:fontcolor=white:box=1:boxcolor=black@0.6:boxborderw=6[v${i}]`;
   const rows = Math.ceil(files.length / cols);
-  const filter = [
-    ...files.map((_, i) => label(i)),
-    `${files.map((_, i) => `[v${i}]`).join("")}xstack=inputs=${files.length}:layout=${files
-      .map((_, i) => `${(i % cols) === 0 ? "0" : Array.from({ length: i % cols }, () => "w0").join("+")}_${Math.floor(i / cols) === 0 ? "0" : Array.from({ length: Math.floor(i / cols) }, () => "h0").join("+")}`)
-      .join("|")}:fill=black[out]`,
-  ].join(";");
-  execFileSync("ffmpeg", ["-v", "error", "-y", ...inputs, "-filter_complex", filter, "-map", "[out]", "-q:v", "3", sheet]);
+  const tiles = path.join(dir, "labelled");
+  mkdirSync(tiles, { recursive: true });
+  files.forEach((f, i) => {
+    const out = path.join(tiles, `${String(i).padStart(4, "0")}.jpg`);
+    const vf = `drawtext=text='${frames[i]}':x=12:y=12:fontsize=28:fontcolor=white:box=1:boxcolor=black@0.6:boxborderw=6`;
+    execFileSync("ffmpeg", ["-v", "error", "-y", "-i", f, "-vf", vf, "-q:v", "3", out]);
+  });
+  execFileSync("ffmpeg", ["-v", "error", "-y", "-i", path.join(tiles, "%04d.jpg"), "-vf", `tile=${cols}x${rows}`, "-frames:v", "1", "-q:v", "3", sheet]);
   console.log(`sheet: ${sheet} (${rows}×${cols})`);
 } else {
   console.log(`still: ${files[0]}`);

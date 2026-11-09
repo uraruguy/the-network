@@ -18,7 +18,7 @@ function Name({ name, q }: { name: string; q: string }) {
   return (
     <>
       {name.slice(0, i)}
-      <mark className="rounded-[3px] bg-accent-soft font-semibold text-fg">{name.slice(i, i + q.length)}</mark>
+      <mark className="rounded-[3px] bg-accent-soft px-px font-semibold text-accent-text">{name.slice(i, i + q.length)}</mark>
       {name.slice(i + q.length)}
     </>
   );

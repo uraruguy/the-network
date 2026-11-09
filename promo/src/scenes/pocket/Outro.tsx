@@ -6,7 +6,8 @@ import { EASE, SPRINGS, clamp01, progress, rng, springAt } from "../../kit/motio
 
 const RING = crowd(26, 5);
 const R = rng(9);
-const ORBIT = RING.map((name, i) => ({ name, a: (i / RING.length) * Math.PI * 2 + R() * 0.2, r: 0.82 + R() * 0.35, s: 30 + R() * 26, d: R() * 20 }));
+const ORBIT = RING.map((name, i) => ({ name, a: (i / RING.length) * Math.PI * 2 + R() * 0.2, r: 0.84 + R() * 0.3, s: 30 + R() * 26, d: R() * 20 }));
+const START = 1620;
 
 function GitHubMark({ size = 30 }: { size?: number }) {
   return (
@@ -16,54 +17,58 @@ function GitHubMark({ size = 30 }: { size?: number }) {
   );
 }
 
-/** Scene 7: the logo draws itself, name, promise, what it is, where to get it. Still from ~f1772. */
+/**
+ * Scene 7: the tile and its N draw together, then name, promise, what it is, and the repo as a
+ * big pill with a star line. Everything is settled by ~f1738; the last second is still.
+ */
 export function Outro() {
   const frame = useCurrentFrame();
-  if (frame < 1652) return null;
-  const logoIn = springAt(frame, 1660, SPRINGS.pop);
-  const draw = progress(frame, 1664, 34, EASE.inOut);
-  const nodes = progress(frame, 1688, 26, EASE.out);
-  const name = springAt(frame, 1694, SPRINGS.smooth);
-  const tag = springAt(frame, 1706, SPRINGS.smooth);
-  const chips = [0, 1, 2].map((i) => springAt(frame, 1718 + i * 5, SPRINGS.smooth));
-  const urlIn = springAt(frame, 1732, SPRINGS.smooth);
-  const chars = Math.floor(clamp01((frame - 1736) / 34) * REPO_URL.length);
-  const settle = clamp01((frame - 1700) / 80);
+  if (frame < START) return null;
+  const logoIn = springAt(frame, START + 2, SPRINGS.pop);
+  // The tile only shows as its N draws, so it's never an empty turquoise square.
+  const draw = progress(frame, START + 2, 24, EASE.out);
+  const nodes = progress(frame, START + 10, 18, EASE.out);
+  const name = springAt(frame, START + 26, SPRINGS.smooth);
+  const tag = springAt(frame, START + 38, SPRINGS.smooth);
+  const chips = [0, 1, 2].map((i) => springAt(frame, START + 48 + i * 4, SPRINGS.smooth));
+  const url = springAt(frame, START + 70, SPRINGS.smooth);
+  const star = springAt(frame, START + 82, SPRINGS.smooth);
   return (
-    <AbsoluteFill>
+    <AbsoluteFill style={{ lineHeight: 1.2 }}>
       {ORBIT.map((o, i) => {
-        const t = springAt(frame, 1672 + o.d, SPRINGS.soft);
-        const a = o.a + 0.16 * progress(frame, 1652, 130, EASE.out);
-        const x = 540 + Math.cos(a) * 460 * o.r;
-        const y = 640 + Math.sin(a) * 420 * o.r;
+        const t = springAt(frame, START + 10 + o.d, SPRINGS.soft);
+        const a = o.a + 0.14 * progress(frame, START, 118, EASE.out);
+        const x = 540 + Math.cos(a) * 470 * o.r;
+        const y = 660 + Math.sin(a) * 470 * o.r;
         return (
-          <div key={i} style={{ position: "absolute", left: x - o.s / 2, top: y - o.s / 2, opacity: 0.22 * t, transform: `scale(${t})`, filter: "blur(0.6px)" }}>
+          <div key={i} style={{ position: "absolute", left: x - o.s / 2, top: y - o.s / 2, opacity: 0.2 * t, transform: `scale(${t})`, filter: "blur(0.6px)" }}>
             <Avatar name={o.name} size={o.s} ring={false} />
           </div>
         );
       })}
-      <div style={{ position: "absolute", left: 0, right: 0, top: 330, lineHeight: 1.2, display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <div style={{ transform: `scale(${0.6 + 0.4 * logoIn}) translateY(${(1 - settle) * 6}px)`, opacity: clamp01(logoIn * 2), filter: `drop-shadow(0 24px 60px rgba(20,200,210,${0.35 * logoIn}))` }}>
-          <Logo size={176} draw={draw} nodes={nodes} />
+      <div style={{ position: "absolute", left: 0, right: 0, top: 236, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+        <div style={{ transform: `scale(${0.55 + 0.45 * logoIn})`, opacity: clamp01(draw * 3.5), filter: `drop-shadow(0 24px 60px rgba(20,200,210,${0.35 * logoIn}))` }}>
+          <Logo size={168} draw={draw} nodes={nodes} />
         </div>
-        <div style={{ marginTop: 40, fontSize: 104, lineHeight: 1.05, fontWeight: 750, letterSpacing: "-0.045em", color: "#f2fbfb", opacity: name, transform: `translateY(${(1 - name) * 30}px)`, filter: name < 0.98 ? `blur(${(1 - name) * 12}px)` : undefined }}>
+        <div style={{ marginTop: 36, fontSize: 108, lineHeight: 1.05, fontWeight: 750, letterSpacing: "-0.045em", color: "#f2fbfb", opacity: name, transform: `translateY(${(1 - name) * 30}px)`, filter: name < 0.98 ? `blur(${(1 - name) * 12}px)` : undefined }}>
           The Network
         </div>
-        <div style={{ marginTop: 18, fontSize: 38, lineHeight: 1.25, fontWeight: 450, letterSpacing: "-0.015em", color: "rgba(214,236,236,0.72)", opacity: tag, transform: `translateY(${(1 - tag) * 20}px)` }}>{TAGLINE}</div>
-        <div style={{ marginTop: 46, display: "flex", gap: 14 }}>
+        <div style={{ marginTop: 18, fontSize: 46, lineHeight: 1.2, fontWeight: 500, letterSpacing: "-0.02em", color: "rgba(222,242,242,0.82)", opacity: tag, transform: `translateY(${(1 - tag) * 20}px)`, maxWidth: 900 }}>{TAGLINE}</div>
+        <div style={{ marginTop: 40, display: "flex", gap: 16 }}>
           {["Open source", "Self-hosted", "MIT"].map((c, i) => (
             <span
               key={c}
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: 23,
-                letterSpacing: "0.1em",
+                fontSize: 30,
+                fontWeight: 500,
+                letterSpacing: "0.08em",
                 textTransform: "uppercase",
-                color: "#7fe6ea",
-                padding: "10px 20px",
+                color: "#8ff0f3",
+                padding: "12px 24px",
                 borderRadius: 999,
-                border: "1px solid rgba(95,240,244,0.28)",
-                background: "rgba(95,240,244,0.07)",
+                border: "1.5px solid rgba(95,240,244,0.34)",
+                background: "rgba(95,240,244,0.08)",
                 opacity: chips[i],
                 transform: `translateY(${(1 - chips[i]!) * 16}px)`,
               }}
@@ -74,24 +79,24 @@ export function Outro() {
         </div>
         <div
           style={{
-            marginTop: 54,
+            marginTop: 64,
             display: "flex",
             alignItems: "center",
-            gap: 16,
-            padding: "20px 34px",
+            gap: 20,
+            padding: "26px 44px",
             borderRadius: 999,
-            background: "rgba(255,255,255,0.94)",
-            color: "oklch(0.22 0.015 215)",
-            boxShadow: "0 24px 60px -20px rgba(20,200,210,0.45)",
-            opacity: urlIn,
-            transform: `scale(${0.92 + 0.08 * urlIn})`,
+            background: "rgba(255,255,255,0.97)",
+            color: "oklch(0.2 0.015 215)",
+            boxShadow: "0 30px 70px -20px rgba(20,200,210,0.5)",
+            opacity: url,
+            transform: `scale(${0.9 + 0.1 * url})`,
           }}
         >
-          <GitHubMark size={34} />
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: 34, fontWeight: 500, letterSpacing: "-0.01em", minWidth: REPO_URL.length * 20.4 }}>
-            {REPO_URL.slice(0, chars)}
-            {chars < REPO_URL.length && <span style={{ display: "inline-block", width: 3, height: 34, marginBottom: -6, background: "#0a8f96" }} />}
-          </span>
+          <GitHubMark size={48} />
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: 44, fontWeight: 600, letterSpacing: "-0.02em" }}>{REPO_URL}</span>
+        </div>
+        <div style={{ marginTop: 28, fontSize: 36, fontWeight: 600, letterSpacing: "-0.015em", color: "#f2fbfb", opacity: star, transform: `translateY(${(1 - star) * 14}px)` }}>
+          <span style={{ color: "#ffd166" }}>★</span> Star it on GitHub
         </div>
       </div>
     </AbsoluteFill>
