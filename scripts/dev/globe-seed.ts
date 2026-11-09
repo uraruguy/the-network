@@ -68,7 +68,8 @@ const LAST = [
   "Popescu", "Petrović", "Yılmaz", "Cohen", "Hassan", "Kim", "Lee", "Park", "Wang", "Li", "Zhang", "Chen", "Yamada", "Sato", "Suzuki",
   "Nguyen", "Singh", "Kumar", "Mwangi", "Okafor", "Brown", "Wilson", "Taylor",
 ];
-const ROLES = [["Founder", "Northwind"], ["Designer", "Studio Mono"], ["Engineer", "Figma"], ["Investor", null], ["Doctor", null], ["Product manager", "Stripe"], ["Architect", null], [null, null]];
+// Leadership roles never name a company (see seed-people.ts).
+const ROLES = [["Founder", null], ["Designer", "Studio Mono"], ["Engineer", "Figma"], ["Investor", null], ["Doctor", null], ["Product manager", "Stripe"], ["Architect", null], [null, null]];
 const WARMTH = ["inner", "active", "active", "active", "dormant", "dormant", "archive"];
 
 async function main() {

@@ -55,6 +55,14 @@ const ROLES = [
   "PhD student", "Professor", "Marketing lead", "Data scientist", "Architect", "Doctor", "Lawyer", "Photographer", "Chef", "Journalist",
   "Product manager", "Engineering manager", "Sales director", "Consultant", "Teacher", "Researcher",
 ];
+/**
+ * Only common employee roles name an employer: a unique or leadership role (Founder, CTO, Partner,
+ * Angel investor …) at a real company would point at a real, identifiable person.
+ */
+const EMPLOYEE_ROLES = new Set([
+  "Software engineer", "Product designer", "Data scientist", "Marketing lead", "Product manager", "Engineering manager", "Sales director",
+  "Consultant", "Researcher",
+]);
 const COMPANIES = [
   "Stripe", "Figma", "Anthropic", "Notion", "Linear", "Vercel", "Index Ventures", "Sequoia",
   "ETH Lab", "ETH Zürich", "McKinsey", "Google", "Apple", "Spotify", "Revolut", "Klarna", "N26", "Wise",
@@ -100,7 +108,7 @@ async function seed(count: number) {
     from cities c where c.id = any(${cities.map((c) => c.id)}::int[])
     on conflict (owner_id, city_id) do nothing`;
   const locs = await sql<{ id: string; cc: string }[]>`
-    select id, country_code as cc from locations where owner_id = ${owner} and city_id = any(${cities.map((c) => c.id)}::int[])`;
+    select id, country_code as cc from locations where owner_id = ${owner} and city_id = any(${cities.map((c) => c.id)}::int[]) order by city_id`;
   // Skew towards a handful of "home" cities so facet counts look realistic.
   const weightedLocs = [...locs, ...locs.filter((l) => ["SI", "AT", "GB", "DE"].includes(l.cc)).flatMap((l) => [l, l, l])];
 
@@ -130,13 +138,16 @@ async function seed(count: number) {
     const [first, last] = uniqueName();
     const hasRole = rand() < 0.85;
     const warmth = weighted(WARMTH);
+    const headline = hasRole ? pick(ROLES) : null;
+    // Draw the employer for every role (same random sequence), keep it only for employee roles.
+    const employer = hasRole && rand() < 0.8 ? pick(COMPANIES) : null;
     return {
       owner_id: owner,
       display_name: `${first} ${last}`,
       first_name: first,
       last_name: last,
-      headline: hasRole ? pick(ROLES) : null,
-      company: hasRole && rand() < 0.8 ? pick(COMPANIES) : null,
+      headline,
+      company: headline && EMPLOYEE_ROLES.has(headline) ? employer : null,
       home_location_id: rand() < 0.9 ? pick(weightedLocs).id : null,
       warmth,
       circle: pick(CIRCLES),
