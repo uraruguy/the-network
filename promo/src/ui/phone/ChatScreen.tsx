@@ -8,7 +8,7 @@ import { AppBg, Caret, CHROME_BOTTOM, HomeIndicator, SAT, Screen, TabBar } from 
 const ANSWER = [
   { name: "Inês Sampaio", line: "Designer at Figma. Boulders on Thursdays." },
   { name: "Mateo Fernández", line: "Founder. Invited you to climb in Sintra." },
-  { name: "Valentina Dubois", line: "Moves there in May. You owe her an intro." },
+  { name: "Valentina Dubois", line: "Moved there in May. You owe her an intro." },
 ];
 const ROW_H = 42;
 const ROW_GAP = 10;
@@ -48,10 +48,10 @@ export function ChatScreen({ frame, draft = "", caret = false, sent = 0, tools =
           </div>
           <div className="flex flex-col items-start gap-2 pr-6">
             <div className="flex gap-1.5">
-              <Pill done label="Checked follow-ups" detail="5 due" frame={frame} />
+              <Pill done label="Checked follow-ups" detail="4 due" frame={frame} />
             </div>
             <div className="surface rounded-lg rounded-bl-xs px-4 py-3 text-body text-fg">
-              Three are due today: <Link>Sara Rossi</Link>, <Link>Max Larsen</Link> and <Link>Valentina Dubois</Link>. Nik&apos;s padel rematch is tomorrow.
+              Two are due today: <Link>Max Larsen</Link> and <Link>Valentina Dubois</Link>. <Link>Ola</Link>&apos;s on Sunday.
             </div>
           </div>
         </div>

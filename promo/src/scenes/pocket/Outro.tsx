@@ -39,14 +39,14 @@ export function Outro() {
         const t = springAt(frame, START + 10 + o.d, SPRINGS.soft);
         const a = o.a + 0.14 * progress(frame, START, 118, EASE.out);
         const x = 540 + Math.cos(a) * 470 * o.r;
-        const y = 660 + Math.sin(a) * 470 * o.r;
+        const y = 770 + Math.sin(a) * 470 * o.r;
         return (
           <div key={i} style={{ position: "absolute", left: x - o.s / 2, top: y - o.s / 2, opacity: 0.2 * t, transform: `scale(${t})`, filter: "blur(0.6px)" }}>
             <Avatar name={o.name} size={o.s} ring={false} />
           </div>
         );
       })}
-      <div style={{ position: "absolute", left: 0, right: 0, top: 236, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+      <div style={{ position: "absolute", left: 0, right: 0, top: 352, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
         <div style={{ transform: `scale(${0.55 + 0.45 * logoIn})`, opacity: clamp01(draw * 3.5), filter: `drop-shadow(0 24px 60px rgba(20,200,210,${0.35 * logoIn}))` }}>
           <Logo size={168} draw={draw} nodes={nodes} />
         </div>

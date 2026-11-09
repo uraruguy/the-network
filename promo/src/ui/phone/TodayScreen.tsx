@@ -1,7 +1,7 @@
 import { Bell, Globe2, Plus, Sparkles, ArrowUp, Users, type LucideIcon } from "lucide-react";
 import { Avatar } from "../../kit/Avatar";
 import { clamp01 } from "../../kit/motion";
-import { DUE, OWNER, RECONNECT, STATS, THIS_WEEK, TODAY_LABEL, type FollowUp } from "../../data/demo";
+import { DUE, OWNER, STATS, THIS_WEEK, TODAY_LABEL, type FollowUp } from "../../data/demo";
 import { AppBg, CheckCircle, HomeIndicator, SAT, Screen, TabBar, UndoToast } from "./parts";
 
 const nf = new Intl.NumberFormat("en-GB");
@@ -67,29 +67,6 @@ export function TodayScreen({ stats = 1, done = 0, fold = 0, toast = 0, scrollY 
           </ul>
         </section>
 
-        <section className="mt-8">
-          <div className="mb-2.5 px-1">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-title3 text-fg">Reconnect</h2>
-              <span className="text-subhead font-medium text-accent-text">See all</span>
-            </div>
-            <p className="mt-0.5 text-footnote text-fg-3">Close people you haven&apos;t talked to in two months</p>
-          </div>
-          <div className="-mx-4 flex gap-2 overflow-hidden px-4 pt-0.5 pb-1">
-            {RECONNECT.map((name, i) => (
-              <span key={name} className="surface flex h-14 max-w-[15rem] shrink-0 items-center gap-2.5 rounded-full pr-4 pl-2">
-                <span className="relative shrink-0">
-                  <Avatar name={name} size={40} />
-                  <span className="absolute -right-px -bottom-px size-3 rounded-full ring-2 ring-[var(--surface-solid)]" style={{ background: i % 2 ? "var(--warm-active)" : "var(--warm-inner)" }} />
-                </span>
-                <span className="min-w-0">
-                  <span className="block truncate text-subhead font-semibold text-fg">{name}</span>
-                  <span className="block truncate text-caption text-fg-3">{["2 months", "3 months", "10 weeks", "4 months"][i]} ago · {i % 2 ? "Active" : "Inner circle"}</span>
-                </span>
-              </span>
-            ))}
-          </div>
-        </section>
       </div>
       {tab >= 0 && <TabBar active={tab} />}
       {toast > 0 && <UndoToast t={toast} title="Done" who="Sara Rossi" description="Send her the deck from Tuesday" />}

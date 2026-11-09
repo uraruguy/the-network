@@ -25,6 +25,9 @@ export function Screen({ children, style }: { children: ReactNode; style?: CSSPr
           "--page-px": "16px",
           "--page-pt": `${12 + SAT}px`,
           "--chrome-bottom": `${CHROME_BOTTOM}px`,
+          // Backdrop blur can't render under the camera's filter/mask, so glass gets a near-opaque fill.
+          "--surface-3": "oklch(0.99 0.003 200 / 0.94)",
+          "--surface-4": "oklch(0.99 0.003 200 / 0.96)",
           ...style,
         } as CSSProperties
       }
@@ -181,9 +184,9 @@ export function UndoToast({ t, title, who, description }: { t: number; title: st
   return (
     <div
       className="absolute inset-x-0 z-40 mx-auto"
-      style={{ bottom: CHROME_BOTTOM + 12, width: PHONE_W - 24, opacity: clamp01(t * 1.6), transform: `translateY(${(1 - t) * 26}px) scale(${0.94 + 0.06 * t})` }}
+      style={{ bottom: CHROME_BOTTOM + 4, width: PHONE_W - 24, opacity: clamp01(t * 1.6), transform: `translateY(${(1 - t) * 26}px) scale(${0.94 + 0.06 * t})` }}
     >
-      <div className="glass-thick specular elevation-e3 rounded-xl text-fg">
+      <div className="specular rounded-xl text-fg" style={{ background: "oklch(0.995 0.002 200 / 0.97)", border: "0.5px solid var(--hairline)", boxShadow: "inset 0 1px 0 var(--highlight), var(--shadow-e3)" }}>
         <div className="flex min-h-[52px] items-center gap-3 py-2 pr-2 pl-4">
           <span className="grid shrink-0 place-items-center">
             <Undo2 size={18} className="text-fg-3" strokeWidth={2.2} />

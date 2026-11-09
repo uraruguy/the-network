@@ -29,7 +29,7 @@ export const B = {
   toCardFlight: 24,
   // Card
   calloutA: 700,
-  calloutB: 820,
+  calloutB: 816,
   popToPeople: 896,
   // Search
   searchTap: 924,
@@ -39,12 +39,16 @@ export const B = {
   globeSwap: 1064,
   // Globe
   breakout: 1118,
-  globeExit: 1336,
+  globeExit: 1330,
+  /** The globe is back inside the Globe screen; then the Chat tab is tapped and swaps in. */
+  globeHome: 1362,
+  chatTap: 1366,
+  chatSwap: 1370,
   // Ask
-  askType: 1372,
-  askSend: 1416,
-  askSent: 1420,
-  answer: 1474,
+  askType: 1374,
+  askSend: 1418,
+  askSent: 1422,
+  answer: 1476,
   // End
   end: 1600,
 } as const;

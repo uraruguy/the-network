@@ -130,7 +130,7 @@ export function CaptureLift({ cam, anchors }: { cam: (f: number) => Pose; anchor
                 </>
               )}
             </p>
-            <Tap x={W - 6 - 18 - 14} y={geo.h - 6 - 18 - 28} t={frame - B.send} hold={5} />
+            <Tap x={W - 6 - 18} y={geo.h - 6 - 18 - 28} t={frame - B.send} hold={5} />
           </div>
         </div>
       )}

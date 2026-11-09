@@ -16,21 +16,29 @@ export function globeRotation(frame: number): [number, number] {
   return [-mix(16, 52, t), -mix(30, 33, t)];
 }
 
+/** Merge distance as an angle: identical clusters at every radius, so nothing re-clusters on a zoom. */
+export const CLUSTER_ANGLE = 0.13;
+/** The home cluster draws above the landing pins. */
+export const RAISE = ["Ljubljana"];
+
 /** West and east, alternating. Start frames; each arc takes ARC frames to land. */
 const ARCS: [string, number][] = [
   ["Lisbon", 1140],
   ["Dubai", 1156],
-  ["London", 1172],
+  ["Copenhagen", 1172],
   ["Delhi", 1188],
-  ["Copenhagen", 1204],
-  ["Singapore", 1220],
-  ["Tokyo", 1240],
+  ["Singapore", 1208],
+  ["Tokyo", 1228],
 ];
 const ARC = 36;
-const NAMED: { city: string; name: string; label: string; at: number }[] = [
-  { city: "Lisbon", name: "Valentina Dubois", label: "Valentina · Lisbon", at: 1140 + ARC + 2 },
-  { city: "Copenhagen", name: "Max Larsen", label: "Max · Copenhagen", at: 1204 + ARC + 2 },
-  { city: "Tokyo", name: "Sara Rossi", label: "Sara · Tokyo", at: 1240 + ARC + 2 },
+/** Both globes get the same arc list (destinations seed clusters), with the same progress. */
+export const arcsAt = (frame: number): GlobeArc[] => ARCS.map(([to, at]) => ({ to, progress: progress(frame, at, ARC, EASE.inOut) }));
+
+/** Name chips, offset from their pins with a short leader line (never on top of a cluster). */
+const NAMED: { city: string; name: string; label: string; at: number; dx: number; dy: number }[] = [
+  { city: "Lisbon", name: "Valentina Dubois", label: "Valentina · Lisbon", at: 1140 + ARC + 2, dx: -20, dy: 118 },
+  { city: "Copenhagen", name: "Max Larsen", label: "Max · Copenhagen", at: 1172 + ARC + 2, dx: -110, dy: -150 },
+  { city: "Tokyo", name: "Sara Rossi", label: "Sara · Tokyo", at: 1228 + ARC + 2, dx: -190, dy: 96 },
 ];
 const CITY = new Map(CITIES.map((c) => [c.name, c]));
 
@@ -40,28 +48,27 @@ const UI = 1.45;
 /**
  * Scene 5: the globe leaves the phone from exactly where the in-phone globe was, grows into the
  * canvas, arcs fly from Ljubljana west and east, three friends get name chips and the city count
- * ticks up as each arc lands. Then it shrinks back into the next phone's screen.
+ * ticks up as each arc lands. Then it returns into the Globe screen (the reverse of the breakout).
  */
 export function GlobeBreakout({ cam }: { cam: (f: number) => Pose }) {
   const frame = useCurrentFrame();
-  if (frame < B.breakout || frame > 1400) return null;
+  if (frame < B.breakout || frame >= B.globeHome) return null;
   const from = project(cam(Math.min(frame, B.breakout + 2)), PHONE_GLOBE.cx, PHONE_GLOBE.cy);
   const t = springAt(frame, B.breakout, SPRINGS.sheet);
-  // Exit: into the chat phone's screen (the reverse of the breakout).
-  const back = progress(frame, B.globeExit, 52, EASE.inOut);
-  const into = project(cam(frame), 201, 420);
-  const x = mix(mix(from.x, TARGET.x, t), into.x, back);
-  const y = mix(mix(from.y, TARGET.y, t), into.y, back);
-  const r = mix(mix(PHONE_GLOBE.r * from.k, TARGET.r, t), 26 * into.k, back);
+  const back = progress(frame, B.globeExit, B.globeHome - B.globeExit, EASE.inOut);
+  const home = project(cam(frame), PHONE_GLOBE.cx, PHONE_GLOBE.cy);
+  const x = mix(mix(from.x, TARGET.x, t), home.x, back);
+  const y = mix(mix(from.y, TARGET.y, t), home.y, back);
+  const r = mix(mix(PHONE_GLOBE.r * from.k, TARGET.r, t), PHONE_GLOBE.r * home.k, back);
+  const ui = mix(mix(0.92 * from.k, UI, t), 0.92 * home.k, back);
   const rot = globeRotation(frame);
-  const arcs: GlobeArc[] = ARCS.map(([to, at]) => ({ to, progress: progress(frame, at, ARC, EASE.inOut) }));
   const landed = ARCS.filter(([, at]) => frame >= at + ARC).length;
-  const overlays = 1 - progress(frame, B.globeExit - 10, 16, EASE.in);
+  const overlays = 1 - progress(frame, B.globeExit - 12, 14, EASE.in);
   const proj = globeProjector(rot, r, x, y);
   const lastLand = ARCS[landed - 1]?.[1];
   const tick = lastLand === undefined ? 0 : 1 - clamp01((frame - lastLand - ARC) / 10);
   return (
-    <AbsoluteFill style={{ opacity: 1 - clamp01((back - 0.75) / 0.25) }}>
+    <AbsoluteFill>
       <Globe
         width={1080}
         height={1350}
@@ -70,11 +77,28 @@ export function GlobeBreakout({ cam }: { cam: (f: number) => Pose }) {
         rotate={rot}
         theme="light"
         reveal={1}
-        labels={back < 0.4}
-        arcs={back > 0.3 ? [] : arcs}
-        uiScale={mix(mix(0.92 * from.k, UI, t), 0.4, back)}
-        atmosphere={mix(mix(0.7, 1.1, t), 0.4, back)}
+        labels
+        arcs={arcsAt(frame)}
+        clusterAngle={CLUSTER_ANGLE}
+        raise={RAISE}
+        uiScale={ui}
+        atmosphere={mix(mix(0.7, 1.1, t), 0.7, back)}
       />
+      <svg width={1080} height={1350} style={{ position: "absolute", inset: 0, opacity: overlays }}>
+        {NAMED.map((n) => {
+          const c = CITY.get(n.city)!;
+          const p = proj(c.lng, c.lat);
+          const s = springAt(frame, n.at, SPRINGS.pop);
+          const vis = s * clamp01((p.z - 0.12) / 0.15);
+          if (vis <= 0.01) return null;
+          return (
+            <g key={n.city} opacity={vis}>
+              <line x1={p.x} y1={p.y} x2={p.x + n.dx * s} y2={p.y + n.dy * s} stroke="oklch(0.42 0.065 200)" strokeWidth={2.5} strokeLinecap="round" />
+              <circle cx={p.x} cy={p.y} r={5} fill="oklch(0.42 0.065 200)" />
+            </g>
+          );
+        })}
+      </svg>
       {NAMED.map((n) => {
         const c = CITY.get(n.city)!;
         const p = proj(c.lng, c.lat);
@@ -86,10 +110,9 @@ export function GlobeBreakout({ cam }: { cam: (f: number) => Pose }) {
             key={n.city}
             style={{
               position: "absolute",
-              left: p.x,
-              top: p.y - 64,
-              transform: `translate(-50%, -100%) scale(${0.6 + 0.4 * s})`,
-              transformOrigin: "50% 100%",
+              left: p.x + n.dx * s,
+              top: p.y + n.dy * s,
+              transform: `translate(-50%, -50%) scale(${0.6 + 0.4 * s})`,
               opacity: vis,
               display: "flex",
               alignItems: "center",
@@ -123,7 +146,7 @@ export function GlobeBreakout({ cam }: { cam: (f: number) => Pose }) {
             lineHeight: 1,
           }}
         >
-          <div style={{ fontSize: 112, fontWeight: 750, letterSpacing: "-0.045em", color: "#f2fbfb", fontVariantNumeric: "tabular-nums", transform: `scale(${1 + 0.06 * tick})`, transformOrigin: "0 80%" }}>{72 + landed}</div>
+          <div style={{ fontSize: 112, fontWeight: 750, letterSpacing: "-0.045em", color: "#f2fbfb", fontVariantNumeric: "tabular-nums", transform: `scale(${1 + 0.06 * tick})`, transformOrigin: "0 80%" }}>{79 - ARCS.length + landed}</div>
           <div style={{ marginTop: 6, fontFamily: "var(--font-mono)", fontSize: 24, letterSpacing: "0.14em", color: "#7fe6ea" }}>CITIES</div>
         </div>
       )}

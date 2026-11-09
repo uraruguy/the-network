@@ -22,7 +22,7 @@ export function PhoneRig({ pose, blur = 0, children, overlay }: { pose: Pose; bl
         filter: [blur > 0.4 ? `blur(${blur.toFixed(2)}px)` : "", pose.dim > 0.001 ? `brightness(${1 - pose.dim})` : ""].join(" ") || undefined,
       }}
     >
-      <IPhone glare={0.35} rim="rgba(120,230,235,0.16)">
+      <IPhone glare={0.35} rim="rgba(120,230,235,0.16)" time="15:42">
         {children}
       </IPhone>
       {overlay}

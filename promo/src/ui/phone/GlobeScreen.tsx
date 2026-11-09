@@ -1,6 +1,6 @@
 import { ChevronDown, Globe2, Home, Info, MapPinOff, Minus, Plus, Search, Share2 } from "lucide-react";
 import { STATS } from "../../data/demo";
-import { Globe } from "../common/Globe";
+import { Globe, type GlobeArc } from "../common/Globe";
 import { HomeIndicator, SAT, Screen, TabBar } from "./parts";
 import { PHONE_W } from "../../devices/IPhone";
 
@@ -15,16 +15,20 @@ export type GlobeScreenProps = {
   /** 0→1: the map chrome fades away (the globe is about to break out). */
   chromeOut?: number;
   tab?: number;
+  /** Shared with the canvas globe so both cluster identically (arc destinations seed clusters). */
+  arcs?: GlobeArc[];
+  clusterAngle?: number;
+  raise?: string[];
 };
 
 /** The Globe tab on a phone (GlobeView: MapHeader, ViewSwitch, map FilterBar, controls), faithful to docs/screenshots/globe.jpg. */
-export function GlobeScreen({ rotate, reveal = 1, globeHidden = false, chromeOut = 0, tab = 2 }: GlobeScreenProps) {
+export function GlobeScreen({ rotate, reveal = 1, globeHidden = false, chromeOut = 0, tab = 2, arcs, clusterAngle, raise }: GlobeScreenProps) {
   const c = 1 - chromeOut;
   return (
     <Screen style={{ background: "var(--bg)" }}>
       <div style={{ position: "absolute", inset: 0, background: "radial-gradient(120% 80% at 50% 45%, var(--bg) 0%, var(--bg-2) 100%)" }} />
       {!globeHidden && (
-        <Globe width={402} height={874} radius={PHONE_GLOBE.r} center={[PHONE_GLOBE.cx, PHONE_GLOBE.cy]} rotate={rotate} theme="light" reveal={reveal} labels uiScale={0.92} atmosphere={0.7} />
+        <Globe width={402} height={874} radius={PHONE_GLOBE.r} center={[PHONE_GLOBE.cx, PHONE_GLOBE.cy]} rotate={rotate} theme="light" reveal={reveal} labels uiScale={0.92} atmosphere={0.7} arcs={arcs} clusterAngle={clusterAngle} raise={raise} />
       )}
       <div className="absolute inset-x-0 top-0 z-10 px-3" style={{ paddingTop: SAT + 10 - 24, opacity: c, transform: `translateY(${-14 * chromeOut}px)` }}>
         <div className="flex items-start justify-between gap-2">

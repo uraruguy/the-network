@@ -26,7 +26,7 @@ export function measureAnchors(root: HTMLElement): Anchors {
 
 const CALLOUTS = [
   { id: "followups", at: B.calloutA, out: B.calloutA + 92, label: "Follow-ups find you", value: "Daily e-mail digest · Done or Snooze in one tap" },
-  { id: "older", at: B.calloutB, out: B.calloutB + 74, label: "Bring your notes", value: "Years of Apple Notes, filed by AI" },
+  { id: "older", at: B.calloutB, out: 872, label: "Bring your notes", value: "Years of Apple Notes, filed by AI" },
 ] as const;
 
 const BOX_Y = 1168;

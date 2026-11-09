@@ -28,6 +28,13 @@ export type GlobeProps = {
   labels?: boolean;
   /** Merge distance in px, measured along the surface (so rotation never flickers clusters). */
   clusterRadius?: number;
+  /**
+   * Merge distance as an angle (radians) instead of px. Clusters then stay identical while the
+   * radius or uiScale animates (no re-clustering during a zoom). Overrides `clusterRadius`.
+   */
+  clusterAngle?: number;
+  /** Seed cities whose markers draw above everything else (e.g. the home cluster). */
+  raise?: string[];
   focus?: string;
   /** Scales bubbles, pins, labels and strokes (1 = the app's sizes in pt). */
   uiScale?: number;
@@ -123,6 +130,8 @@ export function Globe({
   arcs = [],
   labels = true,
   clusterRadius,
+  clusterAngle,
+  raise,
   focus,
   uiScale = 1,
   atmosphere = 1,
@@ -145,7 +154,7 @@ export function Globe({
   const landD = path(world.land) ?? "";
   const borderD = path(world.borders) ?? "";
   const homeCity = CITY.get(home);
-  const merge = clusterRadius ?? 44 * uiScale;
+  const merge = clusterAngle !== undefined ? clusterAngle * radius : (clusterRadius ?? 44 * uiScale);
 
   // ---- arcs --------------------------------------------------------------------------------
   const arcEls = homeCity
@@ -341,6 +350,7 @@ export function Globe({
       });
     }
   }
+  if (raise?.length) for (const m of marks) if (raise.includes(m.key)) m.z += 2;
   marks.sort((a, b) => a.z - b.z);
 
   // ---- labels ----------------------------------------------------------------------------------

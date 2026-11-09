@@ -8,7 +8,7 @@ const SCREEN_R = 60;
 export const PHONE_OUTER_W = PHONE_W + BEZEL * 2;
 export const PHONE_OUTER_H = PHONE_H + BEZEL * 2;
 
-function StatusBar({ dark }: { dark: boolean }) {
+function StatusBar({ dark, time }: { dark: boolean; time: string }) {
   const c = dark ? "#fff" : "#0d1a1c";
   return (
     <div
@@ -25,7 +25,7 @@ function StatusBar({ dark }: { dark: boolean }) {
         pointerEvents: "none",
       }}
     >
-      <span style={{ fontSize: 17, fontWeight: 600, letterSpacing: "-0.02em" }}>9:41</span>
+      <span style={{ fontSize: 17, fontWeight: 600, letterSpacing: "-0.02em" }}>{time}</span>
       <span style={{ display: "flex", gap: 7, alignItems: "center" }}>
         <svg width="19" height="12" viewBox="0 0 19 12" fill={c}>
           <rect x="0" y="8" width="3.2" height="4" rx="1" />
@@ -58,13 +58,15 @@ type Props = {
   /** Rim light colour for dark stages. */
   rim?: string;
   statusBar?: boolean;
+  /** Status-bar clock. */
+  time?: string;
 };
 
 /**
  * A modern iPhone Pro: titanium edge, black bezel, Dynamic Island, status bar. Content renders in a
  * 402×874 pt screen; scale the whole device with a transform on a wrapper.
  */
-export function IPhone({ children, dark = false, style, glare = 0.5, rim, statusBar = true }: Props) {
+export function IPhone({ children, dark = false, style, glare = 0.5, rim, statusBar = true, time = "9:41" }: Props) {
   return (
     <div
       style={{
@@ -108,7 +110,7 @@ export function IPhone({ children, dark = false, style, glare = 0.5, rim, status
         }}
       >
         {children}
-        {statusBar && <StatusBar dark={dark} />}
+        {statusBar && <StatusBar dark={dark} time={time} />}
         <div
           style={{
             position: "absolute",
