@@ -15,10 +15,11 @@ export const NOTE: Run[][] = [
 export const HL_COUNT = NOTE.flat().filter((r) => r.hl).length;
 
 const HL_COLOR = {
-  person: "var(--accent-soft)",
-  place: "color-mix(in oklab, var(--palette-sky) 22%, transparent)",
-  date: "color-mix(in oklab, var(--palette-amber) 28%, transparent)",
+  person: "color-mix(in oklab, var(--accent) 26%, transparent)",
+  place: "color-mix(in oklab, var(--palette-sky) 30%, transparent)",
+  date: "color-mix(in oklab, var(--palette-amber) 38%, transparent)",
 } as const;
+const HL_TEXT = { person: "var(--accent-strong)", place: "color-mix(in oklab, var(--palette-sky) 70%, var(--fg))", date: "color-mix(in oklab, var(--palette-amber) 55%, var(--fg))" } as const;
 
 type Proposal = { name: string; facts: string; city?: string; keyFacts: string; match?: string; cats: (keyof typeof CATEGORY)[]; followUp?: string };
 export const PROPOSALS: Proposal[] = [
@@ -38,7 +39,7 @@ function NoteText({ scan, hl }: { scan: number; hl: number[] }) {
             if (!r.hl) return <span key={ri}>{r.t}</span>;
             const p = hl[k++] ?? 0;
             return (
-              <span key={ri} className="relative rounded-[5px]" style={{ padding: "1px 2px", margin: "0 -2px", fontWeight: p > 0.5 ? 600 : undefined }}>
+              <span key={ri} className="relative rounded-[5px]" style={{ padding: "1px 2px", margin: "0 -2px", fontWeight: p > 0.5 ? 600 : undefined, color: p > 0.5 ? HL_TEXT[r.hl] : undefined }}>
                 <span
                   className="absolute inset-0 rounded-[5px]"
                   style={{ background: HL_COLOR[r.hl], transformOrigin: "left center", transform: `scaleX(${p})`, boxShadow: p > 0.9 ? `inset 0 -2px 0 color-mix(in oklab, ${r.hl === "person" ? "var(--accent)" : r.hl === "place" ? "var(--palette-sky)" : "var(--palette-amber)"} 70%, transparent)` : undefined }}
@@ -234,11 +235,5 @@ function CheckIcon() {
   );
 }
 
-/** Window-space anchors (dialog centred in the 1440×900 viewport under the 38 pt title bar). */
-export const IMPORT = {
-  left: 420,
-  top: 38 + 67,
-  /** Footer primary button centre. */
-  primary: { x: 420 + 600 - 20 - 75, y: 38 + 67 + 765 - 16 - 22 },
-  textCenter: { x: 720, y: 38 + 67 + 200 },
-};
+/** Window-space centre of the footer's primary button (dialog centred in the 1440×900 viewport, under the 38 pt title bar). */
+export const IMPORT = { primary: { x: 420 + 600 - 20 - 75, y: 38 + 67 + 765 - 16 - 22 } };

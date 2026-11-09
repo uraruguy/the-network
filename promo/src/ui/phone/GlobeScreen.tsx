@@ -24,7 +24,7 @@ export function GlobeScreen({ rotate, reveal = 1, globeHidden = false, chromeOut
     <Screen style={{ background: "var(--bg)" }}>
       <div style={{ position: "absolute", inset: 0, background: "radial-gradient(120% 80% at 50% 45%, var(--bg) 0%, var(--bg-2) 100%)" }} />
       {!globeHidden && (
-        <Globe width={402} height={874} radius={PHONE_GLOBE.r} center={[PHONE_GLOBE.cx, PHONE_GLOBE.cy]} rotate={rotate} theme="light" reveal={reveal} labels clusterRadius={34} uiScale={0.92} atmosphere={0.7} />
+        <Globe width={402} height={874} radius={PHONE_GLOBE.r} center={[PHONE_GLOBE.cx, PHONE_GLOBE.cy]} rotate={rotate} theme="light" reveal={reveal} labels uiScale={0.92} atmosphere={0.7} />
       )}
       <div className="absolute inset-x-0 top-0 z-10 px-3" style={{ paddingTop: SAT + 10 - 24, opacity: c, transform: `translateY(${-14 * chromeOut}px)` }}>
         <div className="flex items-start justify-between gap-2">

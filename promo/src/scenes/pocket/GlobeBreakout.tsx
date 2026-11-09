@@ -33,18 +33,18 @@ const TARGET = { x: 540, y: 905, r: 520 };
  */
 export function GlobeBreakout({ cam }: { cam: (f: number) => Pose }) {
   const frame = useCurrentFrame();
-  if (frame < BREAK_AT || frame > 1470) return null;
+  if (frame < BREAK_AT || frame > 1444) return null;
   const from = project(cam(frame), PHONE_GLOBE.cx, PHONE_GLOBE.cy);
   const fromR = PHONE_GLOBE.r * from.k;
   const t = springAt(frame, BREAK_AT, SPRINGS.sheet);
-  const leave = progress(frame, 1420, 40, EASE.in);
+  const leave = progress(frame, 1408, 34, EASE.in);
   const x = mix(from.x, TARGET.x, t);
-  const y = mix(mix(from.y, TARGET.y, t), 640, leave);
-  const r = mix(mix(fromR, TARGET.r, t), 150, leave);
+  const y = mix(from.y, TARGET.y, t);
+  const r = mix(mix(fromR, TARGET.r, t), 1500, leave);
   const arcs: GlobeArc[] = ARCS.map(([to, at]) => ({ to, progress: progress(frame, at, 38, EASE.inOut) }));
   const count = progress(frame, 1250, 130, EASE.out);
   return (
-    <AbsoluteFill style={{ opacity: 1 - leave }}>
+    <AbsoluteFill style={{ opacity: 1 - leave, filter: leave > 0 ? `blur(${leave * 10}px)` : undefined }}>
       <Globe
         width={1080}
         height={1350}
@@ -55,9 +55,8 @@ export function GlobeBreakout({ cam }: { cam: (f: number) => Pose }) {
         reveal={1}
         labels
         arcs={arcs}
-        clusterRadius={34}
         uiScale={mix(0.92 * from.k, 1.75, t)}
-        atmosphere={mix(0.7, 1.4, t)}
+        atmosphere={mix(0.7, 1.15, t)}
       />
       <div
         style={{

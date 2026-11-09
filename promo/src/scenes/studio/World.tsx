@@ -17,11 +17,11 @@ const HEADLINES: HeadlineSpec[] = [
   { at: 66, out: 172, lines: [[{ text: "Connected.", accent: true }]], top: 156, size: 84 },
   { at: 200, out: 486, kicker: "Today", lines: [[{ text: "Follow-ups that " }, { text: "find you.", accent: true }]] },
   { at: 512, out: 786, kicker: "Import", lines: [[{ text: "Paste anything. AI " }, { text: "files it.", accent: true }]] },
-  { at: 820, out: 1064, kicker: "People", lines: [[{ text: "Find anyone " }, { text: "in a second.", accent: true }]] },
+  { at: 806, out: 1064, kicker: "People", lines: [[{ text: "Find anyone " }, { text: "in a second.", accent: true }]] },
   { at: 1094, out: 1240, kicker: "Globe", lines: [[{ text: "Your world, " }, { text: "mapped.", accent: true }]] },
   { at: 1266, out: 1378, kicker: "Works like an app", lines: [[{ text: "Light, dark, " }, { text: "offline.", accent: true }]] },
   { at: 1396, out: 1520, kicker: "AI assistant", lines: [[{ text: "Ask your " }, { text: "network.", accent: true }]] },
-  { at: 1532, out: 1648, kicker: "MCP server", lines: [[{ text: "…or ask " }, { text: "Claude.", accent: true }]], sub: "The same tools in Claude, ChatGPT and Cursor." },
+  { at: 1532, out: 1636, kicker: "MCP server", lines: [[{ text: "…or ask " }, { text: "Claude.", accent: true }]], sub: "The same tools in Claude, ChatGPT and Cursor." },
 ];
 
 /** Everything except the cursor, in one theme. Rendered twice (light + dark) during the flip. */
@@ -29,7 +29,7 @@ export function World({ frame, theme }: { frame: number; theme: Theme }) {
   const dark = theme === "dark";
   const Stage = dark ? DarkStage : LightStage;
   const windowOn = frame >= 168 && frame < 1700;
-  const windowFade = 1 - Math.min(1, Math.max(0, (frame - 1660) / 36));
+  const windowFade = 1 - Math.min(1, Math.max(0, (frame - 1638) / 32));
   return (
     <Stage>
       <Bloom frame={frame} theme={theme} />

@@ -53,11 +53,11 @@ export const WAYPOINTS: Waypoint[] = [
   { f: 1350, at: screen(1060, 960) },
   { f: 1382, at: nav(3), travel: 30 },
   { f: 1390, at: nav(3) },
-  { f: 1442, at: inMain(958, 828), travel: 40 },
+  { f: 1442, at: inMain(958, 828), travel: 52 },
   { f: 1452, at: inMain(958, 828) },
   { f: 1530, at: screen(1780, 1010), travel: 60 },
 ];
-export const CLICKS = [330, 462, 752, 812, 846, 902, 1080, 1178, 1252, 1386, 1446];
+export const CLICKS = [330, 462, 752, 812, 846, 902, 1080, 1178, FLIP.click, 1386, 1446];
 
 export function CursorLayer({ frame }: { frame: number }) {
   const p = cursorAt(WAYPOINTS, frame);

@@ -4,8 +4,6 @@ import { Logo } from "../../kit/Logo";
 import { cn } from "./parts";
 
 export const SIDEBAR_W = 236;
-/** Main area of a 1440×900 window right of the sidebar. */
-export const MAIN_W = 1440 - SIDEBAR_W;
 export const NAV = [
   { label: "Today", icon: Sun },
   { label: "People", icon: Users },
@@ -13,9 +11,6 @@ export const NAV = [
   { label: "Chat", icon: MessageCircle },
   { label: "Settings", icon: Settings },
 ] as const;
-
-/** Window-space centre of a sidebar nav item (for the cursor). */
-export const navPoint = (i: number) => ({ x: 16 + 12 + 70, y: 16 + 12 + 8 + 30 + 20 + 22 + i * 48 });
 
 /** `.app-bg`: the faint turquoise wash, absolutely positioned so it lives inside the window. */
 export function AppBg() {
@@ -78,11 +73,3 @@ export function DesktopShell({ active, children, overlay, sync = "Synced", syncT
   );
 }
 
-/** `.page-column` at ≥lg: 1100 px max, 40 px side padding, 32 px top. Scroll with `scroll`. */
-export function PageColumn({ children, scroll = 0, className }: { children: ReactNode; scroll?: number; className?: string }) {
-  return (
-    <div className={cn("mx-auto w-full", className)} style={{ maxWidth: 1100, padding: "32px 40px 32px", transform: `translateY(${-scroll}px)` }}>
-      {children}
-    </div>
-  );
-}

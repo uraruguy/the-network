@@ -28,7 +28,7 @@ const cam = track([
   [456, { x: 540, y: 1010, s: 0.95, rx: 12, ry: 0, rz: 0, o: 1, dim: 0.62 }],
   [672, { x: 540, y: 1000, s: 0.97, rx: 11, dim: 0.62 }, EASE.inOut],
   [724, LEFT],
-  [940, { ...LEFT, y: 915, s: 1.08 }, EASE.inOut],
+  [940, { ...LEFT, y: 975, s: 1.26 }, EASE.inOut],
   [988, BASE],
   [1000, BASE, EASE.inOut],
   [1026, focus(201, 300, 1.8, 540, 822)],
@@ -36,15 +36,15 @@ const cam = track([
   [1176, BASE],
   [1232, { ...BASE, s: 1.16, y: 925 }, EASE.inOut],
   [1300, { x: 540, y: 1760, s: 0.92, rx: 32, ry: 0, rz: 0, o: 0, dim: 0.3 }, EASE.in],
-  [1420, { ...OFF, o: 1, dim: 0 }],
+  [1428, { ...OFF, o: 1, dim: 0 }],
   [1480, focus(201, 610, 1.7, 540, 880)],
   [1522, focus(201, 614, 1.72, 540, 880), EASE.inOut],
-  [1562, focus(201, 300, 1.75, 540, 880)],
+  [1554, focus(201, 300, 1.75, 540, 880), EASE.inOut],
   [1640, focus(201, 306, 1.8, 540, 880), EASE.inOut],
-  [1692, { x: 540, y: 1080, s: 0.6, rx: 16, ry: 0, rz: 0, o: 0, dim: 0.4 }, EASE.in],
+  [1682, { x: 540, y: 1100, s: 0.62, rx: 16, ry: 0, rz: 0, o: 0, dim: 0.4 }, EASE.in],
 ]);
 
-const personScroll = (f: number) => 300 * progress(f, 792, 40, EASE.inOut) + 330 * progress(f, 858, 36, EASE.inOut);
+const personScroll = (f: number) => 300 * progress(f, 792, 40, EASE.inOut) + 420 * progress(f, 856, 38, EASE.inOut);
 
 const CHAPTERS: { at: number; out: number; kicker: string; lines: Line[]; sub?: string; size?: number }[] = [
   { at: 188, out: 404, kicker: "01 · Follow-ups", lines: ["Never forget", [{ text: "to " }, { text: "reach out.", accent: true }]] },
@@ -102,4 +102,3 @@ export function Pocket() {
   );
 }
 
-export { BASE };

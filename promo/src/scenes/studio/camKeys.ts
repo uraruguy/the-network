@@ -31,8 +31,8 @@ export const CAM: Key[] = [
   // 3 · People: back to the whole window for the sidebar click.
   { f: 800, cam: { ...EST, zoom: 0.84, sy: 650 } },
   { f: 822, cam: {} },
-  { f: 858, cam: { fx: 616, fy: 268, zoom: 1.42, sx: 920, sy: 560, ry: -2 } },
-  { f: 900, cam: { fx: 620, fy: 280, zoom: 1.44 } },
+  { f: 858, cam: { fx: 790, fy: 268, zoom: 1.4, sx: 960, sy: 560, ry: -2 } },
+  { f: 900, cam: { fx: 800, fy: 280, zoom: 1.42 } },
   // Person page: onto Inês's header, then ride the scroll.
   { f: 938, cam: { fx: 838, fy: 300, zoom: 1.34, sx: 960, sy: 600, ry: 0 } },
   { f: 1040, cam: { fx: 838, fy: 320, zoom: 1.3 } },
@@ -44,12 +44,12 @@ export const CAM: Key[] = [
   { f: 1214, cam: { fx: 1010, fy: 500, zoom: 1.06, sx: 880, sy: 630 } },
   { f: 1258, cam: { fx: 1010, fy: 500, zoom: 1.04 } },
   // After the flip: the window steps left for the phone.
-  { f: 1306, cam: {} },
-  { f: 1346, cam: { fx: 720, fy: 469, zoom: 0.62, sx: 640, sy: 660, ry: 14 } },
+  { f: 1292, cam: {} },
+  { f: 1334, cam: { fx: 720, fy: 469, zoom: 0.62, sx: 640, sy: 660, ry: 14 } },
   { f: 1364, cam: { zoom: 0.62 } },
   // 5 · Ask: back, then onto the composer, then the answer.
   { f: 1392, cam: { ...EST, zoom: 0.86, sy: 650 } },
-  { f: 1426, cam: { fx: 838, fy: 760, zoom: 1.42, sx: 960, sy: 650 } },
+  { f: 1426, cam: { fx: 838, fy: 760, zoom: 1.42, sx: 960, sy: 605 } },
   { f: 1446, cam: {} },
   { f: 1486, cam: { fx: 838, fy: 300, zoom: 1.4, sx: 960, sy: 560 } },
   { f: 1520, cam: { fx: 838, fy: 320, zoom: 1.38 } },

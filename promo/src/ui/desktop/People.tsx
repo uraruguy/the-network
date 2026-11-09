@@ -142,9 +142,3 @@ export function PeoplePage({
     </div>
   );
 }
-
-/** Main-area anchors: search field centre and the first result row centre (after filtering). */
-export const PEOPLE_AT = {
-  search: { x: 52 + 40 + 200, y: 32 + 41 + 20 + 2 + 12 + 4 + 22 },
-  firstRow: { x: 52 + 40 + 220, y: 32 + 41 + 20 + 2 + 12 + 4 + 44 + 4 + 44 + 8 + 34 },
-};

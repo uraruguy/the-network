@@ -33,7 +33,7 @@ export function Outro() {
     <AbsoluteFill>
       {ORBIT.map((o, i) => {
         const t = springAt(frame, 1672 + o.d, SPRINGS.soft);
-        const a = o.a + frame * 0.0016;
+        const a = o.a + 0.16 * progress(frame, 1652, 130, EASE.out);
         const x = 540 + Math.cos(a) * 460 * o.r;
         const y = 640 + Math.sin(a) * 420 * o.r;
         return (

@@ -5,6 +5,7 @@ import { EASE, SPRINGS, clamp01, progress, springAt, tween } from "../../kit/mot
 import { Globe } from "../../ui/common/Globe";
 import { DigestEmail } from "../../ui/desktop/DigestEmail";
 import { Terminal, type TermLine } from "../../ui/desktop/Terminal";
+import { FLIP } from "./timeline";
 import { globeRotate } from "./WindowContent";
 
 /* ---------- Digest e-mail (scene 1) ---------- */
@@ -99,7 +100,7 @@ export function Keycaps({ frame, at, out, keys, label }: { frame: number; at: nu
 
 /* ---------- Appearance toggle (scene 4): the theme flip starts here ---------- */
 
-export const APPEARANCE = { left: 1300, top: 790, scale: 1.3 };
+export const APPEARANCE = { left: 1250, top: 786, scale: 1.55 };
 const SEG = 121;
 /** Screen position of the "Dark" segment (the flip's origin). */
 export const DARK_SEG = { x: APPEARANCE.left + (8 + SEG * 2.5) * APPEARANCE.scale, y: APPEARANCE.top + (8 + 28 + 22) * APPEARANCE.scale };
@@ -107,7 +108,7 @@ export const DARK_SEG = { x: APPEARANCE.left + (8 + SEG * 2.5) * APPEARANCE.scal
 export function AppearanceToggle({ frame, dark }: { frame: number; dark: boolean }) {
   if (frame < 1206 || frame > 1290) return null;
   const a = springAt(frame, 1208, SPRINGS.smooth) - tween(frame, [1270, 1288], [0, 1], EASE.in);
-  const thumb = 1 + springAt(frame, 1252, SPRINGS.snappy);
+  const thumb = 1 + springAt(frame, FLIP.click, SPRINGS.snappy);
   const items = [
     { icon: <SunMoon size={18} />, label: "Auto" },
     { icon: <Sun size={18} />, label: "Light" },
@@ -189,7 +190,7 @@ function PhoneGlobe({ frame }: { frame: number }) {
 
 export function PhoneOverlay({ frame }: { frame: number }) {
   if (frame < 1300 || frame > 1396) return null;
-  const enter = springAt(frame, 1302, SPRINGS.sheet);
+  const enter = springAt(frame, 1308, SPRINGS.sheet);
   const exit = tween(frame, [1364, 1394], [0, 1], EASE.in);
   return (
     <AbsoluteFill style={{ perspective: 2200 }}>
@@ -218,16 +219,16 @@ const CMD1 = 'claude mcp add --transport http --scope user network https://your-
 export function TerminalOverlay({ frame }: { frame: number }) {
   if (frame < 1524 || frame > 1700) return null;
   const enter = springAt(frame, 1526, SPRINGS.sheet);
-  const exit = tween(frame, [1652, 1684], [0, 1], EASE.in);
-  const push = tween(frame, [1556, 1650], [0, 1], EASE.inOut);
+  const exit = tween(frame, [1638, 1664], [0, 1], EASE.in);
+  const push = tween(frame, [1552, 1640], [0, 1], EASE.inOut);
   const lines: TermLine[] = [
-    { kind: "cmd", text: CMD1, shown: tween(frame, [1554, 1578], [0, 1], (t) => t) },
-    { kind: "out", text: "Added HTTP MCP server network with URL: https://your-network/api/mcp to user config", shown: frame >= 1582 ? 1 : 0 },
-    { kind: "cmd", text: "claude mcp list", shown: tween(frame, [1588, 1597], [0, 1], (t) => t) },
-    { kind: "dim", text: "Checking MCP server health…", shown: frame >= 1599 ? 1 : 0 },
-    { kind: "ok", text: "network: https://your-network/api/mcp (HTTP) - ✓ Connected", shown: frame >= 1607 ? 1 : 0 },
+    { kind: "cmd", text: CMD1, shown: tween(frame, [1550, 1572], [0, 1], (t) => t) },
+    { kind: "out", text: "Added HTTP MCP server network with URL: https://your-network/api/mcp to user config", shown: frame >= 1576 ? 1 : 0 },
+    { kind: "cmd", text: "claude mcp list", shown: tween(frame, [1582, 1590], [0, 1], (t) => t) },
+    { kind: "dim", text: "Checking MCP server health…", shown: frame >= 1592 ? 1 : 0 },
+    { kind: "ok", text: "network: https://your-network/api/mcp (HTTP) - ✓ Connected", shown: frame >= 1600 ? 1 : 0 },
   ];
-  const tools = tween(frame, [1612, 1642], [0, 13], (t) => t);
+  const tools = tween(frame, [1604, 1630], [0, 13], (t) => t);
   return (
     <AbsoluteFill style={{ perspective: 2400 }}>
       <div

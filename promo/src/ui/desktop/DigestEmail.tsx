@@ -73,6 +73,3 @@ export function DigestEmail({ done = {}, press = {} }: { done?: Record<string, n
     </div>
   );
 }
-
-/** Window-space-free layout metrics of the e-mail (for the cursor): Done button of row i. */
-export const DIGEST_DONE = (i: number) => ({ x: 26 + 26 + 46, y: 71 + 22 + 26 + 27 + 22 + 30 + 17 + 6 + 14 + i * 109 + 22 + 20 + 10 + 16 });

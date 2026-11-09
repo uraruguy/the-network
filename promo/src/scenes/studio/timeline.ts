@@ -1,13 +1,4 @@
-/** Scene boundaries (frames at 60 fps), on a 120 BPM grid where it matters. */
-export const S = {
-  bloom: [0, 200],
-  today: [200, 500],
-  paste: [500, 800],
-  people: [800, 1080],
-  globe: [1080, 1380],
-  ask: [1380, 1620],
-  outro: [1620, 1800],
-} as const;
+/** Scene ranges are in STORYBOARD.md (Studio); camera keys in camKeys.ts. */
 
 /** The light → dark flip: circle grows from the click over these frames. */
 export const FLIP = { click: 1252, start: 1254, end: 1302 } as const;

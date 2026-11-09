@@ -13,23 +13,12 @@ const KIND_ICON = { note: null, meeting: Users, call: Phone, message: MessageCir
  */
 export function PersonScreen({ scrollY = 0, rootRef, tab = 1 }: { scrollY?: number; rootRef?: Ref<HTMLDivElement>; tab?: number }) {
   const p = SARA_CARD;
+  const compact = Math.min(1, Math.max(0, (scrollY - 230) / 40));
   return (
     <Screen>
       <AppBg />
       <div ref={rootRef} className="absolute inset-x-0 top-0 px-4" style={{ paddingTop: SAT, transform: `translateY(${-scrollY}px)` }}>
-        <div className="-mx-2 grid h-13 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
-          <span className="-ml-1 inline-flex h-11 items-center gap-0.5 justify-self-start pr-3 pl-1 text-body text-accent-text">
-            <ChevronLeft size={24} strokeWidth={2.4} />
-            People
-          </span>
-          <span />
-          <span className="flex items-center gap-0.5 justify-self-end">
-            <span className="px-3 text-body font-medium text-accent-text">Edit</span>
-            <span className="grid h-9 w-9 place-items-center text-fg-3">
-              <MoreHorizontal size={18} strokeWidth={2.2} />
-            </span>
-          </span>
-        </div>
+        <div className="h-13" />
 
         <header className="flex flex-col items-center px-2 pt-2 pb-5 text-center">
           <span className="rounded-full shadow-e2" data-anchor="avatar">
@@ -175,6 +164,27 @@ export function PersonScreen({ scrollY = 0, rootRef, tab = 1 }: { scrollY?: numb
             </InsetGroup>
           </div>
           <div style={{ height: 160 }} />
+        </div>
+      </div>
+      {/* TopBar: sticky; glass with the compact title once the header has scrolled away. */}
+      <div
+        className={`absolute inset-x-0 top-0 z-20 px-2 ${compact > 0 ? "border-b-[0.5px] border-separator" : ""}`}
+        style={{ paddingTop: SAT, background: `color-mix(in oklab, var(--surface-3) ${compact * 100}%, transparent)`, backdropFilter: compact > 0 ? "var(--blur-glass)" : undefined }}
+      >
+        <div className="grid h-13 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+          <span className="-ml-1 inline-flex h-11 items-center gap-0.5 justify-self-start pr-3 pl-1 text-body text-accent-text">
+            <ChevronLeft size={24} strokeWidth={2.4} />
+            People
+          </span>
+          <span className="truncate text-headline text-fg" style={{ opacity: compact, transform: `translateY(${(1 - compact) * 4}px)` }}>
+            {p.name}
+          </span>
+          <span className="flex items-center gap-0.5 justify-self-end">
+            <span className="px-3 text-body font-medium text-accent-text">Edit</span>
+            <span className="grid h-9 w-9 place-items-center text-fg-3">
+              <MoreHorizontal size={18} strokeWidth={2.2} />
+            </span>
+          </span>
         </div>
       </div>
       {tab >= 0 && <TabBar active={tab} />}

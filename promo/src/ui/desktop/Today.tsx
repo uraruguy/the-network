@@ -4,16 +4,6 @@ import { Avatar } from "../../kit/Avatar";
 import { DUE, OWNER, RECONNECT, STATS, THIS_WEEK, TODAY_LABEL, type FollowUp } from "../../data/demo";
 import { Button, Composer, WARMTH_COLOR, cn } from "./parts";
 
-/** Today's layout metrics in main-area space (the cursor and camera aim at these). */
-export const TODAY = {
-  /** Left edge of the content column inside the main area (1204 wide, 1100 max, 40 padding). */
-  colX: (1204 - 1100) / 2 + 40,
-  colW: 1100 - 80,
-  /** y of the first Due row's centre (main-area space, no scroll). */
-  dueRowY: 470,
-  rowH: 64,
-};
-
 export type RowState = { check: number; collapse: number };
 
 function ReminderRow({ f, state, upcoming, first }: { f: FollowUp; state?: RowState; upcoming?: boolean; first?: boolean }) {

@@ -73,7 +73,7 @@ export function ChatScreen({ frame, draft = "", caret = false, sent = 0, tools =
       {/* Conversation */}
       {sent > 0 && (
         <div className="absolute inset-x-0 space-y-4 px-4" style={{ top: 130 - scrollY }}>
-          <div className="flex justify-end pl-10" style={{ opacity: clamp01(sent * 2), transform: `translateY(${(1 - sent) * 120}px) scale(${0.9 + 0.1 * sent})`, transformOrigin: "100% 100%" }}>
+          <div className="flex justify-end pl-10" style={{ opacity: clamp01(sent * 3), transform: `translateY(${(1 - sent) * 580}px) scale(${0.94 + 0.06 * sent})`, transformOrigin: "100% 100%" }}>
             <div className="specular rounded-lg rounded-br-xs bg-accent-fill px-4 py-2.5 text-body text-accent-fg">{ASK.question}</div>
           </div>
           <div className="flex flex-col items-start gap-2 pr-6">

@@ -133,8 +133,3 @@ export function ChatPage({ typed, caret, sent, pills, answer, frame, sendPress =
     </div>
   );
 }
-
-/** Main-area anchors for the cursor: composer send button. */
-export const CHAT_AT = {
-  send: { x: 52 + 40 + 510 + 380 - 6 - 18 - 130, y: 32 + 836 - 16 - 30 },
-};
