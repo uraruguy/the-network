@@ -88,7 +88,7 @@ const RECENT = [
   { icon: Phone, title: "Call: she's in Berlin 12–15 May for a client workshop", who: "Hanako Yamada", when: "2h ago" },
   { icon: Users, title: "Coffee at Fuglen after the design conference", who: "Hanako Yamada", when: "5h ago" },
   { icon: MessageSquare, title: "Sent Ola the intro to the Index team", who: "Ola Nordmann", when: "Yesterday" },
-  { icon: FileText, title: "Padel: lost 6–4 6–3, rematch next week", who: "John Doe", when: "Tue" },
+  { icon: FileText, title: "Padel: lost 6–4 6–3, rematch on Saturday", who: "John Doe", when: "Tue" },
 ];
 
 /**

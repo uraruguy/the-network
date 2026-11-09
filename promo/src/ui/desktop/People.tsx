@@ -14,8 +14,9 @@ export const LISBON: Person[] = [
   { name: "Tiago Costa", city: "Lisbon", flag: "🇵🇹", role: "Photographer", warmth: "dormant", last: "1y", acts: ["📷"] },
 ];
 
-/** The list, A–Z like the app's default "Name" sort: the README screenshot's rows plus the Lisbon seven. */
-export const ROWS: Person[] = [...PEOPLE, ...LISBON].sort((a, b) => a.name.localeCompare(b.name, "en"));
+/** The list, A–Z like the app's default "Name" sort: the demo rows plus the Lisbon seven (each person once). */
+const LISBON_NAMES = new Set(LISBON.map((p) => p.name));
+export const ROWS: Person[] = [...PEOPLE.filter((p) => !LISBON_NAMES.has(p.name)), ...LISBON].sort((a, b) => a.name.localeCompare(b.name, "en"));
 
 const norm = (s: string) => s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 export const matches = (p: Person, q: string) => !q || norm([p.name, p.city, p.role, p.company].filter(Boolean).join(" ")).includes(norm(q));

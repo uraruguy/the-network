@@ -31,7 +31,7 @@ export const TODAY_SARA_CHECK: [number, number] = [44, 435];
 export const PEOPLE_SEARCH: [number, number] = [150, 165];
 export const GLOBE_TAB: [number, number] = [201, 809];
 export const CHAT_TAB: [number, number] = [273, 809];
-export const QUERY = "aljaz";
+export const QUERY = "jose";
 
 /** What has landed on John's card by `frame` (0→1 per section) and how bright its flash is. */
 export function filedAt(frame: number): { filed: Filed; glow: Filed } {
@@ -106,7 +106,7 @@ function people(frame: number) {
   let query = "";
   let prev = "";
   let k = 1;
-  B.typeAt.forEach((f, i) => {
+  B.typeAt.slice(0, QUERY.length).forEach((f, i) => {
     if (frame >= f) {
       prev = QUERY.slice(0, i);
       query = QUERY.slice(0, i + 1);

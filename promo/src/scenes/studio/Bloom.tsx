@@ -18,9 +18,9 @@ export function Bloom({ frame }: { frame: number }) {
   if (frame > 120) return null;
   const grow = tween(frame, [-70, 78], [0, 1], (t) => t);
   const implode = tween(frame, [84, 112], [0, 1], EASE.in);
-  const zoom = interpolate(frame, [0, 84], [2.3, 0.94], { extrapolateRight: "clamp", easing: EASE.out }) * (1 - 0.97 * implode);
+  const zoom = interpolate(frame, [0, 84], [1.62, 0.94], { extrapolateRight: "clamp", easing: EASE.out }) * (1 - 0.97 * implode);
   const pan: [number, number] = [230 * (1 - implode), 150 - 50 * implode];
-  const mask = "linear-gradient(to bottom, transparent 0, transparent 270px, black 360px), linear-gradient(to right, transparent 0, transparent 330px, black 560px)";
+  const mask = "linear-gradient(to bottom, transparent 0, transparent 270px, black 360px), linear-gradient(to right, transparent 0, transparent 300px, black 420px)";
   return (
     <AbsoluteFill style={{ opacity: 1 - tween(frame, [104, 116], [0, 1], EASE.in), WebkitMaskImage: mask, maskImage: mask, WebkitMaskComposite: "source-in", maskComposite: "intersect" }}>
       <NetworkGraph width={1920} height={1080} grow={grow} theme="dark" zoom={zoom} pan={pan} labels ambient intros={INTROS_STUDIO} />

@@ -59,7 +59,7 @@ const KICKERS: { text: string; at: number; out: number }[] = [
   { text: "2 due today", at: 254, out: 368 },
   { text: "AI capture", at: 374, out: 634 },
   { text: "One card per person", at: 640, out: 898 },
-  { text: "aljaz = Aljaž", at: 906, out: 1054 },
+  { text: "jose = José", at: 906, out: 1054 },
   { text: "285 people · 79 cities", at: 1062, out: 1330 },
   { text: "Works with Claude via MCP", at: 1356, out: 1596 },
 ];
@@ -112,7 +112,7 @@ function Kicker({ text, at, out }: { text: string; at: number; out: number }) {
   );
 }
 
-/** "aljaz → Aljaž": a small mono hint next to the search field while the results hold. */
+/** "jose → José": a small mono hint next to the search field while the results hold. */
 function SearchHint({ pose }: { pose: Pose }) {
   const frame = useCurrentFrame();
   if (frame < B.hint || frame > 1050) return null;
@@ -138,7 +138,7 @@ function SearchHint({ pose }: { pose: Pose }) {
         boxShadow: "0 16px 40px -14px rgba(0,0,0,0.6)",
       }}
     >
-      aljaz <span style={{ color: "#7fe6ea" }}>→</span> <span style={{ color: "#5ff0f4", fontWeight: 600 }}>Aljaž</span>
+      jose <span style={{ color: "#7fe6ea" }}>→</span> <span style={{ color: "#5ff0f4", fontWeight: 600 }}>José</span>
     </div>
   );
 }
