@@ -48,8 +48,8 @@ export const PEOPLE: Person[] = [
   { name: "Marko Marković", city: "Belgrade", flag: "🇷🇸", role: "Data scientist", warmth: "archive", last: "1y" },
   { name: "Petra Kovač", city: "Ljubljana", flag: "🇸🇮", role: "Photographer", warmth: "dormant", last: "1mo", acts: ["📷"] },
   { name: "Raj Kumar", city: "Delhi", flag: "🇮🇳", role: "Chef", warmth: "active", last: "8h", acts: ["🏋️"] },
-  { name: "Sven Svensson", city: "Copenhagen", flag: "🇩🇰", role: "Partner", company: "Index Ventures", warmth: "active", last: "3w" },
-  { name: "Wang Wei", city: "Munich", flag: "🇩🇪", role: "Founder", company: "Notion", warmth: "archive", last: "1y" },
+  { name: "Sven Svensson", city: "Copenhagen", flag: "🇩🇰", role: "Investor", warmth: "active", last: "3w" },
+  { name: "Wang Wei", city: "Munich", flag: "🇩🇪", role: "Founder", warmth: "archive", last: "1y" },
 ];
 
 /** The featured cast (Today, person card, follow-ups); the README screenshots use the same people. */

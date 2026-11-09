@@ -25,8 +25,10 @@ export const B = {
   cardOut: 590,
   /** Chips leave the stack for John's card sections, in this order. */
   toCard: 600,
-  toCardStep: 4,
-  toCardFlight: 24,
+  /** The stack shrinks in place first, then the chips fly one at a time. */
+  toCardShrink: 8,
+  toCardStep: 12,
+  toCardFlight: 14,
   // Card
   calloutA: 700,
   calloutB: 800,
@@ -56,5 +58,6 @@ export const B = {
 } as const;
 
 /** Section each filed chip lands in on John's card, in flight order. */
-export const LANDING = ["moving", "padel", "intro", "note"] as const;
-export const landAt = (i: number) => B.toCard + i * B.toCardStep + B.toCardFlight;
+export const LANDING = ["moving", "intro", "padel", "note"] as const;
+export const flyAt = (i: number) => B.toCard + B.toCardShrink + i * B.toCardStep;
+export const landAt = (i: number) => flyAt(i) + B.toCardFlight;

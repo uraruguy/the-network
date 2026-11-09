@@ -38,11 +38,13 @@ export const arcsAt = (frame: number): GlobeArc[] => ARCS.map(([to, at]) => ({ t
 const NAMED: { city: string; name: string; label: string; at: number; dx: number; dy: number }[] = [
   { city: "Lisbon", name: "Marie Dupont", label: "Marie · Lisbon", at: 1140 + ARC + 2, dx: -20, dy: 118 },
   { city: "Copenhagen", name: "Max Mustermann", label: "Max · Copenhagen", at: 1172 + ARC + 2, dx: -110, dy: -150 },
-  { city: "Tokyo", name: "Hanako Yamada", label: "Hanako · Tokyo", at: 1228 + ARC + 2, dx: -190, dy: 96 },
+  { city: "Tokyo", name: "Hanako Yamada", label: "Hanako · Tokyo", at: 1228 + ARC + 2, dx: -150, dy: -118 },
 ];
 const CITY = new Map(CITIES.map((c) => [c.name, c]));
 
 const TARGET = { x: 540, y: 905, r: 520 };
+/** Height of a landing pin's avatar stack above its point, in uiScale units. */
+const PIN_H = 50;
 const UI = 1.45;
 
 /**
@@ -101,10 +103,12 @@ export function GlobeBreakout({ cam }: { cam: (f: number) => Pose }) {
           const s = springAt(frame, n.at, SPRINGS.pop);
           const vis = s * clamp01((p.z - 0.12) / 0.15);
           if (vis <= 0.01) return null;
+          // A chip above its pin connects to the pin's top, so the line never crosses the avatar stack.
+          const y0 = n.dy < 0 ? p.y - PIN_H * ui : p.y;
           return (
             <g key={n.city} opacity={vis}>
-              <line x1={p.x} y1={p.y} x2={p.x + n.dx * s} y2={p.y + n.dy * s} stroke="oklch(0.42 0.065 200)" strokeWidth={2.5} strokeLinecap="round" />
-              <circle cx={p.x} cy={p.y} r={5} fill="oklch(0.42 0.065 200)" />
+              <line x1={p.x} y1={y0} x2={p.x + n.dx * s} y2={p.y + n.dy * s} stroke="oklch(0.42 0.065 200)" strokeWidth={2.5} strokeLinecap="round" />
+              <circle cx={p.x} cy={y0} r={5} fill="oklch(0.42 0.065 200)" />
             </g>
           );
         })}

@@ -16,7 +16,7 @@ const MEMORIES = [
   { name: "Marie Dupont", note: "Lives in Lisbon", x: 800, y: 700 },
   { name: "Anna Kowalska", note: "Owes you an intro", x: 300, y: 880 },
   { name: "John Doe", note: "Padel on Sundays", x: 770, y: 1060 },
-  { name: "Hanako Yamada", note: "Introduced by Max", x: 330, y: 1220 },
+  { name: "Hanako Yamada", note: "Introduced by Max", x: 790, y: 505 },
 ];
 
 type Item = { name: string; note?: string; X: number; Y: number; z: number; side: number };
@@ -82,7 +82,7 @@ export function Hook({ sink }: { sink: (frame: number) => { x: number; y: number
     <AbsoluteFill>
       {drawn
         .filter(({ u }) => u < 1)
-        .sort((a, b) => b.p.z - a.p.z)
+        .sort((a, b) => Number(!!a.p.it.note) - Number(!!b.p.it.note) || b.p.z - a.p.z)
         .map(({ p, pos, u, speed, angle }) => {
           const fade = 1 - clamp01((u - 0.82) / 0.18);
           const scale = mix(1, 0.18, u * u);

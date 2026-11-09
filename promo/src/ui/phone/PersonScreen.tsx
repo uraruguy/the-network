@@ -5,7 +5,7 @@ import { clamp01 } from "../../kit/motion";
 import { AppBg, Chip, HomeIndicator, InsetGroup, SAT, Screen, TabBar } from "./parts";
 
 /** John Doe's card: the person the quick capture was about (the README's "Padel rematch" row). */
-export const NIK = {
+export const JOHN = {
   name: "John Doe",
   role: "Software engineer · Bolt",
   city: "Ljubljana",
@@ -42,13 +42,13 @@ export function PersonScreen({ scrollY = 0, rootRef, tab = 1, filed = NOTHING_FI
         <div className="h-13" />
         <header className="flex flex-col items-center px-2 pt-2 pb-5 text-center">
           <span className="rounded-full shadow-e2">
-            <Avatar name={NIK.name} size={104} />
+            <Avatar name={JOHN.name} size={104} />
           </span>
-          <h1 className="mt-3.5 text-title1 text-fg">{NIK.name}</h1>
-          <p className="mt-1 text-subhead text-fg-2">{NIK.role}</p>
+          <h1 className="mt-3.5 text-title1 text-fg">{JOHN.name}</h1>
+          <p className="mt-1 text-subhead text-fg-2">{JOHN.role}</p>
           <p className="mt-1.5 flex items-center gap-x-1.5 rounded-full px-2 text-footnote text-fg-3" data-anchor="moving" style={{ background: flashBg(glow.moving) }}>
-            <span>{NIK.flag}</span>
-            {NIK.city}
+            <span>{JOHN.flag}</span>
+            {JOHN.city}
             {filed.moving > 0 && (
               <span className="inline-flex items-center gap-1 font-medium text-accent-text" style={{ opacity: clamp01(filed.moving * 1.5), maxWidth: 200 * filed.moving, overflow: "hidden", whiteSpace: "nowrap" }}>
                 → 🇵🇹 Lisbon in March
@@ -184,7 +184,7 @@ export function PersonScreen({ scrollY = 0, rootRef, tab = 1, filed = NOTHING_FI
             People
           </span>
           <span className="truncate text-headline text-fg" style={{ opacity: compact, transform: `translateY(${(1 - compact) * 4}px)` }}>
-            {NIK.name}
+            {JOHN.name}
           </span>
           <span className="flex items-center gap-0.5 justify-self-end">
             <span className="px-3 text-body font-medium text-accent-text">Edit</span>

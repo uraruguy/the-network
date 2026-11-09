@@ -153,7 +153,9 @@ function Band({ strength, children }: { strength: number; children: ReactNode })
 /** The phone video (1080×1350, 30 s): see STORYBOARD.md → Pocket. */
 export function Pocket() {
   const frame = useCurrentFrame();
-  const pose = cam(frame);
+  const raw = cam(frame);
+  // Rising behind the shrinking globe, the phone only appears once the globe nearly fits its screen.
+  const pose = frame >= 1300 && frame < B.globeHome ? { ...raw, o: raw.o * progress(frame, 1342, 10, EASE.inOut) } : raw;
   // Filters apply before the transform, so divide by the scale to get canvas pixels.
   const blur = (Math.min(1.8, Math.max(0, (speed(cam, frame) - 6) * 0.045)) + dof(frame)) / pose.s;
   const personRef = useRef<HTMLDivElement>(null);

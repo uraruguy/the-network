@@ -39,7 +39,7 @@ export function filedAt(frame: number): { filed: Filed; glow: Filed } {
   const glow = {} as Filed;
   LANDING.forEach((k, i) => {
     const land = landAt(i);
-    filed[k] = progress(frame, land - 2, 14, EASE.ios);
+    filed[k] = progress(frame, land - 18, 14, EASE.inOut);
     glow[k] = frame < land ? 0 : (frame - land) / 12;
   });
   return { filed, glow };

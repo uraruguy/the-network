@@ -4,7 +4,7 @@ import { ArrowUp, Bell, Check, Link2, MapPin, NotebookPen, Sparkles, type Lucide
 import { EASE, SPRINGS, clamp01, mix, progress, springAt } from "../../kit/motion";
 import { Spinner } from "../../ui/phone/ChatScreen";
 import { Tap } from "../../ui/phone/parts";
-import { B, LANDING } from "./beats";
+import { B, LANDING, flyAt } from "./beats";
 import type { Anchors } from "./Callouts";
 import { dof, project, type Pose } from "./camera";
 
@@ -152,18 +152,20 @@ export function CaptureLift({ cam, anchors }: { cam: (f: number) => Pose; anchor
         let cy = mix(from.y, slot.y, t);
         let sc = mix(0.6, CHIP_SCALE, t);
         let o = clamp01(t * 3);
-        // Second flight: into the section of John's card it changed.
-        const order = LANDING.indexOf(p.section);
-        const go = B.toCard + order * B.toCardStep;
+        // Second flight: the stack shrinks in place, then chips fly one at a time into their own
+        // rows on John's card (sideways first, then vertically, so no path crosses a waiting chip).
+        const shrink = progress(frame, B.toCard, B.toCardShrink, EASE.inOut);
+        if (shrink > 0) sc = mix(CHIP_SCALE, 1.05, shrink);
+        const go = flyAt(LANDING.indexOf(p.section));
         const a = anchors[p.section];
         if (frame >= go && a) {
-          const u = progress(frame, go, B.toCardFlight, EASE.inOut);
+          const u = progress(frame, go, B.toCardFlight, (q) => q);
           const pose = cam(frame);
           const tp = project(pose, a.x + 12, a.y + a.h / 2);
-          cx = mix(slot.x, tp.x, u) + Math.sin(u * Math.PI) * 40;
-          cy = mix(slot.y, tp.y, u);
-          sc = mix(CHIP_SCALE, tp.k * 0.95, u);
-          o = 1 - clamp01((u - 0.7) / 0.3);
+          cx = mix(slot.x, tp.x, EASE.out(u));
+          cy = mix(slot.y, tp.y, EASE.in(u));
+          sc = mix(1.05, tp.k * 0.95, EASE.inOut(u));
+          o = 1 - clamp01((u - 0.62) / 0.38);
         }
         const land = springAt(frame, start + 14, SPRINGS.pop);
         const Icon = p.icon;
