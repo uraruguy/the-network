@@ -3,9 +3,9 @@ import { cardCounts, filledFields, groupKey, likelyDuplicates, listJoin, movedRo
 
 describe("nameKey", () => {
   it("ignores case, accents, punctuation, spacing and word order", () => {
-    expect(nameKey("Tit Čadež")).toBe("cadez tit");
-    expect(nameKey("  čadež,  TIT ")).toBe("cadez tit");
-    expect(nameKey("Ana-Marija Nartnik")).toBe(nameKey("Nartnik Ana Marija"));
+    expect(nameKey("Marko Marković")).toBe("marko markovic");
+    expect(nameKey("  marković,  MARKO ")).toBe("marko markovic");
+    expect(nameKey("Ana-Marija Novak")).toBe(nameKey("Novak Ana Marija"));
     expect(nameKey("—")).toBe("");
   });
 });
@@ -14,7 +14,7 @@ describe("likelyDuplicates", () => {
   const p = (id: string, displayName: string, createdAt?: string) => ({ id, displayName, createdAt });
 
   it("groups same-name people, oldest card first, groups by name", () => {
-    const people = [p("3", "Tit Čadež", "2026-05-01"), p("1", "Ana Nartnik"), p("2", "tit cadez", "2026-01-01"), p("4", "Ana Nartnik"), p("5", "Matevž")];
+    const people = [p("3", "Marko Marković", "2026-05-01"), p("1", "Marija Novak"), p("2", "marko markovic", "2026-01-01"), p("4", "Marija Novak"), p("5", "Janez")];
     expect(likelyDuplicates(people).map((g) => g.map((x) => x.id))).toEqual([
       ["1", "4"],
       ["2", "3"],
@@ -22,10 +22,10 @@ describe("likelyDuplicates", () => {
   });
 
   it("skips dismissed groups until someone new joins them", () => {
-    const pair = [p("a", "Ana Nartnik"), p("b", "Ana Nartnik")];
+    const pair = [p("a", "Marija Novak"), p("b", "Marija Novak")];
     const dismissed = new Set([groupKey(pair)]);
     expect(likelyDuplicates(pair, dismissed)).toEqual([]);
-    expect(likelyDuplicates([...pair, p("c", "Nartnik Ana")], dismissed)).toHaveLength(1);
+    expect(likelyDuplicates([...pair, p("c", "Novak Marija")], dismissed)).toHaveLength(1);
   });
 
   it("never groups nameless rows", () => {

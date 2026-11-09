@@ -3,12 +3,12 @@ import { filterByQuery, matchesQuery, matchRank, normalizeForSearch } from "./se
 
 describe("normalizeForSearch", () => {
   it("strips diacritics and case", () => {
-    expect(normalizeForSearch("Žan Kolenič")).toBe("zan kolenic");
-    expect(normalizeForSearch("Lukić")).toBe("lukic");
+    expect(normalizeForSearch("Žiga Kovač")).toBe("ziga kovac");
+    expect(normalizeForSearch("Marković")).toBe("markovic");
     expect(normalizeForSearch("  José   Müller ")).toBe("jose muller");
   });
   it("maps letters NFD doesn't decompose", () => {
-    expect(normalizeForSearch("Østergaard")).toBe("ostergaard");
+    expect(normalizeForSearch("Øyvind")).toBe("oyvind");
     expect(normalizeForSearch("Straße")).toBe("strasse");
     expect(normalizeForSearch("Đorđe Łukasz")).toBe("dorde lukasz");
     expect(normalizeForSearch("Ærø")).toBe("aero");
@@ -17,13 +17,13 @@ describe("normalizeForSearch", () => {
 
 describe("matchesQuery", () => {
   it("is diacritic- and case-insensitive both ways", () => {
-    expect(matchesQuery("Žan Kolenič", "zan")).toBe(true);
-    expect(matchesQuery("Zan Kolenic", "žan")).toBe(true);
+    expect(matchesQuery("Žiga Kovač", "ziga")).toBe(true);
+    expect(matchesQuery("Ziga Kovac", "žiga")).toBe(true);
     expect(matchesQuery("Ljubljana", "LJUB")).toBe(true);
   });
   it("requires every token, in any order", () => {
-    expect(matchesQuery("Anna Nartnik · Ljubljana", "nartnik anna")).toBe(true);
-    expect(matchesQuery("Anna Nartnik", "anna smith")).toBe(false);
+    expect(matchesQuery("Anna Kowalska · Ljubljana", "kowalska anna")).toBe(true);
+    expect(matchesQuery("Anna Kowalska", "anna smith")).toBe(false);
   });
   it("empty query matches everything", () => {
     expect(matchesQuery("anything", "   ")).toBe(true);
@@ -39,9 +39,9 @@ describe("ranking", () => {
     expect(matchRank("Bob", "ana")).toBe(Infinity);
   });
   it("filterByQuery filters and sorts stably", () => {
-    const people = ["Hana Kos", "Ana Zadnik", "Žana Potočnik", "Anamarija Habjan", "Bojan"];
-    expect(filterByQuery(people, "ana", (x) => x)).toEqual(["Ana Zadnik", "Anamarija Habjan", "Hana Kos", "Žana Potočnik"]);
-    expect(filterByQuery(people, "zana", (x) => x)).toEqual(["Žana Potočnik"]);
+    const people = ["Hana Kovač", "Ana Novak", "Žana Novak", "Anamarija Horvat", "Bojan"];
+    expect(filterByQuery(people, "ana", (x) => x)).toEqual(["Ana Novak", "Anamarija Horvat", "Hana Kovač", "Žana Novak"]);
+    expect(filterByQuery(people, "zana", (x) => x)).toEqual(["Žana Novak"]);
     expect(filterByQuery(people, "", (x) => x)).toEqual(people);
   });
 });

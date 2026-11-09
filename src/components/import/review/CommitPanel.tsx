@@ -200,7 +200,7 @@ export function CommitPanel({ source, onReview }: { source: string; onReview: ()
   );
 }
 
-/** "Ana Nartnik and 2 others were deleted in The Network and won’t be imported again." */
+/** "Marija Novak and 2 others were deleted in The Network and won’t be imported again." */
 function skippedSentence(skipped: CommitResult["people"]["skipped"]) {
   const names = [...new Set(skipped.map((s) => s.name))];
   const who = names.length > 1 ? `${names[0]} and ${plural(names.length - 1, "other")}` : names[0];

@@ -17,15 +17,15 @@ stable key and a merged profile, and assign every mention exactly once.
    - a person-named folder (folder "Matevž" → the notes are about one specific Matevž),
    - overlapping co-mentions (the same other people appear around them),
    - matching company / role / city / school,
-   - an explicit link in the text ("Matevž (Nartnik)", "Tine = Valentin"),
+   - an explicit link in the text ("Janez (Novak)", "Tine = Valentin"),
    - temporal + topic proximity (same project, same weeks, same trip).
    One weak signal is not enough. When unsure, keep them apart and set \`needsReview\` + a flag.
 2. **Declensions and dialect.** Slovenian names decline (Matevž/Matevža/Matevžu/Matevžem, Neža/Neže/Neži/Nežo,
    Miha/Miho, Jani/Janija/Janiju). "Jani" can also be the dative of Jana — use \`gender\`/\`genderHint\`
    (rekel/rekou = m, rekla = f) and context. Colloquial spelling: rekou = rekel, biu = bil, šou = šel.
 3. **Nicknames** (Aleks/Alex/Aleksander, Jani/Janez, Jure/Jurij) are hints, never proof.
-4. **Full names win.** A bare "Tomaž" joins "Tomaž Gorjup" only with the signals above. A lone surname
-   ("Gorjup") usually means the full-name person.
+4. **Full names win.** A bare "Ivan" joins "Ivan Horvat" only with the signals above. A lone surname
+   ("Horvat") usually means the full-name person.
 5. **Existing people.** \`anchors\` of kind \`person\` are already in The Network. Set
    \`existingPersonId\` ONLY when you are certain (full name match + consistent context, or explicit).
    Anchors of kind \`proposal\` are people resolved in an earlier run — reuse their \`key\` to assign
@@ -39,8 +39,8 @@ stable key and a merged profile, and assign every mention exactly once.
 - \`self\` — ${me} themself (${ownerSelfForms(owner).map((f) => `"${f}"`).join(", ")}).
 
 ### Keys and names
-- \`key\`: lowercase slug of the full name ("matevz-nartnik"). First-name-only people get a disambiguator
-  from their strongest context: "matevz-acme", "neza-lisbon", "miha-padel". Keys must be unique in the file.
+- \`key\`: lowercase slug of the full name ("janez-novak"). First-name-only people get a disambiguator
+  from their strongest context: "janez-acme", "neza-lisbon", "miha-padel". Keys must be unique in the file.
 - \`displayName\`: the fullest correct name; \`firstName\`/\`lastName\` when known; \`aliases\`: every other
   spelling/nickname/declined form you saw.
 
@@ -78,18 +78,18 @@ export const RESOLUTION_EXAMPLE = {
   schemaVersion: 1,
   people: [
     {
-      key: "matevz-nartnik",
-      displayName: "Matevž Nartnik",
-      firstName: "Matevž",
-      lastName: "Nartnik",
-      aliases: ["Matevž", "Matevžem"],
+      key: "janez-novak",
+      displayName: "Janez Novak",
+      firstName: "Janez",
+      lastName: "Novak",
+      aliases: ["Janez", "Janezom"],
       disposition: "person",
       existingPersonId: null,
       confidence: 0.92,
       needsReview: false,
       reviewFlags: [],
       possibleSameAs: [],
-      reasons: "Folder Matevž (6 notes) + 'Matevž Nartnik' in two Acme notes with the same co-mentions.",
+      reasons: "Folder Janez (6 notes) + 'Janez Novak' in two Acme notes with the same co-mentions.",
       profile: {
                 company: "Acme",
         city: "Ljubljana",
@@ -114,7 +114,7 @@ export const RESOLUTION_EXAMPLE = {
     },
   ],
   assignments: [
-    { mentionId: "<itemId>:0", personKey: "matevz-nartnik", confidence: 0.95, reason: "folder Matevž" },
+    { mentionId: "<itemId>:0", personKey: "janez-novak", confidence: 0.95, reason: "folder Janez" },
     { mentionId: "<itemId>:2", personKey: null, confidence: 0.9, reason: "a restaurant, not a person" },
   ],
 };

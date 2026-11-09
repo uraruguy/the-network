@@ -19,7 +19,7 @@ export type FlagInput = {
 
 export type FlagSentence = { key: string; text: string; tone: "info" | "warn" };
 
-/** "Matevž from Lisbon [possible same as: Matevž Nartnik, Matevž K.]" → ["Matevž Nartnik", "Matevž K."] */
+/** "Janez from Lisbon [possible same as: Janez Novak, Janez K.]" → ["Janez Novak", "Janez K."] */
 export function possibleSameAs(reasons: string | null): string[] {
   if (!reasons) return [];
   const out: string[] = [];

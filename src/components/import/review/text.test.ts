@@ -11,8 +11,8 @@ describe("highlightSegments", () => {
     expect(hits("Srečala sem Nežo in Miho", ["Neža", "Miha"])).toEqual(["Nežo", "Miho"]);
   });
   it("matches the full name or its tokens (with endings), never inside other words", () => {
-    expect(hits("Peter Lesjak (Petra ne) — Lesjakovi", ["Peter Lesjak"])).toEqual(["Peter Lesjak", "Lesjakovi"]);
-    expect(hits("Pri Lesjaku je bil tudi Peter", ["Peter Lesjak"])).toEqual(["Lesjaku", "Peter"]);
+    expect(hits("Peter Novak (Petra ne) — Novakovi", ["Peter Novak"])).toEqual(["Peter Novak", "Novakovi"]);
+    expect(hits("Pri Novaku je bil tudi Peter", ["Peter Novak"])).toEqual(["Novaku", "Peter"]);
     expect(hits("Ana in Banana", ["Ana"])).toEqual(["Ana"]);
   });
   it("keeps the full text when nothing matches", () => {
@@ -39,12 +39,12 @@ describe("focusSnippet", () => {
 describe("flagSentences", () => {
   const base: FlagInput = { reviewFlags: [], reasons: null, matchPerson: null, similar: [], disposition: "person", confidence: 0.9, mentionCount: 3 };
   it("turns flags into plain sentences", () => {
-    const s = flagSentences({ ...base, reviewFlags: ["first_name_only", "possible_duplicate"], reasons: "Matevž from Lisbon [possible same as: Tomaž Gorjup]" });
-    expect(s.map((x) => x.text)).toEqual(["Maybe the same as Tomaž Gorjup", "First name only"]);
+    const s = flagSentences({ ...base, reviewFlags: ["first_name_only", "possible_duplicate"], reasons: "Matevž from Lisbon [possible same as: Ivan Horvat]" });
+    expect(s.map((x) => x.text)).toEqual(["Maybe the same as Ivan Horvat", "First name only"]);
   });
   it("falls back to similar people and the matched person", () => {
-    const s = flagSentences({ ...base, reviewFlags: ["possible_duplicate", "existing_match_uncertain"], similar: [{ kind: "proposal", displayName: "Jana Sever" }], matchPerson: { displayName: "Jana S." } });
-    expect(s.map((x) => x.text)).toEqual(["Maybe the same as Jana Sever", "Might already be in The Network as Jana S."]);
+    const s = flagSentences({ ...base, reviewFlags: ["possible_duplicate", "existing_match_uncertain"], similar: [{ kind: "proposal", displayName: "Jana Kovač" }], matchPerson: { displayName: "Jana K." } });
+    expect(s.map((x) => x.text)).toEqual(["Maybe the same as Jana Kovač", "Might already be in The Network as Jana K."]);
   });
   it("mentions dispositions and thin evidence", () => {
     expect(flagSentences({ ...base, disposition: "passerby", reviewFlags: ["user_attention"] }).map((x) => x.text)).toEqual(["Looks like a passer-by"]);

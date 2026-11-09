@@ -23,10 +23,10 @@ function person(id: string, over: Partial<PeopleRow> = {}): PeopleRow {
 }
 
 const PEOPLE: PeopleRow[] = [
-  person("a", { displayName: "Žan Nartnik", warmth: "dormant", lastInteractionAt: "2026-10-01T10:00:00Z", nextFollowupAt: "2026-11-01T00:00:00Z" }),
-  person("b", { displayName: "ana lukić", warmth: "inner", lastInteractionAt: "2026-10-10T10:00:00Z" }),
-  person("c", { displayName: "Neža Kos", warmth: "inner", lastInteractionAt: null, createdAt: "2026-09-01T00:00:00Z", nextFollowupAt: "2026-10-20T00:00:00Z" }),
-  person("d", { displayName: "Ana Habjan", warmth: "archive", lastInteractionAt: new Date("2026-10-05T10:00:00Z") }),
+  person("a", { displayName: "Žiga Novak", warmth: "dormant", lastInteractionAt: "2026-10-01T10:00:00Z", nextFollowupAt: "2026-11-01T00:00:00Z" }),
+  person("b", { displayName: "ana marković", warmth: "inner", lastInteractionAt: "2026-10-10T10:00:00Z" }),
+  person("c", { displayName: "Neža Kovač", warmth: "inner", lastInteractionAt: null, createdAt: "2026-09-01T00:00:00Z", nextFollowupAt: "2026-10-20T00:00:00Z" }),
+  person("d", { displayName: "Ana Horvat", warmth: "archive", lastInteractionAt: new Date("2026-10-05T10:00:00Z") }),
   person("e", { displayName: "Bojan 2", warmth: "active", lastInteractionAt: null, createdAt: "2026-08-01T00:00:00Z" }),
   person("f", { displayName: "Bojan 10", warmth: "active", lastInteractionAt: null, createdAt: "2026-08-01T00:00:00Z" }),
 ];
@@ -52,11 +52,11 @@ describe("sortPeople", () => {
 
   it("with a query, better name matches come first and the sort breaks ties", () => {
     const rows = [
-      person("company", { displayName: "Rok Turk", company: "Anaconda", lastInteractionAt: "2026-10-16T00:00:00Z" }),
-      person("inside", { displayName: "Ivana Kos", lastInteractionAt: "2026-10-15T00:00:00Z" }),
-      person("word", { displayName: "Eva Ana Nartnik", lastInteractionAt: "2026-10-14T00:00:00Z" }),
-      person("prefix2", { displayName: "Ana Zadnik", lastInteractionAt: "2026-10-01T00:00:00Z" }),
-      person("prefix1", { displayName: "Ana Habjan", lastInteractionAt: "2026-10-12T00:00:00Z" }),
+      person("company", { displayName: "Mario Rossi", company: "Anaconda", lastInteractionAt: "2026-10-16T00:00:00Z" }),
+      person("inside", { displayName: "Ivana Kovač", lastInteractionAt: "2026-10-15T00:00:00Z" }),
+      person("word", { displayName: "Eva Ana Novak", lastInteractionAt: "2026-10-14T00:00:00Z" }),
+      person("prefix2", { displayName: "Ana Novak", lastInteractionAt: "2026-10-01T00:00:00Z" }),
+      person("prefix1", { displayName: "Ana Horvat", lastInteractionAt: "2026-10-12T00:00:00Z" }),
       person("exact", { displayName: "Ana", lastInteractionAt: "2026-01-01T00:00:00Z" }),
     ];
     expect(ids(sortPeople(rows, "recent", "ana"))).toEqual(["exact", "prefix1", "prefix2", "word", "inside", "company"]);
@@ -85,7 +85,7 @@ describe("helpers", () => {
 
   it("index letters fold accents and group non-letters under #", () => {
     expect(indexLetter("Žan")).toBe("Z");
-    expect(indexLetter("Østergaard")).toBe("O");
+    expect(indexLetter("Øyvind")).toBe("O");
     expect(indexLetter("ana")).toBe("A");
     expect(indexLetter("123 Studio")).toBe("#");
     expect(indexLetter("  ")).toBe("#");

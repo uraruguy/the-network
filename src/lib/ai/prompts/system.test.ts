@@ -6,21 +6,21 @@ import { importOwner, importSystem, ownerFirstName, ownerSelfForms } from "./sys
 
 /** The import prompts are written for whoever owns the instance, not for the author. */
 
-const ana = importOwner(" Ana Nartnik ", "Designer in Lisbon; notes in Portuguese and English");
+const marija = importOwner(" Marija Novak ", "Designer in Lisbon; notes in Portuguese and English");
 const nobody = importOwner(null);
 const note = { title: "Coffee", text: "Coffee with Marko.", created: null, folders: [], existingNames: [], mode: "full" as const };
-const brief = (owner = ana) =>
+const brief = (owner = marija) =>
   buildResolveBrief({ runId: "r1", runDir: "/tmp/r1", packets: [{ packetId: "p1", kind: "unique", mentions: 2, clusters: ["Marko"] }], validateCmd: "validate", owner });
 
 describe("import prompts", () => {
   it("name the owner from their profile and add IMPORT_CONTEXT", () => {
-    expect(ana).toEqual({ name: "Ana Nartnik", context: "Designer in Lisbon; notes in Portuguese and English" });
-    expect(importSystem(ana)).toMatch(/^You help Ana Nartnik organise their personal network/);
-    expect(importSystem(ana)).toContain("About them: Designer in Lisbon");
-    expect(extractPrompt({ ...note, owner: ana })).toContain("Skip Ana themself");
-    expect(screenPrompt([], ana)).toContain("named people Ana knows or met");
-    expect(resolveRules(ana)).toContain('`self` — Ana themself ("Ana", "Ana Nartnik", "I", "me", "jaz")');
-    expect(brief()).toContain("who is who in Ana Nartnik's Apple Notes import");
+    expect(marija).toEqual({ name: "Marija Novak", context: "Designer in Lisbon; notes in Portuguese and English" });
+    expect(importSystem(marija)).toMatch(/^You help Marija Novak organise their personal network/);
+    expect(importSystem(marija)).toContain("About them: Designer in Lisbon");
+    expect(extractPrompt({ ...note, owner: marija })).toContain("Skip Marija themself");
+    expect(screenPrompt([], marija)).toContain("named people Marija knows or met");
+    expect(resolveRules(marija)).toContain('`self` — Marija themself ("Marija", "Marija Novak", "I", "me", "jaz")');
+    expect(brief()).toContain("who is who in Marija Novak's Apple Notes import");
   });
 
   it("fall back to “the owner” without a profile name", () => {
@@ -32,7 +32,7 @@ describe("import prompts", () => {
   });
 
   it("stay neutral about the owner", () => {
-    const all = [importSystem(ana), extractPrompt({ ...note, owner: ana }), screenPrompt([], ana), brief()].join("\n");
+    const all = [importSystem(marija), extractPrompt({ ...note, owner: marija }), screenPrompt([], marija), brief()].join("\n");
     expect(all).not.toMatch(/\bhe\b|\bhis\b/);
   });
 });

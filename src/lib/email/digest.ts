@@ -11,7 +11,7 @@ const birthdayLine = (b: Birthday) => (b.turning ? `turns ${b.turning} ${when(b.
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
-/** "Dr. Maja Petrič" → "Maja": the first word that isn't a title/initial. */
+/** "Dr. Petra Kovač" → "Petra": the first word that isn't a title/initial. */
 const firstName = (name: string) => {
   const words = name.trim().split(/\s+/);
   return words.find((w) => !w.endsWith(".")) ?? words[0] ?? name;

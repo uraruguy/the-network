@@ -18,7 +18,7 @@ describe("cleanPastedHtml — Apple Notes export (div per line)", () => {
   const out = blocks(html);
 
   it("keeps native headings and unwraps <b><h2>", () => {
-    expect(out[0]).toMatchObject({ tag: "h1", text: "Coffee with Mara Lindqvist" });
+    expect(out[0]).toMatchObject({ tag: "h1", text: "Coffee with Marie Dupont" });
     expect(out.find((b) => b.text === "Family & home")?.tag).toBe("h2");
     expect(out.find((b) => b.text === "Follow-ups")?.tag).toBe("h3");
     expect(clean(html)).not.toMatch(/<h2><strong>|<strong><h2>/);
@@ -74,7 +74,7 @@ describe("cleanPastedHtml — Cocoa HTML Writer (copy from Notes.app)", () => {
   const out = blocks(html);
 
   it("infers headings from <style> class font sizes", () => {
-    expect(out[0]).toMatchObject({ tag: "h1", text: "Lunch with Tomasz Wierzbicki" });
+    expect(out[0]).toMatchObject({ tag: "h1", text: "Lunch with Jan Kowalski" });
     expect(out.find((b) => b.text === "Work")?.tag).toBe("h2");
     expect(out.find((b) => b.text.startsWith("Met at the usual place"))?.tag).toBe("p");
   });
@@ -96,7 +96,7 @@ describe("cleanPastedHtml — Cocoa HTML Writer (copy from Notes.app)", () => {
   it("keeps http(s) and mailto links", () => {
     const h = clean(html);
     expect(h).toContain('<a href="https://example.com/design">design</a>');
-    expect(h).toContain('<a href="mailto:tomasz@example.com">tomasz@example.com</a>');
+    expect(h).toContain('<a href="mailto:jan@example.com">jan@example.com</a>');
   });
 
   it("drops the head, meta and the stylesheet", () => {

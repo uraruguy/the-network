@@ -28,12 +28,12 @@ export function nameTokens(s: string): string[] {
     .filter((t) => t && !HONORIFICS.has(t));
 }
 
-/** Normalised name for comparisons: "Matevž  Nartník" → "matevz nartnik". */
+/** Normalised name for comparisons: "Janez  Novák" → "janez novak". */
 export function normName(s: string): string {
   return nameTokens(s).join(" ");
 }
 
-/** Stable slug used as an import_people key: "Matevž Nartnik" → "matevz-nartnik"; extra parts disambiguate. */
+/** Stable slug used as an import_people key: "Janez Novak" → "janez-novak"; extra parts disambiguate. */
 export function personKey(name: string, ...disambiguators: (string | null | undefined)[]): string {
   const parts = [name, ...disambiguators.filter(Boolean)].map((p) => nameTokens(p!).join("-")).filter(Boolean);
   return parts.join("-").replace(/-+/g, "-").replace(/^-|-$/g, "").slice(0, 80) || "unknown";
@@ -46,7 +46,7 @@ export function isInitial(token: string) {
   return /^[a-z]\.?$/i.test(token);
 }
 
-/** "Matevž Nartnik" → true, "Matevž" → false, "Mira A." → false. */
+/** "Janez Novak" → true, "Janez" → false, "Mira A." → false. */
 export function isFullName(name: string) {
   const raw = name.trim().split(/\s+/).filter(Boolean);
   if (raw.length < 2) return false;

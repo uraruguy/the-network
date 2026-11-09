@@ -6,10 +6,10 @@ const NOW = at(2026, 10, 17, 15);
 
 describe("greeting", () => {
   it("follows the local hour and uses the first name", () => {
-    expect(greeting(at(2026, 10, 17, 8), "Ana Kolar")).toBe("Good morning, Ana");
+    expect(greeting(at(2026, 10, 17, 8), "Jane Doe")).toBe("Good morning, Jane");
     expect(greeting(at(2026, 10, 17, 13))).toBe("Good afternoon");
     expect(greeting(at(2026, 10, 17, 21), "  ")).toBe("Good evening");
-    expect(greeting(at(2026, 10, 17, 2), "Ana")).toBe("Good evening, Ana");
+    expect(greeting(at(2026, 10, 17, 2), "Jane")).toBe("Good evening, Jane");
   });
 });
 

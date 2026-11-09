@@ -105,9 +105,9 @@ describe("merge + chunking", () => {
       name, aliases: [], surfaces: [name], gender: null, salience: 0.5, role: null, company: null, city: null, country: null, metContext: null, metDate: null, metCity: null,
       categories: [], warmth: null, circle: null, activities: [], introducedBy: null, keyFacts: [], howICanHelp: null, whatICanAsk: null, followUps: [], links: [], excerpt: null, confidence: 0.6, ...extra,
     });
-    const merged = mergeChunkCandidates([[c("Matevž", { keyFacts: ["a"] })], [c("Matevž Nartnik", { role: "CTO", keyFacts: ["b"], salience: 0.9 }), c("Neža")]]);
+    const merged = mergeChunkCandidates([[c("Janez", { keyFacts: ["a"] })], [c("Janez Novak", { role: "CTO", keyFacts: ["b"], salience: 0.9 }), c("Neža")]]);
     expect(merged).toHaveLength(2);
-    expect(merged[0]).toMatchObject({ name: "Matevž Nartnik", role: "CTO", salience: 0.9, keyFacts: ["a", "b"], aliases: ["Matevž"] });
+    expect(merged[0]).toMatchObject({ name: "Janez Novak", role: "CTO", salience: 0.9, keyFacts: ["a", "b"], aliases: ["Janez"] });
   });
   it("chunks long notes at blank lines", () => {
     const long = Array.from({ length: 30 }, (_, i) => `Odstavek ${i}\n${"x".repeat(900)}`).join("\n\n");

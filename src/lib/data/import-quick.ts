@@ -65,7 +65,7 @@ async function matchSuggestions(db: DbOrTx, ownerId: string, c: Pick<CandidateV2
     .slice(0, 3);
 }
 
-/** Does this candidate name the person the sheet was opened from? ("Matevž" in a note on Matevž Nartnik's page.) */
+/** Does this candidate name the person the sheet was opened from? ("Janez" in a note on Janez Novak's page.) */
 function namesOwner(c: Pick<CandidateV2, "name" | "aliases">, owner: Owner) {
   const own = nameTokens(owner.displayName);
   return [c.name, ...c.aliases].some((n) => {

@@ -2,7 +2,7 @@
 
 The Network can read years of Apple Notes and turn them into people: who each note is about, how you
 met, where they live, what they do, open follow-ups. Claude does the reading and the entity
-resolution ("Matevž", "Matevžem" and "Matevž Nartnik" are one person); you confirm the unsure cases; nothing
+resolution ("Janez", "Janezom" and "Janez Novak" are one person); you confirm the unsure cases; nothing
 lands in your network until you commit, and every commit can be undone.
 
 There are two ways in:

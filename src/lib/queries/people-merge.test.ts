@@ -17,8 +17,8 @@ const json = (status: number, body: unknown) => new Response(JSON.stringify(body
 
 const row = (id: string, displayName: string) => ({ id, displayName, avatarUrl: null, headline: null, company: null, categoryIds: [], activityIds: [], tagIds: [] }) as unknown as PersonIndexRow;
 const detail = (id: string, over: Partial<PersonDetailApi> = {}) =>
-  ({ ...row(id, "Tit Čadež"), notes: [], notesCount: 0, reminders: [], homeLocation: null, ...over }) as unknown as PersonDetailApi;
-const report: MergeReport = { keep: { id: KEEP, name: "Tit Čadež" }, drop: { id: DROP, name: "Tit Cadez" }, fields: ["company"], moved: { notes: 2 }, factsMerged: false, dryRun: false };
+  ({ ...row(id, "Marko Marković"), notes: [], notesCount: 0, reminders: [], homeLocation: null, ...over }) as unknown as PersonDetailApi;
+const report: MergeReport = { keep: { id: KEEP, name: "Marko Marković" }, drop: { id: DROP, name: "Marko Markovic" }, fields: ["company"], moved: { notes: 2 }, factsMerged: false, dryRun: false };
 
 describe("merging two people", () => {
   let qc: QueryClient;
@@ -28,7 +28,7 @@ describe("merging two people", () => {
   beforeEach(() => {
     qc = new QueryClient();
     registerPeopleMutations(qc);
-    qc.setQueryData(keys.peopleIndex(), [row(KEEP, "Tit Čadež"), row(DROP, "Tit Cadez"), row(OTHER, "Ana")]);
+    qc.setQueryData(keys.peopleIndex(), [row(KEEP, "Marko Marković"), row(DROP, "Marko Markovic"), row(OTHER, "Ana")]);
     qc.setQueryData(keys.person(KEEP), detail(KEEP));
     qc.setQueryData(keys.person(DROP), detail(DROP));
     qc.setQueryData([...keys.personNotes(DROP), "summary"], { pages: [], pageParams: [] });

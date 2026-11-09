@@ -304,7 +304,7 @@ function UploadCard() {
 
 function HowItWorks() {
   const steps = [
-    ["Claude reads your notes", "Every person mentioned is found and matched across notes — “Matevžem”, “Matevž” and “Matevž Nartnik” become one person."],
+    ["Claude reads your notes", "Every person mentioned is found and matched across notes — “Janezom”, “Janez” and “Janez Novak” become one person."],
     ["You confirm the unsure ones", "Clear cases are approved automatically. You decide the rest, one card at a time — keyboard on Mac, swipes on iPhone."],
     ["Commit when you’re ready", "People, notes, reminders and tags are created in one go. Any import can be undone."],
   ];

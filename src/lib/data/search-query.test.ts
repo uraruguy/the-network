@@ -39,7 +39,7 @@ describe("toTsQuery", () => {
   });
 
   it("splits punctuation-joined words", () => {
-    expect(toTsQuery("ana.kolar@example.com")).toBe("'ana':* & 'kolar':* & 'example':* & 'com':*");
+    expect(toTsQuery("jane.doe@example.com")).toBe("'jane':* & 'doe':* & 'example':* & 'com':*");
     expect(toTsQuery("e-mail")).toBe("'e':* & 'mail':*");
   });
 

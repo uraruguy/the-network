@@ -4,7 +4,7 @@ export const FILING_RULES = `## Filing rules
 Each item is one Apple note that mentions several resolved people. Decide where it lives:
 - \`primary\` — the note is mainly about / with one person → \`primaryPersonKey\`. The note is copied
   verbatim under that person; everyone else in it gets a mention link.
-  Signals: the title ("Kava z Matevžem", "Call x Maja"), who the note is addressed to or about, who says
+  Signals: the title ("Kava z Janezom", "Call x Maja"), who the note is addressed to or about, who says
   the most, the person-named folder.
 - \`list\` — a list of people (each gets an excerpt with their own lines). Provide \`excerpts\`
   (\`{personKey, excerpt}\`, excerpt copied VERBATIM from the note) for people whose lines are not obvious.
@@ -17,8 +17,8 @@ export const FILING_EXAMPLE = {
   engine: "claude-code",
   schemaVersion: 1,
   filings: [
-    { itemId: "<itemId>", mode: "primary", primaryPersonKey: "matevz-nartnik", excerpts: [], dismissReason: null, reason: "Title 'Kava z Matevžem'; Neža only joins at the end." },
-    { itemId: "<itemId>", mode: "journal", primaryPersonKey: null, excerpts: [{ personKey: "neza-habjan", excerpt: "Neža je rekla, da gre v Berlin." }], dismissReason: null, reason: "Day log" },
+    { itemId: "<itemId>", mode: "primary", primaryPersonKey: "janez-novak", excerpts: [], dismissReason: null, reason: "Title 'Kava z Janezom'; Neža only joins at the end." },
+    { itemId: "<itemId>", mode: "journal", primaryPersonKey: null, excerpts: [{ personKey: "neza-kovac", excerpt: "Neža je rekla, da gre v Berlin." }], dismissReason: null, reason: "Day log" },
   ],
 };
 

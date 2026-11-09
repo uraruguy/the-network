@@ -3,9 +3,9 @@ import { deaccent, genderHint, isFullName, lemmaCandidates, nameVariants, nickna
 
 describe("deaccent", () => {
   it("folds Slovenian and other diacritics", () => {
-    expect(deaccent("Matevž Čuk Šuštar")).toBe("Matevz Cuk Sustar");
+    expect(deaccent("Žiga Kovač iz Šoštanja")).toBe("Ziga Kovac iz Sostanja");
     expect(deaccent("Đurđa")).toBe("Djurdja");
-    expect(deaccent("Jürgen Tromsø")).toBe("Jurgen Tromso");
+    expect(deaccent("Jürgen in Tromsø")).toBe("Jurgen in Tromso");
     expect(deaccent("Ćiro")).toBe("Ciro");
   });
 });
@@ -44,21 +44,21 @@ describe("lemmaCandidates", () => {
     has("Matevževa", "Matevž");
     has("Nežina", "Neža");
   });
-  it("multi-word surfaces", () => expect(lemmaCandidates("Matevžem Nartnikom")).toContain("Matevž Nartnik"));
+  it("multi-word surfaces", () => expect(lemmaCandidates("Janezom Novakom")).toContain("Janez Novak"));
 });
 
 describe("names helpers", () => {
   it("normName / personKey", () => {
-    expect(normName("  Matevž   Nartník ")).toBe("matevz nartnik");
-    expect(personKey("Matevž Nartnik")).toBe("matevz-nartnik");
-    expect(personKey("Matevž", "Acme")).toBe("matevz-acme");
-    expect(personKey("Dr. Ana-Marija Kos")).toBe("ana-marija-kos");
+    expect(normName("  Janez   Novák ")).toBe("janez novak");
+    expect(personKey("Janez Novak")).toBe("janez-novak");
+    expect(personKey("Janez", "Acme")).toBe("janez-acme");
+    expect(personKey("Dr. Ana-Marija Kovač")).toBe("ana-marija-kovac");
   });
   it("isFullName", () => {
-    expect(isFullName("Matevž Nartnik")).toBe(true);
-    expect(isFullName("Matevž")).toBe(false);
+    expect(isFullName("Janez Novak")).toBe(true);
+    expect(isFullName("Janez")).toBe(false);
     expect(isFullName("Mira A.")).toBe(false);
-    expect(isFullName("Mira A. Lindgren")).toBe(true);
+    expect(isFullName("Mira A. Novak")).toBe(true);
   });
   it("nickname groups", () => {
     expect(nicknameCanon("Aleks")).toBe("alex");
@@ -79,7 +79,7 @@ describe("genderHint", () => {
     expect(at("Jani je bila tam.", "Jani")).toBe("f");
   });
   it("ignores nouns after the auxiliary", () => {
-    expect(at("Jana Sever je učiteljica na srednji šoli.", "Jana")).toBeNull();
+    expect(at("Jana Kovač je učiteljica na srednji šoli.", "Jana")).toBeNull();
   });
   it("returns null without a signal", () => {
     expect(at("Srečal Petra na kavi.", "Petra")).toBeNull();

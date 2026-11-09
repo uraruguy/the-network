@@ -10,7 +10,7 @@ function clusterOf(clusters: ReturnType<typeof clusterNodes>, id: string) {
 
 describe("clusterNodes", () => {
   it("groups same first name, declensions and full names", () => {
-    const cs = clusterNodes([m("1", "Matevž"), m("2", "Matevž Nartnik"), m("3", "Matevžem"), m("4", "Matevž"), m("5", "Neža")]);
+    const cs = clusterNodes([m("1", "Janez"), m("2", "Janez Novak"), m("3", "Janezom"), m("4", "Janez"), m("5", "Neža")]);
     const c = clusterOf(cs, "1");
     expect(c.mentionIds.sort()).toEqual(["1", "2", "3", "4"]);
     expect(c.ambiguous).toBe(true);
@@ -19,34 +19,34 @@ describe("clusterNodes", () => {
   });
 
   it("uses nickname groups", () => {
-    const cs = clusterNodes([m("1", "Aleks"), m("2", "Alex Brown"), m("3", "Aleksander Kos")]);
+    const cs = clusterNodes([m("1", "Aleks"), m("2", "Alex Brown"), m("3", "Aleksander Kovač")]);
     expect(clusterOf(cs, "1").mentionIds.sort()).toEqual(["1", "2", "3"]);
   });
 
   it("joins lone surnames to full-name clusters", () => {
-    const cs = clusterNodes([m("1", "Tomaž Gorjup"), m("2", "Gorjup"), m("3", "Tomaž")]);
+    const cs = clusterNodes([m("1", "Ivan Horvat"), m("2", "Horvat"), m("3", "Ivan")]);
     expect(clusterOf(cs, "2").mentionIds.sort()).toEqual(["1", "2", "3"]);
   });
 
   it("does not merge different first names that share a surname", () => {
-    const cs = clusterNodes([m("1", "Ana Nartnik"), m("2", "Matevž Nartnik")]);
+    const cs = clusterNodes([m("1", "Marija Novak"), m("2", "Janez Novak")]);
     expect(clusterOf(cs, "1").mentionIds).toEqual(["1"]);
   });
 
   it("links aliases (nickname → real name)", () => {
-    const cs = clusterNodes([m("1", "Tine", ["Valentin Brus"]), m("2", "Valentin")]);
+    const cs = clusterNodes([m("1", "Tine", ["Valentin Novak"]), m("2", "Valentin")]);
     expect(clusterOf(cs, "1").mentionIds.sort()).toEqual(["1", "2"]);
   });
 
   it("anchors make a cluster ambiguous", () => {
-    const cs = clusterNodes([m("1", "Rok Kolenič"), a("p1", "Rok Kolenič")]);
+    const cs = clusterNodes([m("1", "Marko Marković"), a("p1", "Marko Marković")]);
     const c = clusterOf(cs, "1");
     expect(c.anchorIds).toEqual(["p1"]);
     expect(c.ambiguous).toBe(true);
   });
 
   it("unique full name repeated is not ambiguous", () => {
-    const cs = clusterNodes([m("1", "Gal Rovan"), m("2", "Gal Rovan")]);
+    const cs = clusterNodes([m("1", "Jan Jansen"), m("2", "Jan Jansen")]);
     expect(clusterOf(cs, "1").ambiguous).toBe(false);
   });
 
@@ -60,16 +60,16 @@ describe("clusterNodes", () => {
 describe("packClusters", () => {
   it("splits oversized clusters and packs the rest", () => {
     const nodes: ClusterNode[] = [];
-    for (let i = 0; i < 70; i++) nodes.push(m(`b${i}`, i % 2 ? "Matevž" : "Matevž Nartnik"));
+    for (let i = 0; i < 70; i++) nodes.push(m(`b${i}`, i % 2 ? "Janez" : "Janez Novak"));
     ["Ana", "Bor", "Cene", "Dora", "Eva", "Filip", "Gal", "Hana", "Iza", "Lan"].forEach((n, i) => nodes.push(m(`u${i}`, `${n} Unique`)));
-    for (let i = 0; i < 6; i++) nodes.push(m(`k${i}`, i ? "Neža" : "Neža Kos"));
+    for (let i = 0; i < 6; i++) nodes.push(m(`k${i}`, i ? "Neža" : "Neža Kovač"));
     const cs = clusterNodes(nodes);
     const surface = new Map(nodes.map((n) => [n.id, n.name]));
     const packets = packClusters(cs, { surfaceOf: (id) => surface.get(id)!, summarize: (ids) => `${ids.length} mentions` });
-    const matevz = packets.filter((p) => p.clusters.some((c) => c.label.startsWith("Matevž")));
-    expect(matevz.length).toBe(2);
-    expect(matevz[0]!.clusters[0]!.part).toBe("1/2");
-    expect(matevz[0]!.clusters[0]!.siblings[0]).toMatch(/part 2\/2/);
+    const janez = packets.filter((p) => p.clusters.some((c) => c.label.startsWith("Janez")));
+    expect(janez.length).toBe(2);
+    expect(janez[0]!.clusters[0]!.part).toBe("1/2");
+    expect(janez[0]!.clusters[0]!.siblings[0]).toMatch(/part 2\/2/);
     const all = packets.flatMap((p) => p.clusters.flatMap((c) => c.mentionIds));
     expect(new Set(all).size).toBe(nodes.length);
     expect(packets.some((p) => p.kind === "unique")).toBe(true);
