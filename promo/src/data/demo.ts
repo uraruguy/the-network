@@ -38,7 +38,7 @@ export const PEOPLE: Person[] = [
   { name: "Hong Gil-dong", city: "Seoul", flag: "🇰🇷", role: "Software engineer", warmth: "dormant", last: "4mo", acts: ["🍽️", "✈️"] },
   { name: "Jan Jansen", city: "Paris", flag: "🇫🇷", role: "Journalist", warmth: "dormant", last: "5mo", acts: ["📚"] },
   { name: "Janez Novak", city: "Ljubljana", flag: "🇸🇮", role: "Software engineer", company: "Linear", warmth: "active", last: "2w", acts: ["🧗", "☕"] },
-  { name: "Joe Bloggs", city: "Köln", flag: "🇩🇪", role: "Head of Growth", company: "Figma", warmth: "active", last: "1y" },
+  { name: "Joe Bloggs", city: "Köln", flag: "🇩🇪", role: "Head of Growth", warmth: "active", last: "1y" },
   { name: "José García", city: "Madrid", flag: "🇪🇸", role: "Chef", warmth: "active", last: "3w", acts: ["🍽️"] },
   { name: "José López", city: "Mexico City", flag: "🇲🇽", role: "Architect", warmth: "dormant", last: "1y", acts: ["🥾"] },
   { name: "José Martínez", city: "Barcelona", flag: "🇪🇸", role: "Product manager", warmth: "active", last: "1mo", acts: ["🎾", "🍽️"] },
