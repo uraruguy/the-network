@@ -36,21 +36,23 @@ export function World({ frame, theme }: { frame: number; theme: Theme }) {
   const windowOn = frame >= 84 && frame < 1320 && !(frame >= 1012 && frame < 1100);
   // Chat: the page arrives full-frame behind a soft bottom-up wipe (no hard edges).
   const wipe = frame >= 1100 && frame < 1130 ? tween(frame, [1100, 1128], [0, 1], EASE.inOut) : undefined;
-  const planetOnTop = frame < 1050;
+  // Outgoing layers sit underneath incoming ones: the planet stays under the (fading) window,
+  // and after the offline beat the phone goes under the incoming chat window.
+  const phoneOnTop = frame < 1050;
   return (
     <StudioStage theme={theme}>
       <Bloom frame={frame} />
-      {dark && !planetOnTop && <BigGlobe frame={frame} />}
+      {dark && <BigGlobe frame={frame} />}
+      {dark && !phoneOnTop && <PhoneOverlay frame={frame} />}
       {windowOn && (
         <WindowLayer frame={frame} keys={CAM} dark={dark} opacity={Math.min(1, windowOpacity) * fadeForMcp} wipe={wipe} blurId={`mb-${theme}`}>
           <WindowContent frame={frame} theme={theme} />
         </WindowLayer>
       )}
-      {dark && planetOnTop && <BigGlobe frame={frame} />}
       <BloomCounter frame={frame} />
       <EmailOverlay frame={frame} />
       <PasteKeys frame={frame} />
-      {dark && <PhoneOverlay frame={frame} />}
+      {dark && phoneOnTop && <PhoneOverlay frame={frame} />}
       <TerminalOverlay frame={frame} />
       {TITLES.map((h, i) =>
         frame >= h.at - 10 && frame < h.out + 16 ? (

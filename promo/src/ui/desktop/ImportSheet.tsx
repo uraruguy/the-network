@@ -153,7 +153,15 @@ export function ImportSheet({ s }: { s: ImportState }) {
                 )}
               </p>
             </div>
-            <div className="absolute inset-x-5 top-1" style={{ opacity: s.cards }}>
+            <div
+              className="absolute inset-x-0 top-0 bottom-0 px-5 pt-1"
+              style={{
+                background: "var(--surface-solid)",
+                visibility: s.cards > 0 ? "visible" : "hidden",
+                WebkitMaskImage: `linear-gradient(to bottom, black 0%, black ${s.cards * 110 - 10}%, transparent ${s.cards * 110}%)`,
+                maskImage: `linear-gradient(to bottom, black 0%, black ${s.cards * 110 - 10}%, transparent ${s.cards * 110}%)`,
+              }}
+            >
               <div className="space-y-1.5 pb-3">
                 <p className="px-1 text-footnote font-medium text-fg-2">File the note under</p>
                 <div className="flex flex-wrap gap-1.5">

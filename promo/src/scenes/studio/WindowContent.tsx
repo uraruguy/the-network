@@ -53,9 +53,10 @@ function importState(frame: number) {
     reading: frame >= 388 && frame < 446,
     // Every name lifts off its word while the note is fully visible, and lands once the cards are in.
     lift: PROPOSALS.map((_, i) => progress(frame, 444 + i * 3, 22, EASE.inOut)),
-    // The note fades out while the cards fade in (8 frames of overlap: the sheet is never empty).
-    text: progress(frame, 452, 14, EASE.in),
-    cards: progress(frame, 458, 8, EASE.out),
+    // The cards (opaque) wipe in top-down over the note, which stays until it is covered:
+    // the sheet is never empty and nothing shows through.
+    text: progress(frame, 466, 6, EASE.in),
+    cards: progress(frame, 456, 10, EASE.inOut),
     savePress: Math.max(0, 1 - Math.abs(frame - 570) / 6),
     file: PROPOSALS.map((_, i) => progress(frame, 576 + i * 6, 30, EASE.inOut)),
     frame,

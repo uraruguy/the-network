@@ -76,10 +76,12 @@ function Key({ k }: { k: string }) {
 
 export function PasteKeys({ frame }: { frame: number }) {
   if (frame < 338 || frame > 370) return null;
-  const a = springAt(frame, 338, SPRINGS.pop) - tween(frame, [360, 370], [0, 1], EASE.in);
+  // Opaque, and in/out by scale only: nothing ever shows through it.
+  const a = Math.max(0, springAt(frame, 338, SPRINGS.pop) - tween(frame, [360, 370], [0, 1], EASE.in));
   const press = Math.max(0, 1 - Math.abs(frame - 354) / 5);
+  if (a <= 0.01) return null;
   return (
-    <div style={{ position: "absolute", left: 960, top: 640, transform: `translate(-50%, -50%) scale(${0.8 + 0.2 * clamp01(a)})`, opacity: clamp01(a), display: "flex", alignItems: "center", gap: 20, padding: "22px 40px 22px 24px", borderRadius: 40, background: "rgba(255,255,255,0.86)", backdropFilter: "blur(18px) saturate(1.6)", boxShadow: "0 0 0 1px rgba(10,40,50,0.08), 0 30px 70px -20px rgba(0,30,40,0.5)" }}>
+    <div style={{ position: "absolute", left: 960, top: 640, transform: `translate(-50%, -50%) scale(${a})`, display: "flex", alignItems: "center", gap: 20, padding: "22px 40px 22px 24px", borderRadius: 40, background: "#ffffff", boxShadow: "0 0 0 1px rgba(10,40,50,0.08), 0 30px 70px -20px rgba(0,30,40,0.5)" }}>
       {["⌘", "V"].map((k) => (
         <span key={k} style={{ transform: `translateY(${press * 5}px)` }}>
           <Key k={k} />
