@@ -14,9 +14,9 @@ export const CAM: Key[] = [
   // Hook → Today: the window surfaces where the network implodes, then settles.
   { f: 90, cam: { ...EST, zoom: 0.06, sy: 640, rx: 20 } },
   { f: 132, cam: { ...EST }, ease: EASE.out },
-  { f: 150, cam: {} },
+  { f: 140, cam: {} },
   // The digest arrives: the window steps left and turns towards it.
-  { f: 174, cam: { zoom: 0.6, sx: 560, sy: 660, ry: 14 } },
+  { f: 164, cam: { zoom: 0.6, sx: 560, sy: 660, ry: 14 } },
   { f: 262, cam: { zoom: 0.58, sx: 540, ry: 15 } },
   // Whip onto Hanako's row: it checks itself off (synced from the e-mail).
   { f: 282, cam: { fx: 560, fy: 452, zoom: 2.2, sx: 960, sy: 620, ry: 0 }, ease: WHIP },

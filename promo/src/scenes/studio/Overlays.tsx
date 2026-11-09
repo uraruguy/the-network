@@ -9,7 +9,7 @@ import { camAt, project } from "./camera";
 import { CAM } from "./camKeys";
 import { FLIP, main } from "./timeline";
 import { BAND } from "./WindowLayer";
-import { GLOBE, arcsAt, globeRotate } from "./WindowContent";
+import { GLOBE, PIN_NUDGE, arcsAt, globeRotate } from "./WindowContent";
 
 const bandMask = `linear-gradient(to bottom, transparent 0px, transparent ${BAND}px, black ${BAND + 30}px)`;
 
@@ -19,7 +19,7 @@ const bandMask = `linear-gradient(to bottom, transparent 0px, transparent ${BAND
 const DONE = { x: 97, y: 44 + 288 };
 const REST = { x: 1110 + DONE.x, y: 360 + DONE.y };
 const PUSHED = { x: 900, y: 650 };
-const pushAt = (frame: number) => tween(frame, [176, 200], [0, 1], EASE.inOut);
+const pushAt = (frame: number) => tween(frame, [180, 202], [0, 1], EASE.inOut);
 /** Screen position of Hanako's Done button at `frame` (the cursor aims here). */
 export const emailDone = (frame: number) => {
   const p = pushAt(frame);
@@ -27,8 +27,8 @@ export const emailDone = (frame: number) => {
 };
 
 export function EmailOverlay({ frame }: { frame: number }) {
-  if (frame < 146 || frame > 286) return null;
-  const enter = springAt(frame, 148, SPRINGS.sheet);
+  if (frame < 132 || frame > 286) return null;
+  const enter = springAt(frame, 134, SPRINGS.sheet);
   const whip = tween(frame, [262, 280], [0, 1], EASE.in);
   const done = tween(frame, [206, 214], [0, 1], EASE.out);
   const press = Math.max(0, 1 - Math.abs(frame - 204) / 5);
@@ -121,7 +121,7 @@ export function BigGlobe({ frame }: { frame: number }) {
   return (
     <AbsoluteFill style={{ opacity: (1 - dim) * (1 - out), WebkitMaskImage: mask, maskImage: mask }}>
       <div style={{ position: "absolute", left: 0, top: 0, transformOrigin: "0 0", transform: `scale(${s})` }}>
-        <Globe width={1920 / s} height={1080 / s} radius={r / s} center={[x / s, y / s]} rotate={globeRotate(frame)} theme="dark" home="Lisbon" reveal={1} focus="Lisbon" arcs={arcsAt(frame)} uiScale={mix(1.48, 1.7, grow) / s} atmosphere={mix(1, 1.3, grow)} clusterAngle={0.115} />
+        <Globe width={1920 / s} height={1080 / s} radius={r / s} center={[x / s, y / s]} rotate={globeRotate(frame)} theme="dark" home="Lisbon" reveal={1} focus="Lisbon" arcs={arcsAt(frame)} uiScale={mix(1.48, 1.7, grow) / s} atmosphere={mix(1, 1.3, grow)} clusterAngle={0.115} nudge={PIN_NUDGE} />
       </div>
     </AbsoluteFill>
   );
@@ -129,11 +129,14 @@ export function BigGlobe({ frame }: { frame: number }) {
 
 /* ---------- iPhone + Offline → Synced (dark) ---------- */
 
+/** The phone's smaller planet packs Toronto and New York closer: a wider spread. */
+const PHONE_NUDGE: Record<string, [number, number]> = { ...PIN_NUDGE, Toronto: [6, -18], "New York City": [-4, 9] };
+
 function PhoneGlobe({ frame }: { frame: number }) {
   const tabs = [Sun, Users, Globe2, MessageCircle, Settings];
   return (
     <div className="absolute inset-0">
-      <Globe width={PHONE_W} height={PHONE_H} radius={186} center={[PHONE_W / 2, 470]} rotate={globeRotate(frame)} theme="dark" home="Lisbon" focus="Lisbon" uiScale={0.85} arcs={arcsAt(frame)} clusterAngle={0.115} />
+      <Globe width={PHONE_W} height={PHONE_H} radius={186} center={[PHONE_W / 2, 470]} rotate={globeRotate(frame)} theme="dark" home="Lisbon" focus="Lisbon" uiScale={0.85} arcs={arcsAt(frame)} clusterAngle={0.115} nudge={PHONE_NUDGE} />
       <div className="absolute inset-x-0 top-0 px-3" style={{ paddingTop: 60 }}>
         <div className="flex items-start justify-between gap-2">
           <div className="glass-map specular rounded-lg px-4 py-2">

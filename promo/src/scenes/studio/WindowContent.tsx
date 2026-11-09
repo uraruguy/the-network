@@ -38,6 +38,8 @@ const ARCS: [string, number][] = [
   ["Copenhagen", 944],
   ["Delhi", 948],
 ];
+/** Markers that touch their neighbour in this film's framings (Toronto ↔ New York, Tokyo ↔ Seoul). */
+export const PIN_NUDGE: Record<string, [number, number]> = { Toronto: [4, -12], "New York City": [-2, 5], Tokyo: [-2, -10] };
 export const arcsAt = (frame: number) => ARCS.map(([to, at]) => ({ to, progress: tween(frame, [at, at + 40], [0, 1], EASE.inOut) }));
 
 /** People count: 285, then 286 once the import's new person lands in the tile. */
@@ -66,7 +68,7 @@ function importState(frame: number) {
 }
 
 /** Hanako's Due row: ticked by the e-mail's Done, then it folds away (Due 3 → 2). */
-const hanakoRow = (frame: number) => ({ check: progress(frame, 290, 18, EASE.out), collapse: progress(frame, 316, 24, EASE.ios) });
+const hanakoRow = (frame: number) => ({ check: progress(frame, 282, 18, EASE.out), collapse: progress(frame, 296, 24, EASE.ios) });
 export const dueAt = (frame: number) => 3 - (hanakoRow(frame).collapse > 0.5 ? 1 : 0);
 
 /** Map overlays as the app draws them while the map moves (opaque, no backdrop blur). */
@@ -140,6 +142,7 @@ export function WindowContent({ frame, theme, part = "all" }: { frame: number; t
                   reveal={tween(frame, [802, 850], [0, 1], (t) => t)}
                   focus={frame >= 852 ? "Lisbon" : undefined}
                   clusterAngle={0.115}
+                  nudge={PIN_NUDGE}
                   arcs={arcsAt(frame)}
                 />
               </div>

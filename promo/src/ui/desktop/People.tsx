@@ -1,6 +1,6 @@
 import { ArrowUpDown, CheckCircle2, Globe2, Plus } from "lucide-react";
 import { Avatar } from "../../kit/Avatar";
-import { PEOPLE, type Person } from "../../data/demo";
+import { HANAKO, PEOPLE, type Person } from "../../data/demo";
 import { Button, FilterPill, SearchField, WARMTH_COLOR, cn } from "./parts";
 
 /** The Lisbon people the search lands on (from the import + the globe data). */
@@ -8,15 +8,18 @@ export const LISBON: Person[] = [
   { name: "Anna Kowalska", city: "Lisbon", flag: "🇵🇹", role: "Product designer", company: "Figma", warmth: "inner", last: "now", acts: ["🧗", "☕"] },
   { name: "Juan Pérez", city: "Lisbon", flag: "🇵🇹", role: "Founder", warmth: "active", last: "now", acts: ["🧗", "🎾"] },
   { name: "Marie Dupont", city: "Lisbon", flag: "🇵🇹", role: "Designer", warmth: "active", last: "3w", acts: ["🧗", "🍽️", "✈️"] },
-  { name: "João Santos", city: "Lisbon", flag: "🇵🇹", role: "Architect", warmth: "active", last: "2mo", acts: ["🚴"] },
+  { name: "João Santos", city: "Lisbon", flag: "🇵🇹", role: "Architect", warmth: "active", last: "6w", acts: ["🚴"] },
   { name: "Rita Ferreira", city: "Lisbon", flag: "🇵🇹", role: "Data scientist", company: "Revolut", warmth: "dormant", last: "5mo", acts: ["🍸"] },
   { name: "Ivan Ivanov", city: "Lisbon", flag: "🇵🇹", role: "Chef", warmth: "inner", last: "2mo", acts: ["🍽️"] },
   { name: "Tiago Costa", city: "Lisbon", flag: "🇵🇹", role: "Photographer", warmth: "dormant", last: "1y", acts: ["📷"] },
 ];
 
-/** The list, A–Z like the app's default "Name" sort: the demo rows plus the Lisbon seven (each person once). */
+/** Hanako as the film shows her elsewhere (Due today, a call 2h ago). */
+const HANAKO_ROW: Person = { name: HANAKO.name, city: HANAKO.city, flag: HANAKO.flag, role: HANAKO.role, company: HANAKO.company, warmth: HANAKO.warmth, last: "2h", acts: ["☕", "🎨", "✈️"] };
+
+/** The list, A–Z like the app's default "Name" sort: the demo rows, Hanako and the Lisbon seven (each person once). */
 const LISBON_NAMES = new Set(LISBON.map((p) => p.name));
-export const ROWS: Person[] = [...PEOPLE.filter((p) => !LISBON_NAMES.has(p.name)), ...LISBON].sort((a, b) => a.name.localeCompare(b.name, "en"));
+export const ROWS: Person[] = [...PEOPLE.filter((p) => !LISBON_NAMES.has(p.name)), HANAKO_ROW, ...LISBON].sort((a, b) => a.name.localeCompare(b.name, "en"));
 
 const norm = (s: string) => s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 export const matches = (p: Person, q: string) => !q || norm([p.name, p.city, p.role, p.company].filter(Boolean).join(" ")).includes(norm(q));
@@ -96,6 +99,7 @@ export function PeoplePage({
   const fold = (p: Person) => collapse?.[p.name] ?? (matches(p, query) ? 0 : filter);
   const shown = ROWS.filter((p) => fold(p) < 0.5);
   const filtering = query.length > 0;
+  const cities = new Set(shown.flatMap((p) => (p.city ? [p.city] : []))).size;
   return (
     <div className="mx-auto w-full" style={{ maxWidth: 1100, padding: "32px 40px 32px" }}>
       <header className="flex items-end justify-between gap-3 pb-3">
@@ -103,7 +107,7 @@ export function PeoplePage({
           <h1 className="text-large-title text-fg">People</h1>
           <p className="mt-0.5 min-h-5 text-subhead text-fg-2 tabular-nums">
             {filtering ? `${shown.length} of ${total} people` : `${total} people`}
-            <span className="text-fg-3"> · {filtering ? "1 city" : "79 cities"}</span>
+            <span className="text-fg-3"> · {filtering ? `${cities} ${cities === 1 ? "city" : "cities"}` : "79 cities"}</span>
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2 pb-1">

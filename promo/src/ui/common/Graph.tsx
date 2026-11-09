@@ -134,6 +134,8 @@ export type NetworkGraphProps = {
   ambient?: boolean;
   /** Who introduced whom (default: INTROS). Pass a stable (module-level) array: layouts are cached per array. */
   intros?: Intros;
+  /** Per-node offsets in graph units, to pull a node clear of a neighbour's label at one framing. */
+  nudge?: Record<string, [number, number]>;
   style?: CSSProperties;
 };
 
@@ -143,7 +145,7 @@ const EDGE_DUR = 0.16;
  * "Who introduced whom" (the app's graph view), as a growing constellation: curved edges draw out
  * from you, avatars pop in with a spring, light pulses run along the introductions.
  */
-export function NetworkGraph({ width, height, grow, theme = "light", zoom = 1, pan = [0, 0], highlight, highlightAmount, labels = true, ambient = true, intros = INTROS, style }: NetworkGraphProps) {
+export function NetworkGraph({ width, height, grow, theme = "light", zoom = 1, pan = [0, 0], highlight, highlightAmount, labels = true, ambient = true, intros = INTROS, nudge, style }: NetworkGraphProps) {
   const frame = useCurrentFrame();
   const LAYOUT = layoutFor(intros);
   const dark = theme === "dark";
@@ -152,7 +154,10 @@ export function NetworkGraph({ width, height, grow, theme = "light", zoom = 1, p
   const k = fit * zoom;
   const ox = width / 2 + pan[0];
   const oy = height / 2 + pan[1];
-  const at = (n: GNode) => ({ x: ox + (n.x ?? 0) * k, y: oy + (n.y ?? 0) * k });
+  const at = (n: GNode) => {
+    const [dx, dy] = nudge?.[n.id] ?? [0, 0];
+    return { x: ox + ((n.x ?? 0) + dx) * k, y: oy + ((n.y ?? 0) + dy) * k };
+  };
   const s = unit * zoom;
 
   const chain = highlight ? chainTo(highlight, LAYOUT) : [];

@@ -37,6 +37,8 @@ export type GlobeProps = {
   raise?: string[];
   /** Country labels to leave out (e.g. one a callout's leader line would cross). */
   hideLabels?: string[];
+  /** Screen offsets (pt, scaled by uiScale) for a city's marker, keyed by the cluster's seed city: pulls apart neighbours that touch at one framing. */
+  nudge?: Record<string, [number, number]>;
   focus?: string;
   /** Scales bubbles, pins, labels and strokes (1 = the app's sizes in pt). */
   uiScale?: number;
@@ -135,6 +137,7 @@ export function Globe({
   clusterAngle,
   raise,
   hideLabels,
+  nudge,
   focus,
   uiScale = 1,
   atmosphere = 1,
@@ -270,6 +273,9 @@ export function Globe({
 
   for (const g of groups) {
     if (g.z < 0.02) continue;
+    const [nx, ny] = (nudge?.[g.seed.name] ?? [0, 0]).map((v) => v * uiScale) as [number, number];
+    g.x += nx;
+    g.y += ny;
     const dest = destOf.get(g.seed.name);
     const isFocus = !!focus && g.cities.some((c) => c.name === focus);
     const lift = isFocus ? 1 : 0;
@@ -278,7 +284,8 @@ export function Globe({
       // A landing pin: hidden until its arc arrives, then pops with a ripple.
       const pinT = dest.pin ?? smooth(0.88, 1, dest.progress);
       if (pinT <= 0) continue;
-      const p = project(g.seed.lng, g.seed.lat);
+      const seed = project(g.seed.lng, g.seed.lat);
+      const p = { x: seed.x + nx, y: seed.y + ny };
       blockers.push({ x: p.x, y: p.y - 22 * uiScale, r: 30 * uiScale });
       marks.push({
         key: `dest-${g.seed.name}`,

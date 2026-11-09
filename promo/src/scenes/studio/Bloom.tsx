@@ -14,6 +14,9 @@ const tileAt = (frame: number) => project(camAt(CAM, frame), PEOPLE_TILE.x, PEOP
  * around "You". The camera pulls back fast while the crowd fills in, then the constellation
  * implodes into the point where the app window surfaces.
  */
+/** Wang Wei sits against Max Mustermann's label in this layout: move it clear. */
+const NUDGE: Record<string, [number, number]> = { "Wang Wei": [-12, 12] };
+
 export function Bloom({ frame }: { frame: number }) {
   if (frame > 120) return null;
   const grow = tween(frame, [-70, 78], [0, 1], (t) => t);
@@ -23,7 +26,7 @@ export function Bloom({ frame }: { frame: number }) {
   const mask = "linear-gradient(to bottom, transparent 0, transparent 270px, black 360px), linear-gradient(to right, transparent 0, transparent 300px, black 420px)";
   return (
     <AbsoluteFill style={{ opacity: 1 - tween(frame, [104, 116], [0, 1], EASE.in), WebkitMaskImage: mask, maskImage: mask, WebkitMaskComposite: "source-in", maskComposite: "intersect" }}>
-      <NetworkGraph width={1920} height={1080} grow={grow} theme="dark" zoom={zoom} pan={pan} labels ambient intros={INTROS_STUDIO} />
+      <NetworkGraph width={1920} height={1080} grow={grow} theme="dark" zoom={zoom} pan={pan} labels ambient intros={INTROS_STUDIO} nudge={NUDGE} />
     </AbsoluteFill>
   );
 }

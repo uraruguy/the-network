@@ -4,7 +4,7 @@ import { EASE, SPRINGS, clamp01, springAt, tween } from "../../kit/motion";
 import { Globe } from "../../ui/common/Globe";
 import { GithubMark } from "../../ui/desktop/parts";
 import { Title } from "./Title";
-import { arcsAt } from "./WindowContent";
+import { PIN_NUDGE, arcsAt } from "./WindowContent";
 import type { Theme } from "./World";
 
 /**
@@ -24,7 +24,7 @@ export function Outro({ frame, theme }: { frame: number; theme: Theme }) {
   return (
     <AbsoluteFill>
       <AbsoluteFill style={{ opacity: 0.5 * planet, transform: `translateY(${(1 - planet) * 120}px)` }}>
-        <Globe width={1920} height={1080} radius={780} center={[960, 1370]} rotate={[-(20 + 14 * spin), -38]} theme="dark" home="Lisbon" reveal={1} arcs={arcsAt(2000)} labels={false} uiScale={1.5} atmosphere={1.2} clusterAngle={0.115} />
+        <Globe width={1920} height={1080} radius={780} center={[960, 1370]} rotate={[-(20 + 14 * spin), -38]} theme="dark" home="Lisbon" reveal={1} arcs={arcsAt(2000)} labels={false} uiScale={1.5} atmosphere={1.2} clusterAngle={0.115} nudge={PIN_NUDGE} />
       </AbsoluteFill>
       <AbsoluteFill style={{ alignItems: "center", paddingTop: 150, flexDirection: "column" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 26 }}>

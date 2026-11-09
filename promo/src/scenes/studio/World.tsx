@@ -19,7 +19,7 @@ const T = (text: string): Seg => ({ text });
 
 /** First frame with two follow-ups left: the kicker ticks with the Due tile. */
 const DUE_DROP = (() => {
-  let f = 290;
+  let f = 0;
   while (dueAt(f) === 3) f++;
   return f;
 })();
