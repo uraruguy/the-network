@@ -1,0 +1,55 @@
+{
+  "_comment": "Background music for the launch videos (scripts/score.mjs). Audio is Mixkit Stock Music Free License (https://mixkit.co/license/#musicFree): use in social video is allowed, redistributing the files is not, so they live git-ignored in public/music/ (pnpm fetch:music). offset = source seconds of the downbeat that lands on t=0; tempo = atempo ratio (120 / bpm) so beats fall on the 0.5 s cut grid; fades in seconds, the fade-out ends at exactly `duration`. Offsets were measured on the files with these sha256 sums.",
+  "picks": { "phone": "better-times", "desktop": "deep-urban" },
+  "output": { "duration": 30, "integrated": -14, "truePeak": -1.5, "maxTruePeak": -1.0, "lra": 11, "codec": "aac", "bitrate": "256k", "sampleRate": 48000, "channels": 2 },
+  "tracks": {
+    "better-times": {
+      "title": "Better Times are Coming", "artist": "Alejandro Magaña (A. M.)",
+      "page": "https://mixkit.co/free-stock-music/item/173/", "url": "https://assets.mixkit.co/music/173/173.mp3",
+      "file": "public/music/mixkit-173-better-times-are-coming.mp3", "bytes": 3202473,
+      "sha256": "9606a32daac982a5cc42ab4f333ca427ee394f9242a433617007952f4b20ea10",
+      "bpm": 120, "offset": 50.128, "tempo": 1, "fadeIn": 0.005, "fadeOut": 1.8,
+      "note": "bars 25-39 (bar = 2 s): groove from t=0, riser 20-22 s, full drums return at 22 s, ends on a 4-bar line"
+    },
+    "south-waves": {
+      "title": "South Waves", "artist": "Eugenio Mininni",
+      "page": "https://mixkit.co/free-stock-music/item/555/", "url": "https://assets.mixkit.co/music/555/555.mp3",
+      "file": "public/music/mixkit-555-south-waves.mp3", "bytes": 5902718,
+      "sha256": "946cf6054a2328b46fc348877ccd342e313852aeacb83cdca4e36d51afc8da29",
+      "bpm": 115, "offset": 135.658, "tempo": 1.04347826, "fadeIn": 0.005, "fadeOut": 1.8,
+      "note": "bars 65-79: steady loop section, 8-bar line at 14 s, ends where the last breakdown starts"
+    },
+    "mountains": {
+      "title": "Mountains", "artist": "Andrew Ev",
+      "page": "https://mixkit.co/free-stock-music/item/187/", "url": "https://assets.mixkit.co/music/187/187.mp3",
+      "file": "public/music/mixkit-187-mountains.mp3", "bytes": 8875825,
+      "sha256": "a096933b71ff9264dd3b20dcad5c01ef237658e30954f5c5cc8741266098f639",
+      "bpm": 122, "offset": 222.299, "tempo": 0.98360656, "fadeIn": 0.005, "fadeOut": 1.8,
+      "note": "bars 113-127: last full phrase before the outro, 8-bar line at 14 s, drum fill at 20 s"
+    },
+    "swish-swed": {
+      "title": "Swish Swed", "artist": "Arulo",
+      "page": "https://mixkit.co/free-stock-music/item/201/", "url": "https://assets.mixkit.co/music/201/201.mp3",
+      "file": "public/music/mixkit-201-swish-swed.mp3", "bytes": 4594251,
+      "sha256": "e50c5d7ad1617c0bd4fcbbbf1202e4541ed681965a27a83f1bc72f1659d9f207",
+      "bpm": 120, "offset": 106.001, "tempo": 1, "fadeIn": 0.005, "fadeOut": 1.8,
+      "note": "bars 53-67: final drop, 8-bar line at 14 s, ends where the song ends"
+    },
+    "deep-urban": {
+      "title": "Deep Urban", "artist": "Eugenio Mininni",
+      "page": "https://mixkit.co/free-stock-music/item/623/", "url": "https://assets.mixkit.co/music/623/623.mp3",
+      "file": "public/music/mixkit-623-deep-urban.mp3", "bytes": 9240540,
+      "sha256": "ac7e28f0cdd6c607df199c759f34ca66cfebd881ea61c26473fb4cecebe64fa8",
+      "bpm": 124, "offset": 141.296, "tempo": 0.96774194, "fadeIn": 0.005, "fadeOut": 1.8,
+      "note": "bars 73-87: bassline groove, full section (+2.5 dB) lands at 22 s, ends on a 4-bar line"
+    },
+    "techno-fest-vibes": {
+      "title": "Techno Fest Vibes", "artist": "Alejandro Magaña (A. M.)",
+      "page": "https://mixkit.co/free-stock-music/item/124/", "url": "https://assets.mixkit.co/music/124/124.mp3",
+      "file": "public/music/mixkit-124-techno-fest-vibes.mp3", "bytes": 4281670,
+      "sha256": "8b194d167ca8ae4eb45f8c20ea753eabc7d5175f64666ac22b5813facb2d9e40",
+      "bpm": 124, "offset": 48.418, "tempo": 0.96774194, "fadeIn": 0.005, "fadeOut": 1.8,
+      "note": "bars 25-39: 8-bar phrases with fills at 12 s and 20 s, ends at the next section"
+    }
+  }
+}

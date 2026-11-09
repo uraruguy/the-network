@@ -1,3 +1,5 @@
 node_modules
 out
 .cache
+# Mixkit audio: licensed for use in the videos, not for redistribution (pnpm fetch:music)
+public/music/

@@ -42,10 +42,10 @@ const FIRST = [
   "Anna", "Maria", "John", "Jane", "Max", "Erika", "Ola", "Kari", "Jan", "Janez", "Marija", "Ivan", "Petra", "Marko", "Ana", "José",
   "Juan", "Carlos", "Sofia", "Emma", "Lucas", "Noah", "Mia", "Leon", "Hanna", "Sven", "Matti", "Maija", "Hanako", "Taro", "Kenji", "Wei",
   "Ali", "Fatima", "Omar", "Grace", "Thabo", "Raj", "Pedro", "João", "Rita", "Tiago", "Elena", "Luca", "Giulia", "Marie", "Jean", "Pierre",
-  "David", "Daniel", "Laura", "Paul", "Peter", "Eva", "Tom", "Nina", "Sara", "Lena", "Oscar", "Zoë",
+  "David", "Daniel", "Laura", "Paul", "Peter", "Eva", "Tom", "Nina", "Lina", "Lena", "Oscar", "Zoë",
 ];
 const LAST = [
-  "Doe", "Smith", "Bloggs", "Novak", "Horvat", "Kovač", "Mustermann", "Müller", "Schmidt", "Rossi", "Bianchi", "Dupont", "Martin", "García",
+  "Doe", "Smith", "Bloggs", "Novak", "Horvat", "Kovač", "Mustermann", "Weber", "Schmidt", "Rossi", "Bianchi", "Dupont", "Martin", "García",
   "Pérez", "López", "Silva", "Santos", "Costa", "Jansen", "de Vries", "Nordmann", "Hansen", "Andersson", "Svensson", "Virtanen", "Nagy",
   "Popescu", "Petrović", "Yılmaz", "Cohen", "Hassan", "Kim", "Lee", "Park", "Wang", "Li", "Zhang", "Chen", "Yamada", "Sato", "Suzuki",
   "Nguyen", "Singh", "Kumar", "Mwangi", "Okafor", "Brown", "Wilson", "Taylor",
@@ -113,7 +113,8 @@ async function seed(count: number) {
 
   // Unique names, also against people already there (e.g. scripts/dev/seed-demo.ts), so People shows no "Possible duplicates".
   const nameKey = (name: string) => name.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().split(/\s+/).sort().join(" ");
-  const taken = new Set((await sql<{ name: string }[]>`select display_name as name from people where owner_id = ${owner} and deleted_at is null`).map((r) => nameKey(r.name)));
+  const existing = await sql<{ name: string }[]>`select display_name as name from people where owner_id = ${owner} and deleted_at is null`;
+  const taken = new Set(existing.map((r) => nameKey(r.name)));
   const uniqueName = (): [string, string] => {
     let name: [string, string];
     let tries = 0;

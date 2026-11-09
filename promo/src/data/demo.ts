@@ -193,10 +193,10 @@ const FIRST = [
   "Anna", "Maria", "John", "Jane", "Max", "Erika", "Ola", "Kari", "Jan", "Janez", "Marija", "Ivan", "Petra", "Marko", "Ana", "José",
   "Juan", "Carlos", "Sofia", "Emma", "Lucas", "Noah", "Mia", "Leon", "Hanna", "Sven", "Matti", "Maija", "Hanako", "Taro", "Kenji", "Wei",
   "Ali", "Fatima", "Omar", "Grace", "Thabo", "Raj", "Pedro", "João", "Rita", "Tiago", "Elena", "Luca", "Giulia", "Marie", "Jean", "Pierre",
-  "David", "Daniel", "Laura", "Paul", "Peter", "Eva", "Tom", "Nina", "Sara", "Lena", "Oscar", "Zoë",
+  "David", "Daniel", "Laura", "Paul", "Peter", "Eva", "Tom", "Nina", "Lina", "Lena", "Oscar", "Zoë",
 ];
 const LAST = [
-  "Doe", "Smith", "Bloggs", "Novak", "Horvat", "Kovač", "Mustermann", "Müller", "Schmidt", "Rossi", "Bianchi", "Dupont", "Martin",
+  "Doe", "Smith", "Bloggs", "Novak", "Horvat", "Kovač", "Mustermann", "Weber", "Schmidt", "Rossi", "Bianchi", "Dupont", "Martin",
   "García", "Pérez", "López", "Silva", "Santos", "Costa", "Jansen", "de Vries", "Nordmann", "Hansen", "Andersson", "Svensson", "Virtanen",
   "Nagy", "Popescu", "Petrović", "Yılmaz", "Cohen", "Hassan", "Kim", "Lee", "Park", "Wang", "Li", "Zhang", "Chen", "Yamada", "Sato",
   "Suzuki", "Nguyen", "Singh", "Kumar", "Mwangi", "Okafor", "Brown", "Wilson", "Taylor",

@@ -11,6 +11,8 @@
     "render:pocket": "remotion render Pocket out/the-network-phone.mp4",
     "render:studio": "remotion render Studio out/the-network-desktop.mp4",
     "render": "pnpm render:pocket && pnpm render:studio",
+    "fetch:music": "node scripts/fetch-music.mjs",
+    "score": "node scripts/score.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
