@@ -49,7 +49,7 @@ export const CAM: Key[] = [
   { f: 1364, cam: { zoom: 0.62 } },
   // 5 · Ask: back, then onto the composer, then the answer.
   { f: 1392, cam: { ...EST, zoom: 0.86, sy: 650 } },
-  { f: 1426, cam: { fx: 838, fy: 760, zoom: 1.42, sx: 960, sy: 700 } },
+  { f: 1426, cam: { fx: 838, fy: 760, zoom: 1.42, sx: 960, sy: 650 } },
   { f: 1446, cam: {} },
   { f: 1486, cam: { fx: 838, fy: 300, zoom: 1.4, sx: 960, sy: 560 } },
   { f: 1520, cam: { fx: 838, fy: 320, zoom: 1.38 } },

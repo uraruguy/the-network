@@ -13,9 +13,9 @@ export type Theme = "light" | "dark";
 type HeadlineSpec = { at: number; out?: number; kicker?: string; lines: Line[]; sub?: string; top?: number; size?: number };
 /** Headlines in the top band, in order. */
 const HEADLINES: HeadlineSpec[] = [
-  { at: 14, out: 172, lines: ["Everyone you've met."], top: 64, size: 84 },
-  { at: 74, out: 172, lines: [[{ text: "Connected.", accent: true }]], top: 156, size: 84 },
-  { at: 214, out: 486, kicker: "Today", lines: [[{ text: "Follow-ups that " }, { text: "find you.", accent: true }]] },
+  { at: -4, out: 172, lines: ["Everyone you've met."], top: 64, size: 84 },
+  { at: 66, out: 172, lines: [[{ text: "Connected.", accent: true }]], top: 156, size: 84 },
+  { at: 200, out: 486, kicker: "Today", lines: [[{ text: "Follow-ups that " }, { text: "find you.", accent: true }]] },
   { at: 512, out: 786, kicker: "Import", lines: [[{ text: "Paste anything. AI " }, { text: "files it.", accent: true }]] },
   { at: 820, out: 1064, kicker: "People", lines: [[{ text: "Find anyone " }, { text: "in a second.", accent: true }]] },
   { at: 1094, out: 1240, kicker: "Globe", lines: [[{ text: "Your world, " }, { text: "mapped.", accent: true }]] },

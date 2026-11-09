@@ -11,9 +11,9 @@ import { project, type Pose } from "./camera";
 const W = 370;
 const SCALE = 2.3;
 const TARGET = { x: 540 - (W * SCALE) / 2, y: 440 };
-const TYPE_AT = 460;
-const TYPE_END = 584;
-const SEND_AT = 594;
+const TYPE_AT = 456;
+const TYPE_END = 552;
+const SEND_AT = 560;
 
 /** The phrases the AI picks out, in the order they light up, and what each one files. */
 const PHRASES = [
@@ -22,9 +22,10 @@ const PHRASES = [
   { text: "in 2 weeks", icon: Bell, label: "Follow-up", target: "in 2 weeks" },
   { text: "Valentina", icon: Link2, label: "Intro", target: "Valentina Dubois", person: true },
 ] as const;
-const HL_AT = 620;
-const HL_STEP = 9;
-const CHIP_AT = 634;
+const HL_AT = 584;
+const HL_STEP = 7;
+const CHIP_AT = 596;
+const CHIP_STEP = 8;
 
 /** Splits the typed text into plain runs and phrase spans (only phrases fully typed are spans). */
 function segments(text: string) {
@@ -84,14 +85,14 @@ export function CaptureLift({ cam }: { cam: (f: number) => Pose }) {
   const s = mix(src.k, SCALE, lift);
   const x = mix(src.x, TARGET.x, lift);
   const y = mix(src.y, TARGET.y, lift);
-  const exit = progress(frame, 676, 18, EASE.in);
+  const exit = progress(frame, 674, 18, EASE.in);
   const sendPress = frame >= SEND_AT && frame < SEND_AT + 10 ? 1 - Math.abs(frame - SEND_AT - 5) / 5 : 0;
   const sent = frame >= SEND_AT + 6;
   const working = sent && frame < HL_AT + 6;
-  const filed = frame >= CHIP_AT + PHRASES.length * 9 + 18;
+  const filed = frame >= CHIP_AT + PHRASES.length * CHIP_STEP + 10;
 
   return (
-    <AbsoluteFill style={{ opacity: 1 - exit, filter: exit > 0 ? `blur(${exit * 8}px)` : undefined, transform: `translateY(${-50 * exit}px)` }}>
+    <AbsoluteFill style={{ opacity: 1 - exit, filter: exit > 0 ? `blur(${exit * 6}px)` : undefined, transformOrigin: "300px 860px", transform: `scale(${1 - 0.72 * exit})` }}>
       {/* the floating composer */}
       <div style={{ position: "absolute", left: x, top: y, width: W, transformOrigin: "0 0", transform: `scale(${s})` }}>
         <div
@@ -157,15 +158,15 @@ export function CaptureLift({ cam }: { cam: (f: number) => Pose }) {
 
       {/* filed chips fly out of the phrases */}
       {PHRASES.map((p, i) => {
-        const start = CHIP_AT + i * 9;
-        const t = springAt(frame, start, SPRINGS.smooth);
+        const start = CHIP_AT + i * CHIP_STEP;
+        const t = springAt(frame, start, SPRINGS.snappy);
         if (frame < start) return null;
         const sp = geo.spans[i] ?? { x: W / 2, y: 40, w: 0 };
         const from = { x: TARGET.x + sp.x * SCALE, y: TARGET.y + sp.y * SCALE };
-        const to = { x: 540, y: TARGET.y + geo.h * SCALE + 92 + i * 98 };
+        const to = { x: 540, y: TARGET.y + geo.h * SCALE + 84 + i * 108 };
         const cx = mix(from.x, to.x, t);
-        const cy = mix(from.y, to.y, t) - Math.sin(t * Math.PI) * 60;
-        const land = springAt(frame, start + 16, SPRINGS.pop);
+        const cy = mix(from.y, to.y, t) - Math.sin(Math.min(1, t) * Math.PI) * 50;
+        const land = springAt(frame, start + 14, SPRINGS.pop);
         const Icon = p.icon;
         return (
           <div
@@ -174,7 +175,7 @@ export function CaptureLift({ cam }: { cam: (f: number) => Pose }) {
               position: "absolute",
               left: cx,
               top: cy,
-              transform: `translate(-50%, -50%) scale(${mix(0.35, 2.05, t)})`,
+              transform: `translate(-50%, -50%) scale(${mix(0.35, 2.25, t)})`,
               opacity: clamp01(t * 3),
             }}
           >

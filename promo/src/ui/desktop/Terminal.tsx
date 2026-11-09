@@ -29,7 +29,7 @@ export function Terminal({ lines, tools, caretOn, width = 980 }: { lines: TermLi
         </div>
         <div style={{ position: "absolute", left: 0, right: 0, textAlign: "center", font: `500 13px "Inter Variable", sans-serif`, color: "rgba(255,255,255,0.55)" }}>alex — zsh — 120×32</div>
       </div>
-      <div style={{ padding: "18px 22px 22px", font: `450 17px/1.6 ${mono}`, color: "#d7e6e6", minHeight: 300 }}>
+      <div style={{ padding: "18px 22px 22px", font: `450 20px/1.55 ${mono}`, color: "#d7e6e6", minHeight: 300 }}>
         {lines.map((l, i) => {
           if (l.shown <= 0) return null;
           const text = l.text.slice(0, Math.ceil(l.text.length * Math.min(1, l.shown)));
@@ -53,8 +53,8 @@ export function Terminal({ lines, tools, caretOn, width = 980 }: { lines: TermLi
                 <span
                   key={t}
                   style={{
-                    font: `500 14px ${mono}`,
-                    padding: "4px 10px",
+                    font: `500 16px ${mono}`,
+                    padding: "5px 11px",
                     borderRadius: 8,
                     color: write ? "#ffd58a" : "#7fe6ea",
                     background: write ? "rgba(255,190,90,0.10)" : "rgba(95,240,244,0.09)",

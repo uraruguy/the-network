@@ -35,10 +35,10 @@ export function AppBg() {
 }
 
 /**
- * The ≥lg app frame: glass sidebar (logo, nav with the sliding accent pill, sync status) and the
+ * The ≥lg app frame (`overlay`: viewport-fixed layers such as dialogs, over the sidebar too): glass sidebar (logo, nav with the sliding accent pill, sync status) and the
  * main area. `active` may be fractional while the pill slides between items.
  */
-export function DesktopShell({ active, children, sync = "Synced", syncTone = "ok" }: { active: number; children: ReactNode; sync?: string; syncTone?: "ok" | "offline" | "waiting" }) {
+export function DesktopShell({ active, children, overlay, sync = "Synced", syncTone = "ok" }: { active: number; children: ReactNode; overlay?: ReactNode; sync?: string; syncTone?: "ok" | "offline" | "waiting" }) {
   const on = Math.round(active);
   return (
     <div className="absolute inset-0 overflow-hidden text-fg">
@@ -73,6 +73,7 @@ export function DesktopShell({ active, children, sync = "Synced", syncTone = "ok
       <main className="absolute inset-y-0 right-0 overflow-hidden" style={{ left: SIDEBAR_W }}>
         {children}
       </main>
+      {overlay}
     </div>
   );
 }

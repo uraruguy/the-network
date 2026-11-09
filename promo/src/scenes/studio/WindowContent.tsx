@@ -6,7 +6,7 @@ import { GlobePage } from "../../ui/desktop/GlobePage";
 import { HL_COUNT, ImportSheet, PROPOSALS } from "../../ui/desktop/ImportSheet";
 import { PeoplePage, ROWS, matches } from "../../ui/desktop/People";
 import { PersonPage } from "../../ui/desktop/Person";
-import { DesktopShell } from "../../ui/desktop/Shell";
+import { AppBg, DesktopShell, SIDEBAR_W } from "../../ui/desktop/Shell";
 import { TodayPage, Toast } from "../../ui/desktop/Today";
 import type { Theme } from "./World";
 
@@ -98,7 +98,7 @@ export function WindowContent({ frame, theme }: { frame: number; theme: Theme })
   const arc = (to: string, at: number) => ({ to, progress: tween(frame, [at, at + 44], [0, 1], EASE.inOut) });
 
   return (
-    <DesktopShell active={navIndex(frame)} sync={sync} syncTone={syncTone}>
+    <DesktopShell active={navIndex(frame)} sync={sync} syncTone={syncTone} overlay={frame >= 500 && frame < 776 ? <ImportSheet s={importState(frame)} /> : null}>
       {frame < 832 && (
         <div className="absolute inset-0" style={{ opacity: 1 - todayOut }}>
           <TodayPage rows={{ [DUE[1]!.name]: max, [DUE[0]!.name]: sara }} stats={{ people: 285, cities: 79, due: 3 - done }} />
@@ -111,6 +111,9 @@ export function WindowContent({ frame, theme }: { frame: number; theme: Theme })
       )}
       {frame >= 904 && frame < 1100 && (
         <div className="absolute inset-0" style={{ opacity: 1 - personOut, transform: `translateX(${(1 - push) * 100}%)`, boxShadow: push < 1 ? "-20px 0 40px -20px rgba(0,30,40,0.25)" : undefined }}>
+          <div className="absolute inset-y-0" style={{ left: -SIDEBAR_W, width: 1440 }}>
+            <AppBg />
+          </div>
           <PersonPage scroll={tween(frame, [958, 1040], [0, 560], EASE.inOut)} avatarIn={1} />
         </div>
       )}
@@ -139,7 +142,6 @@ export function WindowContent({ frame, theme }: { frame: number; theme: Theme })
           <ChatPage typed={askTyped} caret={frame >= 1396 && frame < 1448 && Math.floor(frame / 24) % 2 === 0} sent={sent} pills={pills} answer={answer} frame={frame} sendPress={Math.max(0, 1 - Math.abs(frame - 1446) / 5)} />
         </div>
       )}
-      {frame >= 500 && frame < 776 && <ImportSheet s={importState(frame)} />}
       {doneToast > 0 && (
         <Toast title="Done ·" who="Max Larsen" description="Ask how the Copenhagen move went" action="Undo" style={{ opacity: doneToast, transform: `translateY(${(1 - doneToast) * 24}px) scale(${0.96 + 0.04 * doneToast})` }} />
       )}

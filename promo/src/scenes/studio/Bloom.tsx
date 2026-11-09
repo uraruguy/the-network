@@ -9,11 +9,11 @@ import type { Theme } from "./World";
  */
 export function Bloom({ frame, theme }: { frame: number; theme: Theme }) {
   if (frame > 214) return null;
-  const grow = tween(frame, [4, 158], [0, 1], (t) => EASE.out(t) * 0.35 + t * 0.65);
+  const grow = tween(frame, [-16, 150], [0, 1], (t) => EASE.out(t) * 0.35 + t * 0.65);
   const exit = tween(frame, [164, 212], [0, 1], EASE.inOut);
-  const zoom = tween(frame, [0, 190], [1.75, 1.02], EASE.out) * (1 - 0.35 * exit);
+  const zoom = tween(frame, [0, 190], [1.9, 1.22], EASE.out) * (1 - 0.35 * exit);
   return (
-    <AbsoluteFill style={{ opacity: 1 - exit, filter: exit > 0.05 ? `blur(${exit * 8}px)` : undefined, transform: `translateY(${60 + exit * 120}px)` }}>
+    <AbsoluteFill style={{ opacity: 1 - exit, filter: exit > 0.05 ? `blur(${exit * 8}px)` : undefined, transform: `translateY(${70 + exit * 120}px)` }}>
       <NetworkGraph width={1920} height={1080} grow={grow} theme={theme} zoom={zoom} labels ambient />
     </AbsoluteFill>
   );

@@ -32,7 +32,7 @@ const cam = track([
   [988, BASE],
   [1000, BASE, EASE.inOut],
   [1026, focus(201, 300, 1.8, 540, 822)],
-  [1138, focus(201, 306, 1.86, 540, 822), EASE.inOut],
+  [1138, focus(201, 345, 1.92, 540, 822), EASE.inOut],
   [1176, BASE],
   [1232, { ...BASE, s: 1.16, y: 925 }, EASE.inOut],
   [1300, { x: 540, y: 1760, s: 0.92, rx: 32, ry: 0, rz: 0, o: 0, dim: 0.3 }, EASE.in],
@@ -65,7 +65,8 @@ const CHAPTERS: { at: number; out: number; kicker: string; lines: Line[]; sub?: 
 export function Pocket() {
   const frame = useCurrentFrame();
   const pose = cam(frame);
-  const blur = Math.min(3, Math.max(0, (speed(cam, frame) - 5) * 0.07));
+  // Filters apply before the transform, so divide by the scale to get canvas pixels.
+  const blur = Math.min(1.8, Math.max(0, (speed(cam, frame) - 6) * 0.045)) / pose.s;
   const personRef = useRef<HTMLDivElement>(null);
   const [anchors, setAnchors] = useState<Anchors>({});
   useLayoutEffect(() => {
@@ -87,7 +88,7 @@ export function Pocket() {
       <GlobeBreakout cam={cam} />
       <CaptureLift cam={cam} />
       <Callouts cam={cam} anchors={anchors} scroll={personScroll} />
-      <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(3,16,15,0.97) 0px, rgba(3,16,15,0.93) 330px, rgba(3,16,15,0.55) 420px, rgba(3,16,15,0) 530px)", opacity: frame < 1652 ? 1 : 1 - progress(frame, 1652, 20) }} />
+      <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(3,16,15,0.97) 0px, rgba(3,16,15,0.93) 330px, rgba(3,16,15,0.55) 420px, rgba(3,16,15,0) 530px)", opacity: frame < 1652 ? progress(frame, 70, 40, EASE.inOut) : 1 - progress(frame, 1652, 20) }} />
       <HookCopy />
       {CHAPTERS.map((c) =>
         frame >= c.at - 12 && frame <= c.out + 20 ? (

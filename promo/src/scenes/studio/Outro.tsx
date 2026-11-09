@@ -20,14 +20,14 @@ export function Outro({ frame, theme }: { frame: number; theme: Theme }) {
       <div style={{ position: "absolute", width: 900, height: 900, borderRadius: 999, background: "radial-gradient(closest-side, rgba(52,219,227,0.22), transparent)", opacity: glow, top: -40 }} />
       <div style={{ display: "flex", alignItems: "center", gap: 26, transform: `translateY(${-30}px)` }}>
         <div style={{ transform: `scale(${0.6 + 0.4 * logo})`, opacity: clamp01(logo * 1.6), filter: "drop-shadow(0 18px 40px rgba(10,143,150,0.45))" }}>
-          <Logo size={128} draw={tween(frame, [1670, 1702], [0, 1], EASE.inOut)} nodes={tween(frame, [1690, 1712], [0, 1], EASE.out)} />
+          <Logo size={140} draw={tween(frame, [1670, 1702], [0, 1], EASE.inOut)} nodes={tween(frame, [1690, 1712], [0, 1], EASE.out)} />
         </div>
-        <div style={{ opacity: word, transform: `translateX(${(1 - word) * -24}px)`, font: '700 104px "Inter Variable", sans-serif', letterSpacing: "-0.045em", color: dark ? "#f2fbfb" : "#0d1a1c" }}>The Network</div>
+        <div style={{ opacity: word, transform: `translateX(${(1 - word) * -24}px)`, font: '700 116px "Inter Variable", sans-serif', letterSpacing: "-0.045em", color: dark ? "#f2fbfb" : "#0d1a1c" }}>The Network</div>
       </div>
       <div style={{ marginTop: 34 }}>
-        <Headline at={1700} lines={[[{ text: "Open source. Self-hosted. " }, { text: "Yours.", accent: true }]]} size={60} theme={theme} align="center" />
+        <Headline at={1700} lines={[[{ text: "Open source. Self-hosted. " }, { text: "Yours.", accent: true }]]} size={68} theme={theme} align="center" />
       </div>
-      <div style={{ marginTop: 18, font: '450 26px "Inter Variable", sans-serif', letterSpacing: "-0.01em", color: dark ? "rgba(214,236,236,0.66)" : "oklch(0.42 0.015 215)", opacity: meta }}>{TAGLINE}</div>
+      <div style={{ marginTop: 18, font: '450 30px "Inter Variable", sans-serif', letterSpacing: "-0.01em", color: dark ? "rgba(214,236,236,0.66)" : "oklch(0.42 0.015 215)", opacity: meta }}>{TAGLINE}</div>
       <div
         style={{
           marginTop: 40,
@@ -36,7 +36,7 @@ export function Outro({ frame, theme }: { frame: number; theme: Theme }) {
           gap: 14,
           padding: "16px 28px 16px 22px",
           borderRadius: 999,
-          font: '500 28px "JetBrains Mono Variable", monospace',
+          font: '500 32px "JetBrains Mono Variable", monospace',
           color: dark ? "#eafcfc" : "#0d1a1c",
           background: dark ? "rgba(95,240,244,0.08)" : "rgba(10,143,150,0.06)",
           border: `1px solid ${dark ? "rgba(95,240,244,0.3)" : "rgba(10,143,150,0.25)"}`,
@@ -45,10 +45,10 @@ export function Outro({ frame, theme }: { frame: number; theme: Theme }) {
           transform: `translateY(${(1 - url) * 20}px) scale(${0.96 + 0.04 * url})`,
         }}
       >
-        <GithubMark size={30} />
+        <GithubMark size={34} />
         {REPO_URL}
       </div>
-      <div style={{ marginTop: 22, font: '500 17px "JetBrains Mono Variable", monospace', letterSpacing: "0.14em", textTransform: "uppercase", color: dark ? "#7fe6ea" : "#0b7f86", opacity: meta * 0.9 }}>
+      <div style={{ marginTop: 22, font: '500 19px "JetBrains Mono Variable", monospace', letterSpacing: "0.14em", textTransform: "uppercase", color: dark ? "#7fe6ea" : "#0b7f86", opacity: meta * 0.9 }}>
         MIT · Next.js · Supabase · MCP
       </div>
     </AbsoluteFill>

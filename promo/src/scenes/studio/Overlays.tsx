@@ -1,16 +1,15 @@
-import { Moon, Sun, SunMoon } from "lucide-react";
+import { Globe2, MessageCircle, Moon, Settings, Share2, Sun, SunMoon, Users } from "lucide-react";
 import { AbsoluteFill } from "remotion";
 import { IPhone, PHONE_H, PHONE_W } from "../../devices/IPhone";
 import { EASE, SPRINGS, clamp01, progress, springAt, tween } from "../../kit/motion";
 import { Globe } from "../../ui/common/Globe";
 import { DigestEmail } from "../../ui/desktop/DigestEmail";
 import { Terminal, type TermLine } from "../../ui/desktop/Terminal";
-import { Globe2, MessageCircle, Settings, Share2, Sun as SunIcon, Users } from "lucide-react";
 import { globeRotate } from "./WindowContent";
 
 /* ---------- Digest e-mail (scene 1) ---------- */
 
-export const EMAIL = { left: 1090, top: 300, done: { x: 97, y: 288 } };
+export const EMAIL = { left: 1090, top: 372, done: { x: 97, y: 288 } };
 /** Screen position of Sara's Done button (the push scales around it, so it stays put). */
 export const EMAIL_DONE = { x: EMAIL.left + EMAIL.done.x, y: EMAIL.top + EMAIL.done.y };
 
@@ -30,7 +29,7 @@ export function EmailOverlay({ frame }: { frame: number }) {
           left: EMAIL.left,
           top: EMAIL.top - 44,
           opacity: clamp01(enter * 1.5) * (1 - exit),
-          transform: `translateX(${x}px) rotateY(${(1 - enter) * -24}deg) scale(${1 + 0.24 * push})`,
+          transform: `translateX(${x}px) rotateY(${(1 - enter) * -24}deg) scale(${1 + 0.34 * push})`,
           transformOrigin: `${EMAIL.done.x}px ${EMAIL.done.y + 44}px`,
         }}
       >
@@ -173,7 +172,7 @@ function PhoneGlobe({ frame }: { frame: number }) {
       <div className="absolute inset-x-0 bottom-0 px-4" style={{ paddingBottom: 18 }}>
         <div className="glass-thick specular relative mx-auto flex h-[62px] items-stretch rounded-full p-1">
           <span className="absolute top-1 bottom-1 left-1 rounded-full bg-accent-soft" style={{ width: "calc((100% - 8px) / 5)", transform: "translateX(200%)" }} />
-          {[SunIcon, ...tabs].map((Icon, i) => {
+          {[Sun, ...tabs].map((Icon, i) => {
             const label = ["Today", "People", "Globe", "Chat", "Settings"][i]!;
             return (
               <span key={label} className="relative z-[1] flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-full" style={{ color: i === 2 ? "var(--accent-text)" : "var(--fg-3)" }}>
@@ -234,14 +233,14 @@ export function TerminalOverlay({ frame }: { frame: number }) {
       <div
         style={{
           position: "absolute",
-          left: 880,
-          top: 296,
+          left: 800,
+          top: 300,
           transformOrigin: "50% 40%",
           transform: `translateY(${(1 - enter) * 260 + exit * 140}px) rotateX(${(1 - enter) * 16}deg) rotateY(${-8 + 4 * push}deg) scale(${(0.94 + 0.06 * enter) * (1 + 0.04 * push) * (1 - 0.1 * exit)})`,
           opacity: clamp01(enter * 1.4) * (1 - exit),
         }}
       >
-        <Terminal lines={lines} tools={tools} caretOn={Math.floor(frame / 16) % 2 === 0} width={940} />
+        <Terminal lines={lines} tools={tools} caretOn={Math.floor(frame / 16) % 2 === 0} width={1060} />
       </div>
     </AbsoluteFill>
   );

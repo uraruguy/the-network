@@ -43,6 +43,7 @@ export function WindowLayer({
       )}
       <AbsoluteFill style={{ perspective: PERSPECTIVE, perspectiveOrigin: `${ORIGIN[0]}px ${ORIGIN[1]}px` }}>
         <div style={{ position: "absolute", left: 0, top: 0, transformOrigin: "0 0", transform: camTransform(cam), filter: blurred ? `url(#${blurId})` : undefined }}>
+          {dark && <div style={{ position: "absolute", inset: 0, borderRadius: 16, boxShadow: "0 0 0 1px rgba(95,240,244,0.16), 0 0 120px -10px rgba(52,219,227,0.28)" }} />}
           <MacWindow dark={dark}>{children}</MacWindow>
         </div>
       </AbsoluteFill>

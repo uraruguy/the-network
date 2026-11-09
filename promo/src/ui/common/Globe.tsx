@@ -1,7 +1,6 @@
 import { geoDistance, geoInterpolate, geoOrthographic, geoPath } from "d3-geo";
 import { useId, type CSSProperties, type ReactNode } from "react";
-import { getInputProps, useCurrentFrame } from "remotion";
-const X = (getInputProps() as { x?: string }).x ?? "";
+import { useCurrentFrame } from "remotion";
 import { CITIES, crowd, type City } from "../../data/demo";
 import { Avatar } from "../../kit/Avatar";
 import { COUNTRY_LABELS, pop, projector, smooth, visibleWorld, type Pt } from "./geo";
@@ -229,8 +228,12 @@ export function Globe({
     const members = order.filter(
       (c) =>
         !taken.has(c.name) &&
-        (c === seed || !destOf.has(c.name)) &&
-        geoDistance([seed.lng, seed.lat], [c.lng, c.lat]) * radius < merge * (destOf.has(seed.name) ? 2 : 1),
+        (c === seed ||
+          (!destOf.has(c.name) &&
+            (destOf.has(seed.name)
+              ? // A landing pin takes in its smaller neighbours (pins are wider than a bubble), never home.
+                c.name !== home && c.count <= seed.count && geoDistance([seed.lng, seed.lat], [c.lng, c.lat]) * radius < merge * 1.8
+              : geoDistance([seed.lng, seed.lat], [c.lng, c.lat]) * radius < merge))),
     );
     members.forEach((m) => taken.add(m.name));
     let x = 0;
@@ -308,7 +311,7 @@ export function Globe({
         z: g.z,
         el: (
           <div key={g.seed.name} style={{ ...common, transform: `translate(-50%, -50%) translateY(${-8 * lift * uiScale}px) scale(${uiScale * s * (0.88 + 0.12 * g.z) * (1 + 0.14 * lift)})` }}>
-            <div style={{ position: "absolute", left: -hr, top: -hr, width: hr * 2, height: hr * 2, borderRadius: 999, background: P.halo, filter: X.includes("H") ? undefined : "blur(1.5px)" }} />
+            <div style={{ position: "absolute", left: -hr, top: -hr, width: hr * 2, height: hr * 2, borderRadius: 999, background: P.halo, filter: "blur(1.5px)" }} />
             {isFocus && <Pulse r={r} color={P.fill} t={t} />}
             <div
               style={{
@@ -431,24 +434,19 @@ export function Globe({
           <filter id={`soft${uid}`} x="-100%" y="-100%" width="300%" height="300%">
             <feGaussianBlur stdDeviation={3 * uiScale} />
           </filter>
-          <clipPath id={`sphere${uid}`}>
-            <circle cx={cx} cy={cy} r={radius} />
-          </clipPath>
         </defs>
         {atmosphere > 0 && <circle cx={cx} cy={cy} r={atmoR} fill={`url(#atmo${uid})`} />}
         <circle cx={cx} cy={cy} r={radius} fill={P.water} />
-        {!X.includes("L") && <path d={landD} fill={P.land} />}
-        {!X.includes("B") && <path d={borderD} fill="none" stroke={P.border} strokeWidth={Math.max(0.5, 0.75 * uiScale * Math.min(1.6, Math.max(0.8, k / 2)))} strokeLinejoin="round" />}
-        {!X.includes("S") && <g clipPath={`url(#sphere${uid})`}>
-          <circle cx={cx} cy={cy} r={radius} fill={`url(#shade${uid})`} />
-          <circle cx={cx} cy={cy} r={radius} fill={`url(#rim${uid})`} />
-          <circle cx={cx} cy={cy} r={radius} fill={`url(#spec${uid})`} />
-        </g>}
+        <path d={landD} fill={P.land} />
+        <path d={borderD} fill="none" stroke={P.border} strokeWidth={Math.max(0.5, 0.75 * uiScale * Math.min(1.6, Math.max(0.8, k / 2)))} />
+        <circle cx={cx} cy={cy} r={radius} fill={`url(#shade${uid})`} />
+        <circle cx={cx} cy={cy} r={radius} fill={`url(#rim${uid})`} />
+        <circle cx={cx} cy={cy} r={radius} fill={`url(#spec${uid})`} />
         {labelEls}
         {arcEls}
         {homeEl}
       </svg>
-      {!X.includes("M") && <div style={{ position: "absolute", inset: 0 }}>{marks.map((m) => m.el)}</div>}
+      <div style={{ position: "absolute", inset: 0 }}>{marks.map((m) => m.el)}</div>
     </div>
   );
 }

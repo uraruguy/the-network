@@ -18,15 +18,34 @@ function cap(points: Pos[]): { c: Pos; r: number } {
   return { c, r };
 }
 
-function shapes(topo: World): Shapes {
+/** Drops vertices closer than `tol` degrees to the last kept one (radial-distance simplification). */
+function thin(ring: Pos[], tol: number): Pos[] {
+  if (tol <= 0 || ring.length < 8) return ring;
+  const out: Pos[] = [ring[0]!];
+  for (let i = 1; i < ring.length - 1; i++) {
+    const [x, y] = ring[i]!;
+    const [px, py] = out.at(-1)!;
+    if (Math.abs(x - px) > tol || Math.abs(y - py) > tol) out.push(ring[i]!);
+  }
+  out.push(ring.at(-1)!);
+  return out.length >= 4 ? out : ring;
+}
+
+function shapes(topo: World, tol = 0): Shapes {
   const landFc = feature(topo, topo.objects.land) as FeatureCollection<Polygon | MultiPolygon>;
   const land: Piece<Polygon>[] = [];
   for (const f of landFc.features) {
     const polys = f.geometry.type === "Polygon" ? [f.geometry.coordinates] : f.geometry.coordinates;
-    for (const coordinates of polys) land.push({ geom: { type: "Polygon", coordinates }, ...cap(coordinates[0] as Pos[]) });
+    for (const rings of polys) {
+      const coordinates = rings.map((r) => thin(r as Pos[], tol));
+      land.push({ geom: { type: "Polygon", coordinates }, ...cap(coordinates[0]!) });
+    }
   }
   const mesh0 = mesh(topo, topo.objects.countries, (a, b) => a !== b);
-  const borders = mesh0.coordinates.map((coordinates) => ({ geom: { type: "LineString", coordinates } as LineString, ...cap(coordinates as Pos[]) }));
+  const borders = mesh0.coordinates.map((line) => {
+    const coordinates = thin(line as Pos[], tol);
+    return { geom: { type: "LineString", coordinates } as LineString, ...cap(coordinates) };
+  });
   return { land, borders };
 }
 
@@ -39,7 +58,7 @@ let W50: Shapes | null = null;
  */
 export function visibleWorld(rotate: [number, number], radius: number, cx: number, cy: number, width: number, height: number) {
   let world = W110;
-  if (radius > 800) world = W50 ??= shapes(world50 as unknown as World);
+  if (radius > 800) world = W50 ??= shapes(world50 as unknown as World, 0.04);
   const centre: Pos = [-rotate[0], -rotate[1]];
   const far = Math.max(Math.hypot(cx, cy), Math.hypot(width - cx, cy), Math.hypot(cx, height - cy), Math.hypot(width - cx, height - cy));
   const reach = far >= radius ? Math.PI / 2 : Math.asin(far / radius);
