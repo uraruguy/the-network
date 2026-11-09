@@ -213,7 +213,8 @@ export function PhoneOverlay({ frame }: { frame: number }) {
 
 /* ---------- Terminal: add the MCP server, then ask Claude through it ---------- */
 
-const CMD_ADD = 'claude mcp add --transport http --scope user network https://your-network/api/mcp --header "Authorization: Bearer ntk_…"';
+/** As docs/mcp.md writes it: the header on a continuation line. */
+const CMD_ADD = 'claude mcp add --transport http --scope user network https://your-network/api/mcp \\\n  --header "Authorization: Bearer ntk_…"';
 const CMD_ASK = 'claude -p "Who should I catch up with in Lisbon?"';
 
 /**
@@ -238,7 +239,7 @@ export function TerminalOverlay({ frame }: { frame: number }) {
     { kind: "person", text: "You know 7 people in Lisbon. Three worth a catch-up:", shown: on(1468) },
     { kind: "person", text: "- Inês Sampaio — met at Web Summit today; climbs on Thursdays.", shown: on(1478) },
     { kind: "person", text: "- Mateo Fernández — raising a seed round; wants an intro to Björn.", shown: on(1488) },
-    { kind: "person", text: "- Valentina Dubois — introduced you to Inês; owed a studio intro.", shown: on(1498) },
+    { kind: "person", text: "- Valentina Dubois — introduced you to Inês; you owe her an intro.", shown: on(1498) },
   ];
   return (
     <AbsoluteFill style={{ perspective: 2400, WebkitMaskImage: bandMask, maskImage: bandMask }}>

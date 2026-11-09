@@ -47,8 +47,8 @@ export const CAM: Key[] = [
   // (dark) the planet outgrows the window, which falls back and fades.
   { f: 1004, cam: { fx: 900, fy: 520, zoom: 1.1, sy: 700, rx: 18 } },
   // Chat: the window rises over the dimmed planet, tight on the composer…
-  { f: 1100, cam: { fx: 870, fy: 862, zoom: 2.5, sx: 960, sy: 1500, rx: 22 } },
-  { f: 1128, cam: { fx: 870, fy: 862, zoom: 2.5, sx: 960, sy: 470, rx: 0 }, ease: EASE.out },
+  { f: 1100, cam: { fx: 830, fy: 862, zoom: 2.4, sx: 960, sy: 1500, rx: 22 } },
+  { f: 1128, cam: { fx: 830, fy: 862, zoom: 2.4, sx: 960, sy: 470, rx: 0 }, ease: EASE.out },
   { f: 1142, cam: {} },
   // …whips up to the conversation, then pushes into the answer card.
   { f: 1160, cam: { fx: 838, fy: 330, zoom: 1.58, sx: 960, sy: 640 }, ease: WHIP },

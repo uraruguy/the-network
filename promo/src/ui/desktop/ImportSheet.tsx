@@ -65,6 +65,7 @@ function offsetIn(el: HTMLElement, root: HTMLElement): Box {
 }
 
 const arc = (a: Box, b: Box, t: number, lift = 70) => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t - Math.sin(Math.PI * t) * lift });
+const tween01 = (t: number, a: number, b: number) => Math.min(1, Math.max(0, (t - a) / (b - a)));
 /** Quadratic Bézier from a to b through control point c. */
 const via = (a: Box, c: { x: number; y: number }, b: Box, t: number) => {
   const u = 1 - t;
@@ -246,19 +247,25 @@ export function ImportSheet({ s }: { s: ImportState }) {
           const col1 = m.avatars[1];
           const row1 = m.avatars[2];
           const gutter = col1 && row1 ? { x: col1.x - 14, y: row1.y - 14 } : { x: b.x, y: b.y };
-          const at = i >= 2 ? via(a, { x: gutter.x, y: gutter.y }, b, t) : arc(a, b, t, 40);
+          const at = i === 0 ? arc(a, b, t, 40) : i === 1 ? via(a, { x: gutter.x, y: a.y }, b, t) : via(a, gutter, b, t);
           const bump = Math.sin(Math.PI * t);
+          // A lifted token while in the air (opaque, so it never smears over card text); it melts
+          // into the card's own title in the last frames, at the exact same position and type.
+          const pill = 1 - tween01(t, 0.72, 1);
           return (
             <span
               key={`lift-${p.name}`}
               className="absolute text-headline whitespace-nowrap"
               style={{
-                left: at.x,
-                top: at.y,
+                left: at.x - 8,
+                top: at.y - 4,
+                padding: "4px 8px",
+                borderRadius: 10,
+                background: `color-mix(in oklab, var(--surface-solid) ${pill * 100}%, transparent)`,
+                boxShadow: `0 ${10 * bump}px ${26 * bump}px -8px rgba(0,60,70,${0.45 * pill}), 0 0 0 ${pill}px var(--hairline)`,
                 color: t > 0.5 ? "var(--fg)" : "var(--accent-strong)",
-                transformOrigin: "0 50%",
+                transformOrigin: "8px 50%",
                 transform: `scale(${1 + bump * 0.16})`,
-                textShadow: `0 ${6 * bump}px ${16 * bump}px rgba(0,60,70,${0.35 * bump})`,
                 zIndex: 60,
               }}
             >
