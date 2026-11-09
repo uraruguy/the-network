@@ -34,7 +34,7 @@ const flashBg = (t: number) => {
  */
 export function PersonScreen({ scrollY = 0, rootRef, tab = 1, filed = NOTHING_FILED, glow = NOTHING_FILED }: { scrollY?: number; rootRef?: Ref<HTMLDivElement>; tab?: number; filed?: Filed; glow?: Filed }) {
   const compact = clamp01((scrollY - 230) / 40);
-  const padelNew = glow.padel > 0;
+  const padelNew = filed.padel >= 1;
   return (
     <Screen>
       <AppBg />
