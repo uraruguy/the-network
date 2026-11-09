@@ -39,16 +39,16 @@ const some = <T>(xs: readonly T[], max: number): T[] => {
 };
 
 const FIRST = [
-  "Žan", "Ana", "Luka", "Nika", "Matej", "Špela", "Tjaša", "Rok", "Urška", "Jure", "Maša", "Gašper", "Eva", "Nejc", "Teja", "Aljaž",
-  "Ivana", "Marko", "Petra", "Filip", "Lucija", "Domen", "Klara", "Tine", "Zoë", "Søren", "Åsa", "Björn", "Jürgen", "Chloé", "José",
-  "Inês", "Mateusz", "Łucja", "Đorđe", "Miloš", "Emma", "Oliver", "Sofia", "Lukas", "Mia", "Noah", "Hannah", "Leon", "Amelia", "Ethan",
-  "Yuki", "Aarav", "Priya", "Chen", "Mei", "Omar", "Leila", "Mateo", "Valentina", "Camila", "Diego", "Isabella", "Kofi", "Amara",
+  "Anna", "Maria", "John", "Jane", "Max", "Erika", "Ola", "Kari", "Jan", "Janez", "Marija", "Ivan", "Petra", "Marko", "Ana", "José",
+  "Juan", "Carlos", "Sofia", "Emma", "Lucas", "Noah", "Mia", "Leon", "Hanna", "Sven", "Matti", "Maija", "Hanako", "Taro", "Kenji", "Wei",
+  "Ali", "Fatima", "Omar", "Grace", "Thabo", "Raj", "Pedro", "João", "Rita", "Tiago", "Elena", "Luca", "Giulia", "Marie", "Jean", "Pierre",
+  "David", "Daniel", "Laura", "Paul", "Peter", "Eva", "Tom", "Nina", "Sara", "Lena", "Oscar", "Zoë",
 ];
 const LAST = [
-  "Nartnik", "Habjan", "Kolenič", "Kunstelj", "Zupančič", "Potočnik", "Kos", "Verbič", "Gorjup", "Turk", "Bračič", "Kralj", "Zadnik", "Hribar",
-  "Lukić", "Pavković", "Jovanović", "Østergaard", "Lindqvist", "Müller", "Schröder", "Dubois", "Lefèvre", "García", "Fernández",
-  "Nowak", "Wiśniewski", "Smith", "Johnson", "Brown", "Taylor", "Wilson", "Rossi", "Bianchi", "Tanaka", "Sato", "Kim", "Park", "Sandhu",
-  "Patel", "Wang", "Li", "Haddad", "Mensah", "Silva", "Sampaio", "O'Brien", "MacLeod", "van der Berg", "De Luca",
+  "Doe", "Smith", "Bloggs", "Novak", "Horvat", "Kovač", "Mustermann", "Müller", "Schmidt", "Rossi", "Bianchi", "Dupont", "Martin", "García",
+  "Pérez", "López", "Silva", "Santos", "Costa", "Jansen", "de Vries", "Nordmann", "Hansen", "Andersson", "Svensson", "Virtanen", "Nagy",
+  "Popescu", "Petrović", "Yılmaz", "Cohen", "Hassan", "Kim", "Lee", "Park", "Wang", "Li", "Zhang", "Chen", "Yamada", "Sato", "Suzuki",
+  "Nguyen", "Singh", "Kumar", "Mwangi", "Okafor", "Brown", "Wilson", "Taylor",
 ];
 const ROLES = [
   "Founder", "Co-founder & CEO", "CTO", "Product designer", "Software engineer", "Partner", "Principal", "Angel investor", "Head of Growth",
@@ -85,11 +85,15 @@ async function ownerId(): Promise<string> {
 async function seed(count: number) {
   const owner = await ownerId();
 
-  // ~45 home cities: the biggest few plus a European bias.
+  // ~70 home cities: Europe's biggest, plus the largest one or two per country elsewhere so every continent shows up on the globe.
   const cities = await sql<{ id: number }[]>`
-    (select id from cities where country_code in ('SI','HR','AT','DE','IT','GB','FR','ES','NL','CH','DK','SE','PT','PL','RS') order by population desc nulls last limit 32)
+    (select id from cities where country_code in ('SI','HR','AT','DE','IT','GB','FR','ES','NL','CH','DK','SE','NO','FI','PT','PL','CZ','HU','BE','IE','GR','RS')
+      order by population desc nulls last limit 48)
     union
-    (select id from cities where country_code in ('US','JP','SG','AU','BR','CA','IN','KR','AE','ZA') order by population desc nulls last limit 14)`;
+    (select id from (
+        select id, country_code, row_number() over (partition by country_code order by population desc nulls last) as rank from cities
+        where country_code in ('US','CA','MX','BR','AR','CO','JP','KR','SG','IN','AE','IL','TR','ZA','KE','NG','EG','AU')) c
+      where rank <= case when country_code in ('US','IN','BR','JP','AU') then 2 else 1 end)`;
   await sql`
     insert into locations (owner_id, name, admin, country, country_code, lat, lng, timezone, city_id, source)
     select ${owner}, c.name, c.admin, c.country, c.country_code, c.lat, c.lng, c.timezone, c.id, ${SOURCE}
@@ -107,12 +111,24 @@ async function seed(count: number) {
   const catRows = await sql<{ id: string }[]>`select id from categories where owner_id = ${owner}`;
   const actRows = await sql<{ id: string }[]>`select id from activities where owner_id = ${owner}`;
 
+  // Unique names, also against people already there (e.g. scripts/dev/seed-demo.ts), so People shows no "Possible duplicates".
+  const nameKey = (name: string) => name.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().split(/\s+/).sort().join(" ");
+  const taken = new Set((await sql<{ name: string }[]>`select display_name as name from people where owner_id = ${owner} and deleted_at is null`).map((r) => nameKey(r.name)));
+  const uniqueName = (): [string, string] => {
+    let name: [string, string];
+    let tries = 0;
+    do name = [pick(FIRST), pick(LAST)];
+    while (taken.has(nameKey(name.join(" "))) && ++tries < 50);
+    taken.add(nameKey(name.join(" ")));
+    return name;
+  };
+
   const now = Date.now();
   const DAY = 86_400_000;
   const people = Array.from({ length: count }, () => {
-    const first = pick(FIRST);
-    const last = pick(LAST);
+    const [first, last] = uniqueName();
     const hasRole = rand() < 0.85;
+    const warmth = weighted(WARMTH);
     return {
       owner_id: owner,
       display_name: `${first} ${last}`,
@@ -121,9 +137,11 @@ async function seed(count: number) {
       headline: hasRole ? pick(ROLES) : null,
       company: hasRole && rand() < 0.8 ? pick(COMPANIES) : null,
       home_location_id: rand() < 0.9 ? pick(weightedLocs).id : null,
-      warmth: weighted(WARMTH),
+      warmth,
       circle: pick(CIRCLES),
-      last_interaction_at: rand() < 0.85 ? new Date(now - Math.floor(rand() ** 2 * 720 * DAY)) : null,
+      // The inner circle is seen often (< 60 days), so Today's "Reconnect" isn't filled with seeded rows.
+      last_interaction_at:
+        warmth === "inner" ? new Date(now - Math.floor(rand() * 50 * DAY)) : rand() < 0.85 ? new Date(now - Math.floor(rand() ** 2 * 720 * DAY)) : null,
       next_followup_at: rand() < 0.2 ? new Date(now + Math.floor((rand() * 90 - 10) * DAY)) : null,
       source_kind: SOURCE,
       created_at: new Date(now - Math.floor(rand() * 900 * DAY)),
