@@ -3,16 +3,20 @@ import { AbsoluteFill } from "remotion";
 import { MacWindow } from "../../devices/MacWindow";
 import { camAt, camTransform, camVelocity, ORIGIN, PERSPECTIVE, type Key } from "./camera";
 
+/** The headline band: nothing of the window shows above this (no ghost text under titles). */
+export const BAND = 200;
+
 /**
- * The Mac window under the camera, with velocity-based directional motion blur and a soft
- * mask that dissolves it under the headline band.
+ * The Mac window under the camera. Motion blur is a screen-space directional Gaussian on an
+ * untransformed wrapper (a filter on the 3D element itself would rasterise it at 1× and look
+ * soft): subtle on glides, strong on whip moves, so page changes can hide inside them.
  */
 export function WindowLayer({
   frame,
   keys,
   dark,
   children,
-  maskTop = 0,
+  band = true,
   opacity = 1,
   blurId,
 }: {
@@ -20,19 +24,17 @@ export function WindowLayer({
   keys: Key[];
   dark: boolean;
   children: ReactNode;
-  /** y (px) above which the window fades out; 0 = no mask. */
-  maskTop?: number;
+  band?: boolean;
   opacity?: number;
   blurId: string;
 }) {
   const cam = camAt(keys, frame);
   const v = camVelocity(keys, frame, cam.fx, cam.fy);
-  // Screen-space smear: along the pan, plus a hint for fast dollies. Kept subtle (≤ 4 px).
   const dolly = Math.min(1.2, Math.abs(v.dz) * 16);
-  const bx = Math.min(4, Math.abs(v.dx) * 0.09 + dolly);
-  const by = Math.min(4, Math.abs(v.dy) * 0.09 + dolly);
+  const bx = Math.min(22, Math.abs(v.dx) * 0.11 + dolly);
+  const by = Math.min(22, Math.abs(v.dy) * 0.11 + dolly);
   const blurred = bx > 0.4 || by > 0.4;
-  const mask = maskTop > 0 ? `linear-gradient(to bottom, transparent 0px, transparent ${maskTop}px, black ${maskTop + 110}px)` : undefined;
+  const mask = band ? `linear-gradient(to bottom, transparent 0px, transparent ${BAND}px, black ${BAND + 30}px)` : undefined;
   return (
     <AbsoluteFill style={{ opacity, WebkitMaskImage: mask, maskImage: mask, filter: blurred ? `url(#${blurId})` : undefined }}>
       {blurred && (

@@ -2,16 +2,16 @@ import type { ReactNode } from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
 
 /**
- * Backdrops. Both carry a fine animated grain: it dithers the large soft gradients so H.264 (and
- * X's re-encode) doesn't band them.
+ * Backdrops. Both carry a fine grain: it dithers the large soft gradients so H.264 doesn't band
+ * them. The grain is static on purpose: per-frame noise costs bitrate and turns into blocky
+ * artifacts in X's re-encode.
  */
 export function Grain({ opacity = 0.06 }: { opacity?: number }) {
-  const frame = useCurrentFrame();
   return (
     <AbsoluteFill style={{ opacity, mixBlendMode: "overlay", pointerEvents: "none" }}>
       <svg width="100%" height="100%">
         <filter id="grain">
-          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed={frame % 7} stitchTiles="stitch" />
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed={3} stitchTiles="stitch" />
           <feColorMatrix type="saturate" values="0" />
         </filter>
         <rect width="100%" height="100%" filter="url(#grain)" />

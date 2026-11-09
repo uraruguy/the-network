@@ -1,49 +1,60 @@
 import { DUE } from "../../data/demo";
 import { EASE, SPRINGS, progress, springAt, tween, typed } from "../../kit/motion";
 import { Globe } from "../../ui/common/Globe";
-import { ANSWER_LEN, ChatPage, QUESTION, type Pill } from "../../ui/desktop/Chat";
+import { ChatPage, QUESTION, type Pill } from "../../ui/desktop/Chat";
 import { GlobePage } from "../../ui/desktop/GlobePage";
 import { HL_COUNT, ImportSheet, PROPOSALS } from "../../ui/desktop/ImportSheet";
 import { PeoplePage, ROWS, matches } from "../../ui/desktop/People";
-import { PersonPage } from "../../ui/desktop/Person";
-import { AppBg, DesktopShell, SIDEBAR_W } from "../../ui/desktop/Shell";
+import { DesktopShell } from "../../ui/desktop/Shell";
 import { TodayPage, Toast } from "../../ui/desktop/Today";
 import type { Theme } from "./World";
 
-export const SEARCH = "lisbon";
-export const TYPE_AT = 852;
-export const TYPE_CPS = 11;
-export const ASK_TYPE_AT = 1402;
-export const ASK_CPS = 54;
+const SEARCH = "lisbon";
+const TYPE_AT = 670;
+const TYPE_CPS = 13;
+const ASK_TYPE_AT = 1086;
+const ASK_CPS = 40;
+/** Page switches happen inside whip moves (peak motion blur). */
+const TO_PEOPLE = 660;
+const TO_GLOBE = 798;
+const TO_CHAT = 1090;
 
-/** Globe page geometry (main-area space) and rotation over time; shared with the cursor. */
-export const GLOBE = { w: 1204, h: 900, cx: 640, cy: 480, r: 330 };
+/** Globe page geometry (main-area space) and rotation; shared with the cursor and the flip. */
+export const GLOBE = { w: 1204, h: 900, cx: 520, cy: 500, r: 400 };
 export function globeRotate(frame: number): [number, number] {
-  const a = tween(frame, [1084, 1178], [0, 1], EASE.inOut);
-  const drift = tween(frame, [1178, 1400], [0, 1], (t) => t);
-  return [-14 + (9.14 + 14) * a - 3 * drift, -44 + (44 - 38.7) * a + 1 * drift];
+  const a = tween(frame, [TO_GLOBE, 852], [0, 1], EASE.inOut);
+  const drift = tween(frame, [852, 1110], [0, 1], (t) => t);
+  return [40 + (-5 - 40) * a - 6 * drift, -25 + (-40 + 25) * a + 2 * drift];
 }
+export const LISBON = { lng: -9.1393, lat: 38.7223 };
+const ARCS: [string, number][] = [
+  ["New York City", 928],
+  ["Toronto", 932],
+  ["Cape Town", 936],
+  ["Dubai", 940],
+  ["Copenhagen", 944],
+  ["Delhi", 948],
+];
+export const arcsAt = (frame: number) => ARCS.map(([to, at]) => ({ to, progress: tween(frame, [at, at + 40], [0, 1], EASE.inOut) }));
 
-const fade = (frame: number, a: number, b: number) => tween(frame, [a, b], [0, 1], EASE.out);
+/** People count: 285, then 286 once the import's new person lands in the tile. */
+const peopleAt = (frame: number) => (frame >= 606 ? 286 : 285);
 
-/** Nav pill index over time (springs between items on each sidebar click). */
 function navIndex(frame: number) {
-  return springAt(frame, 812, SPRINGS.smooth) + springAt(frame, 1080, SPRINGS.smooth) + springAt(frame, 1386, SPRINGS.smooth);
+  return frame < TO_PEOPLE ? 0 : frame < TO_GLOBE ? 1 : frame < TO_CHAT ? 2 : 3;
 }
 
 function importState(frame: number) {
-  const open = springAt(frame, 506, SPRINGS.smooth) - tween(frame, [756, 772], [0, 1], EASE.in);
-  const hl = Array.from({ length: HL_COUNT }, (_, i) => progress(frame, 606 + i * 8, 12, EASE.out));
+  const open = springAt(frame, 370, SPRINGS.smooth) - tween(frame, [578, 596], [0, 1], EASE.in);
   return {
     open: Math.max(0, Math.min(1, open)),
-    step: (frame < 596 ? "paste" : frame < 662 ? "reading" : "review") as "paste" | "reading" | "review",
-    pasted: progress(frame, 556, 12, EASE.out),
-    scan: tween(frame, [600, 652], [0, 1], EASE.inOut),
-    hl,
-    morph: progress(frame, 660, 20, EASE.ios),
-    cards: PROPOSALS.map((_, i) => springAt(frame, 668 + i * 11, SPRINGS.smooth)),
-    scroll: tween(frame, [700, 742], [0, 300], EASE.inOut),
-    savePress: Math.max(0, 1 - Math.abs(frame - 752) / 6),
+    hl: Array.from({ length: HL_COUNT }, (_, i) => progress(frame, 392 + i * 8, 12, EASE.out)),
+    reading: frame >= 388 && frame < 446,
+    lift: PROPOSALS.map((_, i) => progress(frame, 446 + i * 7, 28, EASE.inOut)),
+    text: progress(frame, 450, 12, EASE.in),
+    cards: progress(frame, 464, 16, EASE.out),
+    savePress: Math.max(0, 1 - Math.abs(frame - 570) / 6),
+    file: PROPOSALS.map((_, i) => progress(frame, 576 + i * 6, 30, EASE.inOut)),
     frame,
   };
 }
@@ -59,69 +70,49 @@ function peopleCollapse(frame: number) {
         break;
       }
     }
-    out[p.name] = stop < 0 ? 0 : progress(frame, stop + 2, 16, EASE.ios);
+    out[p.name] = stop < 0 ? 0 : progress(frame, stop + 2, 14, EASE.ios);
   }
   return out;
 }
 
-/** What the app window shows at `frame`: pages, page transitions, dialogs and toasts. */
+/** What the app window shows at `frame`: pages, the import sheet and toasts. */
 export function WindowContent({ frame, theme }: { frame: number; theme: Theme }) {
-  const max = { check: progress(frame, 330, 20, EASE.out), collapse: progress(frame, 352, 24, EASE.ios) };
-  const sara = { check: progress(frame, 466, 16, EASE.out), collapse: progress(frame, 484, 24, EASE.ios) };
-  const done = (max.collapse > 0.5 ? 1 : 0) + (sara.collapse > 0.5 ? 1 : 0);
-  const doneToast = fade(frame, 352, 372) - tween(frame, [430, 446], [0, 1], EASE.in);
-  const savedToast = fade(frame, 772, 792) - tween(frame, [846, 862], [0, 1], EASE.in);
-
-  const todayOut = tween(frame, [814, 830], [0, 1], EASE.out);
-  const peopleIn = tween(frame, [818, 836], [0, 1], EASE.out);
-  const push = tween(frame, [904, 930], [0, 1], EASE.ios);
-  const personOut = tween(frame, [1082, 1098], [0, 1], EASE.out);
-  const globeIn = tween(frame, [1084, 1104], [0, 1], EASE.out);
-  const globeOut = tween(frame, [1388, 1404], [0, 1], EASE.out);
-  const chatIn = tween(frame, [1390, 1408], [0, 1], EASE.out);
+  const sara = { check: progress(frame, 290, 18, EASE.out), collapse: progress(frame, 316, 24, EASE.ios) };
+  const due = 3 - (sara.collapse > 0.5 ? 1 : 0);
+  const people = peopleAt(frame);
+  const bump = Math.max(0, Math.sin(Math.PI * tween(frame, [604, 628], [0, 1], (t) => t)));
+  const saved = tween(frame, [596, 612], [0, 1], EASE.out) - tween(frame, [652, 662], [0, 1], EASE.in);
 
   const query = frame < TYPE_AT ? "" : typed(SEARCH, frame, TYPE_AT, TYPE_CPS);
-  const collapse = peopleCollapse(frame);
-
-  const offline = frame >= 1318 && frame < 1356;
-  const sync = offline ? "Offline · 2 changes waiting to sync" : frame >= 1356 && frame < 1372 ? "Syncing 2 changes…" : "Synced";
-  const syncTone = offline ? "offline" : frame >= 1356 && frame < 1372 ? "waiting" : "ok";
-
-  const askTyped = typed(QUESTION, frame, ASK_TYPE_AT, ASK_CPS);
-  const sent = springAt(frame, 1448, SPRINGS.smooth);
-  const pills: { p: Pill; appear: number }[] = [];
-  if (frame >= 1456) pills.push({ p: { label: frame < 1474 ? "Searching people" : "Searched people", detail: "3 people", state: frame < 1474 ? "running" : "done" }, appear: springAt(frame, 1456, SPRINGS.snappy) });
-  if (frame >= 1468) pills.push({ p: { label: frame < 1486 ? "Reading notes" : "Read notes", detail: "4 notes", state: frame < 1486 ? "running" : "done" }, appear: springAt(frame, 1468, SPRINGS.snappy) });
-  const answer = Math.round(tween(frame, [1488, 1532], [0, ANSWER_LEN], (t) => t));
-
   const rot = globeRotate(frame);
-  const arc = (to: string, at: number) => ({ to, progress: tween(frame, [at, at + 44], [0, 1], EASE.inOut) });
 
+  const sent = springAt(frame, 1142, SPRINGS.smooth);
+  const pills: { p: Pill; appear: number }[] = [];
+  if (frame >= 1150) pills.push({ p: { label: frame < 1166 ? "Searching people" : "Searched people", detail: "3 people", state: frame < 1166 ? "running" : "done" }, appear: springAt(frame, 1150, SPRINGS.snappy) });
+  if (frame >= 1160) pills.push({ p: { label: frame < 1178 ? "Reading notes" : "Read notes", detail: "4 notes", state: frame < 1178 ? "running" : "done" }, appear: springAt(frame, 1160, SPRINGS.snappy) });
+  const answer = frame >= 1180 ? { lead: springAt(frame, 1180, SPRINGS.smooth), rows: [1188, 1198, 1208].map((a) => springAt(frame, a, SPRINGS.smooth)), tail: springAt(frame, 1222, SPRINGS.smooth) } : null;
+
+  const page = navIndex(frame);
   return (
-    <DesktopShell active={navIndex(frame)} sync={sync} syncTone={syncTone} overlay={frame >= 500 && frame < 776 ? <ImportSheet s={importState(frame)} /> : null}>
-      {frame < 832 && (
-        <div className="absolute inset-0" style={{ opacity: 1 - todayOut }}>
-          <TodayPage rows={{ [DUE[1]!.name]: max, [DUE[0]!.name]: sara }} stats={{ people: 285, cities: 79, due: 3 - done }} />
-        </div>
+    <DesktopShell active={page} overlay={frame >= 364 && frame < 640 ? <ImportSheet s={importState(frame)} /> : null}>
+      {page === 0 && <TodayPage rows={{ [DUE[0]!.name]: sara }} stats={{ people, cities: 79, due }} peopleBump={bump} />}
+      {page === 1 && (
+        <PeoplePage
+          total={people}
+          query={query}
+          caret={frame < 760 && Math.floor(frame / 30) % 2 === 0}
+          focused={frame < 770}
+          filter={1}
+          collapse={peopleCollapse(frame)}
+        />
       )}
-      {frame >= 816 && frame < 932 && (
-        <div className="absolute inset-0" style={{ opacity: peopleIn * (1 - push * 0.6), transform: `translateX(${-push * 30}%) scale(${0.985 + 0.015 * peopleIn})` }}>
-          <PeoplePage query={query} caret={frame >= 846 && frame < 900 && Math.floor(frame / 30) % 2 === 0} focused={frame >= 846 && frame < 904} filter={1} collapse={collapse} hoverRow={{ name: "Inês Sampaio", v: tween(frame, [886, 896], [0, 1]) }} />
-        </div>
-      )}
-      {frame >= 904 && frame < 1100 && (
-        <div className="absolute inset-0" style={{ opacity: 1 - personOut, transform: `translateX(${(1 - push) * 100}%)`, boxShadow: push < 1 ? "-20px 0 40px -20px rgba(0,30,40,0.25)" : undefined }}>
-          <div className="absolute inset-y-0" style={{ left: -SIDEBAR_W, width: 1440 }}>
-            <AppBg />
-          </div>
-          <PersonPage scroll={tween(frame, [958, 1040], [0, 560], EASE.inOut)} avatarIn={1} />
-        </div>
-      )}
-      {frame >= 1082 && frame < 1406 && (
-        <div className="absolute inset-0" style={{ opacity: globeIn * (1 - globeOut) }}>
-          <GlobePage
-            panel={springAt(frame, 1180, SPRINGS.smooth)}
-            globe={
+      {page === 2 && (
+        <GlobePage
+          count={`${people} people · 79 cities`}
+          panel={springAt(frame, 856, SPRINGS.smooth)}
+          panelWidth={300}
+          globe={
+            <div className="absolute inset-0" style={{ filter: theme === "light" ? "saturate(1.45) contrast(1.08)" : undefined }}>
               <Globe
                 width={GLOBE.w}
                 height={GLOBE.h}
@@ -129,24 +120,25 @@ export function WindowContent({ frame, theme }: { frame: number; theme: Theme })
                 center={[GLOBE.cx, GLOBE.cy]}
                 rotate={rot}
                 theme={theme}
-                reveal={tween(frame, [1088, 1150], [0, 1], (t) => t)}
-                focus={frame >= 1176 ? "Lisbon" : undefined}
-                arcs={[arc("Lisbon", 1186), arc("London", 1192), arc("New York City", 1198), arc("Copenhagen", 1204)]}
+                home="Lisbon"
+                reveal={tween(frame, [802, 850], [0, 1], (t) => t)}
+                focus={frame >= 852 ? "Lisbon" : undefined}
+                clusterRadius={46}
+                arcs={arcsAt(frame)}
               />
-            }
-          />
-        </div>
+            </div>
+          }
+        />
       )}
-      {frame >= 1388 && (
-        <div className="absolute inset-0" style={{ opacity: chatIn, transform: `scale(${0.985 + 0.015 * chatIn})` }}>
-          <ChatPage typed={askTyped} caret={frame >= 1396 && frame < 1448 && Math.floor(frame / 24) % 2 === 0} sent={sent} pills={pills} answer={answer} frame={frame} sendPress={Math.max(0, 1 - Math.abs(frame - 1446) / 5)} />
-        </div>
-      )}
-      {doneToast > 0 && (
-        <Toast title="Done ·" who="Max Larsen" description="Ask how the Copenhagen move went" action="Undo" style={{ opacity: doneToast, transform: `translateY(${(1 - doneToast) * 24}px) scale(${0.96 + 0.04 * doneToast})` }} />
-      )}
-      {savedToast > 0 && (
-        <Toast icon="success" title="Saved to Inês Sampaio" description="1 new person · 1 reminder" action="Open note" style={{ opacity: savedToast, transform: `translateY(${(1 - savedToast) * 24}px) scale(${0.96 + 0.04 * savedToast})` }} />
+      {page === 3 && <ChatPage showEmpty={false} typed={typed(QUESTION, frame, ASK_TYPE_AT, ASK_CPS)} caret={frame < 1142 && Math.floor(frame / 24) % 2 === 0} sent={sent} pills={pills} answer={answer} frame={frame} sendPress={Math.max(0, 1 - Math.abs(frame - 1140) / 5)} />}
+      {saved > 0 && (
+        <Toast
+          icon="success"
+          title="Saved to Inês Sampaio"
+          description="1 new person · 1 reminder"
+          action="Open note"
+          style={{ right: "auto", left: "50%", bottom: 40, opacity: saved, transform: `translateX(-50%) translateY(${(1 - saved) * 24}px) scale(${1.5 * (0.96 + 0.04 * saved)})`, transformOrigin: "50% 100%" }}
+        />
       )}
     </DesktopShell>
   );

@@ -22,11 +22,11 @@ export const LISBON_PEOPLE = [
 ];
 
 /** CityPanel (desktop): the floating 360 px side panel for one city. */
-function CityPanel({ appear, top }: { appear: number; top: number }) {
+function CityPanel({ appear, top, width }: { appear: number; top: number; width: number }) {
   return (
     <aside
-      className="glass-map specular absolute z-20 flex w-[360px] flex-col overflow-hidden rounded-xl"
-      style={{ right: 24, bottom: 24, top, opacity: appear, transform: `translateX(${(1 - appear) * 24}px)` }}
+      className="glass-map specular absolute z-20 flex flex-col overflow-hidden rounded-xl"
+      style={{ width, right: 24, bottom: 24, top, opacity: appear, transform: `translateX(${(1 - appear) * 24}px)` }}
     >
       <div className="flex items-start gap-3 px-5 pt-4 pb-3">
         <div className="min-w-0 flex-1">
@@ -72,7 +72,7 @@ function CityPanel({ appear, top }: { appear: number; top: number }) {
  * floating MapHeader with view switch, the map filter bar, Apple-Maps-style controls and the
  * city panel.
  */
-export function GlobePage({ globe, panel = 0, count = "285 people · 79 cities" }: { globe: ReactNode; panel?: number; count?: string }) {
+export function GlobePage({ globe, panel = 0, panelWidth = 360, count = "285 people · 79 cities" }: { globe: ReactNode; panel?: number; panelWidth?: number; count?: string }) {
   return (
     <div className="absolute inset-0">
       {globe}
@@ -104,7 +104,7 @@ export function GlobePage({ globe, panel = 0, count = "285 people · 79 cities" 
           </div>
         </div>
       </div>
-      <div className="absolute z-10 flex flex-col items-end gap-2.5" style={{ right: panel > 0.02 ? 24 + 360 + 16 : 24, bottom: 24 }}>
+      <div className="absolute z-10 flex flex-col items-end gap-2.5" style={{ right: panel > 0.02 ? 24 + panelWidth + 16 : 24, bottom: 24 }}>
         <Capsule>
           <Control icon={<Plus />} />
           <Divider />
@@ -118,7 +118,7 @@ export function GlobePage({ globe, panel = 0, count = "285 people · 79 cities" 
           <Control icon={<Route />} on />
         </Capsule>
       </div>
-      {panel > 0 && <CityPanel appear={panel} top={96} />}
+      {panel > 0 && <CityPanel appear={panel} top={96} width={panelWidth} />}
     </div>
   );
 }

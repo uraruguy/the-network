@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Bell, Check, FileText, Globe2, MessageSquare, Phone, Plus, Sparkles, Undo2, Users } from "lucide-react";
 import { Avatar } from "../../kit/Avatar";
-import { DUE, OWNER, RECONNECT, STATS, THIS_WEEK, TODAY_LABEL, type FollowUp } from "../../data/demo";
+import { DUE, OWNER, STATS, THIS_WEEK, TODAY_LABEL, type FollowUp } from "../../data/demo";
 import { Button, Composer, WARMTH_COLOR, cn } from "./parts";
 
 export type RowState = { check: number; collapse: number };
@@ -59,9 +59,9 @@ function Section({ title, count, caption, action, children, className }: { title
   );
 }
 
-function Tile({ icon, label, value, accent }: { icon: ReactNode; label: string; value: ReactNode; accent?: boolean }) {
+function Tile({ icon, label, value, accent, bump = 0 }: { icon: ReactNode; label: string; value: ReactNode; accent?: boolean; bump?: number }) {
   return (
-    <div className="surface flex h-[92px] flex-col justify-between rounded-lg p-3.5">
+    <div className="surface flex h-[92px] flex-col justify-between rounded-lg p-3.5" style={bump > 0 ? { boxShadow: `0 0 0 ${3 * bump}px var(--focus-ring)`, transform: `scale(${1 + 0.04 * bump})` } : undefined}>
       <span className={cn("grid size-7 place-items-center rounded-full", accent ? "bg-accent-fill text-accent-fg" : "bg-accent-soft text-accent-text")}>{icon}</span>
       <span className="min-w-0">
         <span className={cn("block h-7 text-title2 tabular-nums", accent ? "text-accent-text" : "text-fg")}>{value}</span>
@@ -71,12 +71,13 @@ function Tile({ icon, label, value, accent }: { icon: ReactNode; label: string; 
   );
 }
 
-const RECONNECT_META: Record<string, { ago: string; warmth: keyof typeof WARMTH_COLOR; label: string }> = {
-  "Inês Sampaio": { ago: "2mo", warmth: "inner", label: "Close" },
-  "Mateo Fernández": { ago: "3mo", warmth: "active", label: "Active" },
-  "Yuki Tanaka": { ago: "2mo", warmth: "active", label: "Active" },
-  "Lukas Schröder": { ago: "4mo", warmth: "inner", label: "Close" },
-};
+/** Reconnect nudges (seed-list names; Inês is imported later in the film, so she can't be here). */
+const RECONNECT: { name: string; ago: string; warmth: keyof typeof WARMTH_COLOR; label: string }[] = [
+  { name: "Diego Silva", ago: "2mo", warmth: "inner", label: "Close" },
+  { name: "Mateo Fernández", ago: "3mo", warmth: "active", label: "Active" },
+  { name: "Yuki Tanaka", ago: "2mo", warmth: "active", label: "Active" },
+  { name: "Lukas Schröder", ago: "4mo", warmth: "inner", label: "Close" },
+];
 
 const RECENT = [
   { icon: Phone, title: "Call: she's in Berlin 12–15 May for a client workshop", who: "Sara Rossi", when: "2h ago" },
@@ -93,10 +94,13 @@ export function TodayPage({
   rows = {},
   stats,
   capture = "",
+  peopleBump = 0,
 }: {
   rows?: Record<string, RowState>;
   stats?: { people: number; cities: number; due: number };
   capture?: string;
+  /** 0..1 pulse on the People tile (new people just filed). */
+  peopleBump?: number;
 }) {
   const s = stats ?? STATS;
   const dueLeft = DUE.filter((f) => (rows[f.name]?.collapse ?? 0) < 0.5).length;
@@ -114,7 +118,7 @@ export function TodayPage({
       <Composer value={capture} placeholder="Who did you meet? Jot it down…" leading={<Sparkles size={18} strokeWidth={2.2} />} canSend={!!capture} />
       <div className="mt-1.5 h-4" />
       <div className="mt-6 grid grid-cols-3 gap-3">
-        <Tile icon={<Users size={15} strokeWidth={2.2} />} label="People" value={s.people} />
+        <Tile icon={<Users size={15} strokeWidth={2.2} />} label="People" value={s.people} bump={peopleBump} />
         <Tile icon={<Globe2 size={15} strokeWidth={2.2} />} label="Cities" value={s.cities} />
         <Tile icon={<Bell size={15} strokeWidth={2.2} />} label="Due today" value={s.due} accent={s.due > 0} />
       </div>
@@ -138,8 +142,8 @@ export function TodayPage({
         <div className="min-w-0 space-y-8">
           <Section title="Reconnect" caption="Close people you haven't talked to in two months" action={<span className="font-medium text-accent-text">See all</span>}>
             <div className="flex flex-wrap gap-2 pt-0.5 pb-1">
-              {RECONNECT.slice(0, 4).map((name) => {
-                const m = RECONNECT_META[name] ?? { ago: "2mo", warmth: "active" as const, label: "Active" };
+              {RECONNECT.map((m) => {
+                const name = m.name;
                 return (
                   <span key={name} className="surface flex h-14 max-w-[15rem] shrink-0 items-center gap-2.5 rounded-full pr-4 pl-2">
                     <span className="relative shrink-0">

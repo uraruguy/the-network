@@ -1,18 +1,18 @@
 import { Check, History, PencilLine, Sparkles, SquarePen } from "lucide-react";
+import { Avatar } from "../../kit/Avatar";
 import { Composer, ModelPicker, Spinner, cn } from "./parts";
 
-type Run = { t: string; link?: boolean; bold?: boolean };
-type Block = { kind: "p" | "li"; runs: Run[] };
-
 export const QUESTION = "Who do I know in Lisbon who climbs?";
-export const ANSWER: Block[] = [
-  { kind: "p", runs: [{ t: "Three people in Lisbon climb:" }] },
-  { kind: "li", runs: [{ t: "Inês Sampaio", link: true }, { t: " · product designer at Figma, boulders on Thursdays. You met her at Web Summit today." }] },
-  { kind: "li", runs: [{ t: "Mateo Fernández", link: true }, { t: " · founder, raising a seed round. Invited you on a climbing trip to Sintra." }] },
-  { kind: "li", runs: [{ t: "Valentina Dubois", link: true }, { t: " · designer. She introduced you to Inês." }] },
-  { kind: "p", runs: [{ t: "Want me to plan a session with Inês this Thursday?" }] },
-];
-export const ANSWER_LEN = ANSWER.reduce((n, b) => n + b.runs.reduce((m, r) => m + r.t.length, 0), 0);
+/** The answer as the assistant links people: one row per person (avatar, name, why). */
+export const ANSWER = {
+  lead: "Three people in Lisbon climb:",
+  rows: [
+    { name: "Inês Sampaio", line: "Product designer at Figma · boulders on Thursdays. You met her at Web Summit today." },
+    { name: "Mateo Fernández", line: "Founder · raising a seed round. Invited you on a climbing trip to Sintra." },
+    { name: "Valentina Dubois", line: "Designer · she introduced you to Inês." },
+  ],
+  tail: "Want me to plan a session with Inês on Thursday?",
+};
 
 export type Pill = { label: string; detail?: string; state: "running" | "done"; write?: boolean };
 
@@ -20,11 +20,11 @@ function ToolPill({ p, appear, frame }: { p: Pill; appear: number; frame: number
   const running = p.state === "running";
   return (
     <span
-      className={cn("inline-flex h-7 max-w-full items-center gap-1.5 rounded-full px-2.5 text-caption font-medium select-none", running ? "bg-accent-soft text-accent-text" : "bg-fill-2 text-fg-2")}
+      className={cn("inline-flex h-9 max-w-full items-center gap-2 rounded-full px-3.5 text-subhead font-medium select-none", running ? "bg-accent-soft text-accent-text" : "bg-fill-2 text-fg-2")}
       style={{ opacity: appear, transform: `translateY(${(1 - appear) * 4}px) scale(${0.92 + 0.08 * appear})` }}
     >
-      <span className="grid size-3.5 shrink-0 place-items-center">
-        {running ? <Spinner size={12} frame={frame} /> : p.write ? <PencilLine size={12} strokeWidth={2.4} className="text-accent-text" /> : <Check size={13} strokeWidth={2.8} className="text-accent-text" />}
+      <span className="grid size-4 shrink-0 place-items-center">
+        {running ? <Spinner size={15} frame={frame} /> : p.write ? <PencilLine size={15} strokeWidth={2.4} className="text-accent-text" /> : <Check size={16} strokeWidth={2.8} className="text-accent-text" />}
       </span>
       <span className="truncate">
         {p.label}
@@ -35,44 +35,57 @@ function ToolPill({ p, appear, frame }: { p: Pill; appear: number; frame: number
   );
 }
 
-function Answer({ chars }: { chars: number }) {
-  let left = chars;
-  const blocks: React.ReactNode[] = [];
-  const items: React.ReactNode[] = [];
-  const flushList = (key: number) => {
-    if (items.length) blocks.push(<ul key={`ul${key}`} style={{ paddingLeft: "1.25em", margin: "0.35em 0", listStyle: "disc" }}>{items.splice(0)}</ul>);
-  };
-  ANSWER.forEach((b, bi) => {
-    if (left <= 0) return;
-    const runs = b.runs.map((r, ri) => {
-      const n = Math.max(0, Math.min(r.t.length, left));
-      left -= r.t.length;
-      if (n <= 0) return null;
-      const t = r.t.slice(0, n);
-      return r.link ? (
-        <span key={ri} className="font-medium text-accent-text" style={{ textDecoration: "underline", textDecorationColor: "color-mix(in oklab, var(--accent-text) 35%, transparent)", textUnderlineOffset: 3 }}>
-          {t}
-        </span>
-      ) : (
-        <span key={ri}>{t}</span>
-      );
-    });
-    if (b.kind === "li") items.push(<li key={bi} style={{ margin: "0.2em 0" }}>{runs}</li>);
-    else {
-      flushList(bi);
-      blocks.push(<p key={bi} style={{ margin: bi === 0 ? 0 : "0.5em 0 0" }}>{runs}</p>);
-    }
-  });
-  flushList(99);
-  return <div className="prose-chat">{blocks}</div>;
+/** The answer bubble: lead, person rows (pop in one by one via `rows`), tail line. */
+function Answer({ lead, rows, tail }: { lead: number; rows: number[]; tail: number }) {
+  return (
+    <div>
+      <p style={{ opacity: lead }}>{ANSWER.lead}</p>
+      <div className="mt-2 space-y-1">
+        {ANSWER.rows.map((r, i) => {
+          const a = rows[i] ?? 0;
+          return (
+            <div key={r.name} className="flex items-start gap-3 rounded-md px-1 py-1.5" style={{ opacity: a, transform: `translateY(${(1 - a) * 10}px)` }}>
+              <Avatar name={r.name} size={36} />
+              <div className="min-w-0 flex-1">
+                <div className="font-semibold text-accent-text">{r.name}</div>
+                <div className="text-subhead text-fg-2">{r.line}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <p className="mt-2" style={{ opacity: tail }}>
+        {ANSWER.tail}
+      </p>
+    </div>
+  );
 }
 
 /**
  * Chat (ChatView + ChatSession) at desktop width: header, 760 px column, composer with the
  * Smart/Fast picker. `typed` fills the composer; after `sent` the question becomes a bubble,
- * pills run, and the answer streams `answer` characters.
+ * pills run, and the answer card fills in row by row.
  */
-export function ChatPage({ typed, caret, sent, pills, answer, frame, sendPress = 0 }: { typed: string; caret: boolean; sent: number; pills: { p: Pill; appear: number }[]; answer: number; frame: number; sendPress?: number }) {
+export function ChatPage({
+  typed,
+  caret,
+  sent,
+  pills,
+  answer,
+  frame,
+  sendPress = 0,
+  showEmpty = true,
+}: {
+  /** Render ChatEmpty before the first message (off when the film starts mid-question). */
+  showEmpty?: boolean;
+  typed: string;
+  caret: boolean;
+  sent: number;
+  pills: { p: Pill; appear: number }[];
+  answer: { lead: number; rows: number[]; tail: number } | null;
+  frame: number;
+  sendPress?: number;
+}) {
   return (
     <div className="mx-auto flex w-full flex-col" style={{ maxWidth: 1100, padding: "32px 40px 0", height: 900 }}>
       <div className="flex flex-col" style={{ height: 836 }}>
@@ -86,8 +99,8 @@ export function ChatPage({ typed, caret, sent, pills, answer, frame, sendPress =
           </span>
         </header>
         <div className="relative min-h-0 flex-1">
-          {sent < 1 && (
-            <div className="absolute inset-0 mx-auto flex max-w-xl flex-col items-center justify-center gap-6 py-10 text-center" style={{ opacity: 1 - sent, transform: `translateY(${-sent * 20}px)` }}>
+          {showEmpty && sent < 1 && (
+            <div className="absolute inset-0 mx-auto flex max-w-xl flex-col items-center justify-center gap-6 py-10 text-center" style={{ opacity: Math.max(0, 1 - sent * 3), transform: `translateY(${-sent * 20}px)` }}>
               <div className="grid size-16 place-items-center rounded-full bg-accent-soft text-accent-text specular">
                 <Sparkles size={28} />
               </div>
@@ -117,9 +130,9 @@ export function ChatPage({ typed, caret, sent, pills, answer, frame, sendPress =
                     ))}
                   </div>
                 )}
-                {answer > 0 && (
-                  <div className="surface max-w-full rounded-lg rounded-bl-xs px-4 py-3 text-body text-fg">
-                    <Answer chars={answer} />
+                {answer && (
+                  <div className="surface w-full max-w-full rounded-lg rounded-bl-xs px-4 py-3 text-body text-fg" style={{ opacity: Math.min(1, answer.lead * 2) }}>
+                    <Answer {...answer} />
                   </div>
                 )}
               </div>

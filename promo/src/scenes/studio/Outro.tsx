@@ -1,56 +1,78 @@
 import { AbsoluteFill } from "remotion";
-import { REPO_URL, TAGLINE } from "../../data/demo";
-import { Headline } from "../../kit/Headline";
 import { Logo } from "../../kit/Logo";
 import { EASE, SPRINGS, clamp01, springAt, tween } from "../../kit/motion";
+import { Globe } from "../../ui/common/Globe";
 import { GithubMark } from "../../ui/desktop/parts";
+import { Title } from "./Title";
+import { arcsAt } from "./WindowContent";
 import type { Theme } from "./World";
 
-/** Scene 6: the lockup. Logo draws itself and slides aside as the wordmark emerges from behind it, then the promise and the repo. Still from ~1750. */
+/**
+ * End card (1620–1800), overlapping the terminal's exit so no frame is empty: a dimmed planet
+ * fills the lower third, the logo pops and the wordmark slides out from behind it, the promise,
+ * then the call to action in large mono. Everything settles by ~1730 and holds still.
+ */
 export function Outro({ frame, theme }: { frame: number; theme: Theme }) {
-  if (frame < 1656) return null;
+  if (frame < 1614) return null;
   const dark = theme === "dark";
-  const logo = springAt(frame, 1662, SPRINGS.pop);
-  const word = springAt(frame, 1686, SPRINGS.smooth);
-  const url = springAt(frame, 1720, SPRINGS.smooth);
-  const meta = springAt(frame, 1732, SPRINGS.soft);
-  const glow = tween(frame, [1660, 1720], [0, 1], EASE.out);
+  const planet = tween(frame, [1614, 1670], [0, 1], EASE.out);
+  const logo = springAt(frame, 1618, SPRINGS.pop);
+  const word = springAt(frame, 1636, SPRINGS.smooth);
+  const cta = springAt(frame, 1668, SPRINGS.smooth);
+  const fact = springAt(frame, 1688, SPRINGS.soft);
+  const spin = tween(frame, [1614, 1730], [0, 1], EASE.out);
   return (
-    <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
-      <div style={{ position: "absolute", width: 900, height: 900, borderRadius: 999, background: "radial-gradient(closest-side, rgba(52,219,227,0.22), transparent)", opacity: glow, top: -40 }} />
-      <div style={{ display: "flex", alignItems: "center", gap: 26, transform: `translateY(${-30}px)` }}>
-        <div style={{ position: "relative", zIndex: 2, transform: `translateX(${(1 - word) * 340}px) scale(${0.6 + 0.4 * logo})`, opacity: clamp01(logo * 1.6), filter: "drop-shadow(0 18px 40px rgba(10,143,150,0.45))" }}>
-          <Logo size={140} draw={tween(frame, [1666, 1700], [0, 1], EASE.inOut)} nodes={tween(frame, [1690, 1712], [0, 1], EASE.out)} />
+    <AbsoluteFill>
+      <AbsoluteFill style={{ opacity: 0.5 * planet, transform: `translateY(${(1 - planet) * 120}px)` }}>
+        <Globe width={1920} height={1080} radius={780} center={[960, 1370]} rotate={[-(20 + 14 * spin), -38]} theme="dark" home="Lisbon" reveal={1} arcs={arcsAt(2000)} labels={false} uiScale={1.5} atmosphere={1.2} />
+      </AbsoluteFill>
+      <AbsoluteFill style={{ alignItems: "center", paddingTop: 150, flexDirection: "column" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 26 }}>
+          <div style={{ position: "relative", zIndex: 2, transform: `translateX(${(1 - word) * 340}px) scale(${0.6 + 0.4 * logo})`, opacity: clamp01(logo * 1.6), filter: "drop-shadow(0 18px 40px rgba(10,143,150,0.45))" }}>
+            <Logo size={132} draw={tween(frame, [1622, 1652], [0, 1], EASE.inOut)} nodes={tween(frame, [1640, 1660], [0, 1], EASE.out)} />
+          </div>
+          <div
+            style={{
+              transform: `translateX(${-(1 - word) * 260}px)`,
+              clipPath: `inset(-20% -5% -20% ${Math.max(0, (1 - word) * 600 - 26)}px)`,
+              opacity: clamp01((word - 0.1) * 3),
+              font: '700 112px "Inter Variable", sans-serif',
+              letterSpacing: "-0.045em",
+              color: dark ? "#f2fbfb" : "#ffffff",
+            }}
+          >
+            The Network
+          </div>
         </div>
-        <div style={{ transform: `translateX(${-(1 - word) * 260}px)`, clipPath: `inset(-20% -5% -20% ${Math.max(0, (1 - word) * 600 - 26)}px)`, opacity: clamp01((word - 0.1) * 3), font: '700 116px "Inter Variable", sans-serif', letterSpacing: "-0.045em", color: dark ? "#f2fbfb" : "#0d1a1c" }}>The Network</div>
-      </div>
-      <div style={{ marginTop: 34 }}>
-        <Headline at={1706} lines={[[{ text: "Open source. Self-hosted. " }, { text: "Yours.", accent: true }]]} size={68} theme={theme} align="center" />
-      </div>
-      <div style={{ marginTop: 18, font: '450 30px "Inter Variable", sans-serif', letterSpacing: "-0.01em", color: dark ? "rgba(214,236,236,0.66)" : "oklch(0.42 0.015 215)", opacity: meta }}>{TAGLINE}</div>
-      <div
-        style={{
-          marginTop: 40,
-          display: "flex",
-          alignItems: "center",
-          gap: 14,
-          padding: "16px 28px 16px 22px",
-          borderRadius: 999,
-          font: '500 32px "JetBrains Mono Variable", monospace',
-          color: dark ? "#eafcfc" : "#0d1a1c",
-          background: dark ? "rgba(95,240,244,0.08)" : "rgba(10,143,150,0.06)",
-          border: `1px solid ${dark ? "rgba(95,240,244,0.3)" : "rgba(10,143,150,0.25)"}`,
-          boxShadow: dark ? "0 0 40px -6px rgba(52,219,227,0.35)" : undefined,
-          opacity: clamp01(url * 1.3),
-          transform: `translateY(${(1 - url) * 20}px) scale(${0.96 + 0.04 * url})`,
-        }}
-      >
-        <GithubMark size={34} />
-        {REPO_URL}
-      </div>
-      <div style={{ marginTop: 22, font: '500 19px "JetBrains Mono Variable", monospace', letterSpacing: "0.14em", textTransform: "uppercase", color: dark ? "#7fe6ea" : "#0b7f86", opacity: meta * 0.9 }}>
-        MIT · Next.js · Supabase · MCP
-      </div>
+        <div style={{ marginTop: 30 }}>
+          <Title at={1652} lines={[[{ text: "Open source. Self-hosted. " }, { text: "Yours.", accent: true }]]} size={77} dark={dark} />
+        </div>
+        <div
+          style={{
+            marginTop: 44,
+            display: "flex",
+            alignItems: "center",
+            gap: 18,
+            padding: "20px 38px 20px 30px",
+            borderRadius: 999,
+            font: '600 52px "JetBrains Mono Variable", monospace',
+            letterSpacing: "-0.01em",
+            color: "#0b1f22",
+            background: "linear-gradient(100deg, #b4fbfc, #5fe8ee)",
+            boxShadow: "0 0 0 1px rgba(255,255,255,0.4), 0 0 60px -6px rgba(52,219,227,0.55), 0 20px 50px -20px rgba(0,0,0,0.6)",
+            opacity: clamp01(cta * 1.3),
+            transform: `translateY(${(1 - cta) * 26}px) scale(${0.94 + 0.06 * cta})`,
+          }}
+        >
+          <span style={{ fontSize: 54 }}>★</span> Star on GitHub
+          <span style={{ opacity: 0.45 }}>·</span>
+          <GithubMark size={46} />
+          uraruguy/the-network
+        </div>
+        <div style={{ marginTop: 26, font: '500 30px "Inter Variable", sans-serif', letterSpacing: "-0.005em", color: "rgba(226,246,246,0.82)", opacity: fact, transform: `translateY(${(1 - fact) * 10}px)` }}>
+          Runs on Vercel + Supabase · MIT licensed
+        </div>
+      </AbsoluteFill>
     </AbsoluteFill>
   );
 }

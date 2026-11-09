@@ -2,60 +2,57 @@ import { EASE } from "../../kit/motion";
 import type { Key } from "./camera";
 
 /**
- * The single camera over the Mac window for the whole film (window space: 1440×938, the main
- * area starts at x 236, y 38). Each key inherits the previous one's fields; the segment ending
- * at a key uses that key's ease (default: a long cinematic glide).
+ * The single camera over the Mac window (window space: 1440×938, the main area starts at x 236,
+ * y 38). One establishing shot (Today); after that it goes push-in to push-in with fast whip
+ * moves (the motion blur hides page changes). Pushes keep content ≥ 220 px from the top so
+ * nothing sits under the headline band.
  */
-const EST = { fx: 720, fy: 469, zoom: 0.8, sx: 960, sy: 660, rx: 0, ry: 0, rz: 0 };
+const EST = { fx: 720, fy: 469, zoom: 0.8, sx: 960, sy: 650, rx: 0, ry: 0, rz: 0 };
+const WHIP = (t: number) => EASE.inOut(t);
 
 export const CAM: Key[] = [
-  // 1 · Today: the window rises out of the bloom, tilted, and settles.
-  { f: 168, cam: { ...EST, zoom: 0.5, sy: 1340, rx: 36 } },
-  { f: 250, cam: { ...EST }, ease: EASE.out },
-  { f: 266, cam: {} },
-  // Push into Due for the check-off.
-  { f: 312, cam: { fx: 560, fy: 500, zoom: 1.5, sx: 930, sy: 660, ry: -3 } },
-  { f: 372, cam: { fx: 600, fy: 520, zoom: 1.42, sx: 940, sy: 650, ry: -2 } },
-  // Pull back and swing left to make room for the digest e-mail.
-  { f: 418, cam: { fx: 720, fy: 469, zoom: 0.66, sx: 600, sy: 660, ry: 15 } },
-  { f: 486, cam: { zoom: 0.64, sx: 590, ry: 16 } },
-  // 2 · Paste: square up on the import dialog, then into the note.
-  { f: 532, cam: { fx: 720, fy: 405, zoom: 1.12, sx: 960, sy: 650, ry: 0 } },
-  { f: 556, cam: {} },
-  { f: 592, cam: { fx: 720, fy: 300, zoom: 1.55, sx: 960, sy: 640 } },
-  { f: 652, cam: { fx: 720, fy: 308, zoom: 1.58 } },
-  // Review cards, then down to the footer for Save.
-  { f: 690, cam: { fx: 720, fy: 470, zoom: 1.2, sy: 640 } },
-  { f: 722, cam: {} },
-  { f: 748, cam: { fx: 760, fy: 690, zoom: 1.24, sy: 650 } },
-  // 3 · People: back to the whole window for the sidebar click.
-  { f: 800, cam: { ...EST, zoom: 0.84, sy: 650 } },
-  { f: 822, cam: {} },
-  { f: 858, cam: { fx: 790, fy: 268, zoom: 1.4, sx: 960, sy: 560, ry: -2 } },
-  { f: 900, cam: { fx: 800, fy: 280, zoom: 1.42 } },
-  // Person page: onto Inês's header, then ride the scroll.
-  { f: 938, cam: { fx: 838, fy: 300, zoom: 1.34, sx: 960, sy: 600, ry: 0 } },
-  { f: 1040, cam: { fx: 838, fy: 320, zoom: 1.3 } },
-  // 4 · Globe.
-  { f: 1074, cam: { ...EST, zoom: 0.86, sy: 650 } },
-  { f: 1092, cam: {} },
-  { f: 1140, cam: { fx: 880, fy: 520, zoom: 1.16, sx: 930, sy: 640 } },
-  { f: 1176, cam: { fx: 900, fy: 520, zoom: 1.2 } },
-  { f: 1214, cam: { fx: 1010, fy: 500, zoom: 1.06, sx: 880, sy: 630 } },
-  { f: 1258, cam: { fx: 1010, fy: 500, zoom: 1.04 } },
-  // After the flip: the window steps left for the phone.
-  { f: 1292, cam: {} },
-  { f: 1334, cam: { fx: 720, fy: 469, zoom: 0.62, sx: 640, sy: 660, ry: 14 } },
-  { f: 1364, cam: { zoom: 0.62 } },
-  // 5 · Ask: back, then onto the composer, then the answer.
-  { f: 1392, cam: { ...EST, zoom: 0.86, sy: 650 } },
-  { f: 1426, cam: { fx: 838, fy: 760, zoom: 1.42, sx: 960, sy: 605 } },
-  { f: 1446, cam: {} },
-  { f: 1486, cam: { fx: 838, fy: 300, zoom: 1.4, sx: 960, sy: 560 } },
-  { f: 1520, cam: { fx: 838, fy: 320, zoom: 1.38 } },
-  // The terminal takes the stage; the window steps back left.
-  { f: 1556, cam: { fx: 720, fy: 469, zoom: 0.66, sx: 560, sy: 660, ry: 16 } },
-  { f: 1650, cam: { zoom: 0.64, sx: 540, ry: 18 } },
-  // 6 · Outro: the window falls away.
-  { f: 1700, cam: { zoom: 0.42, sx: 520, sy: 900, rx: 24, ry: 22 }, ease: EASE.in },
+  // Hook → Today: the window surfaces where the network implodes, then settles.
+  { f: 90, cam: { ...EST, zoom: 0.06, sy: 640, rx: 20 } },
+  { f: 132, cam: { ...EST }, ease: EASE.out },
+  { f: 150, cam: {} },
+  // The digest arrives: the window steps left and turns towards it.
+  { f: 174, cam: { zoom: 0.6, sx: 560, sy: 660, ry: 14 } },
+  { f: 262, cam: { zoom: 0.58, sx: 540, ry: 15 } },
+  // Whip onto Sara's row: it checks itself off (synced from the e-mail).
+  { f: 282, cam: { fx: 560, fy: 452, zoom: 2.2, sx: 960, sy: 620, ry: 0 }, ease: WHIP },
+  { f: 362, cam: { fx: 570, fy: 456, zoom: 2.24 } },
+  // Import: whip up into the pasted note, then onto the cards, then down to Save.
+  { f: 386, cam: { fx: 720, fy: 318, zoom: 2.05, sx: 960, sy: 624 }, ease: WHIP },
+  { f: 440, cam: { fx: 720, fy: 322, zoom: 2.1 } },
+  { f: 484, cam: { fx: 720, fy: 352, zoom: 1.92, sx: 960, sy: 664 } },
+  { f: 548, cam: { fx: 720, fy: 356, zoom: 1.95 } },
+  { f: 564, cam: { fx: 740, fy: 540, zoom: 1.3, sx: 960, sy: 650 } },
+  { f: 574, cam: {} },
+  // Cards fly into the People tile: tiles + the toast in one frame.
+  { f: 604, cam: { fx: 560, fy: 600, zoom: 1.4, sx: 960, sy: 640 } },
+  { f: 652, cam: { fx: 562, fy: 602, zoom: 1.42 } },
+  // Search: whip-pan (Today → People hides in the blur), results pushed in.
+  { f: 668, cam: { fx: 838, fy: 355, zoom: 1.7, sx: 960, sy: 580 }, ease: WHIP },
+  { f: 760, cam: { fx: 838, fy: 352, zoom: 1.72 } },
+  { f: 780, cam: { fx: 900, fy: 262, zoom: 1.6, sx: 960, sy: 560 } },
+  { f: 790, cam: {} },
+  // Globe: whip from "Show on globe" onto the planet and the Lisbon panel.
+  { f: 812, cam: { fx: 930, fy: 520, zoom: 1.42, sx: 960, sy: 650 }, ease: WHIP },
+  { f: 856, cam: { fx: 930, fy: 524, zoom: 1.45 } },
+  // Push onto the Lisbon panel (the payoff), hold, then back out for the arcs and the flip.
+  { f: 878, cam: { fx: 1180, fy: 392, zoom: 1.8, sx: 960, sy: 680 } },
+  { f: 930, cam: { fx: 1186, fy: 396, zoom: 1.84 } },
+  { f: 954, cam: { fx: 920, fy: 524, zoom: 1.48, sx: 960, sy: 650 } },
+  { f: 960, cam: {} },
+  // (dark) the planet outgrows the window, which falls back and fades.
+  { f: 1004, cam: { fx: 900, fy: 520, zoom: 1.1, sy: 700, rx: 18 } },
+  // Chat: the window returns already pushed in on the composer…
+  { f: 1098, cam: { fx: 838, fy: 860, zoom: 2.0, sx: 960, sy: 1460, rx: 22 } },
+  { f: 1124, cam: { fx: 838, fy: 860, zoom: 2.0, sx: 960, sy: 640, rx: 0 }, ease: EASE.out },
+  { f: 1140, cam: {} },
+  // …then whips up to the answer.
+  { f: 1158, cam: { fx: 838, fy: 330, zoom: 1.58, sx: 960, sy: 640 }, ease: WHIP },
+  { f: 1314, cam: { fx: 838, fy: 336, zoom: 1.63 } },
+  // MCP: the window falls back behind the terminal.
+  { f: 1346, cam: { fx: 720, fy: 469, zoom: 0.62, sx: 600, sy: 760, rx: 16, ry: 18 } },
 ];

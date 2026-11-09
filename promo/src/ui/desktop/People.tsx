@@ -77,7 +77,9 @@ export function PeoplePage({
   filter,
   collapse,
   hoverRow,
+  total = 285,
 }: {
+  total?: number;
   query: string;
   caret?: boolean;
   focused?: boolean;
@@ -95,7 +97,7 @@ export function PeoplePage({
         <div className="min-w-0">
           <h1 className="text-large-title text-fg">People</h1>
           <p className="mt-0.5 min-h-5 text-subhead text-fg-2 tabular-nums">
-            {filtering ? `${shown.length} of 285 people` : "285 people"}
+            {filtering ? `${shown.length} of ${total} people` : `${total} people`}
             {(!filtering || shown.length <= 3) && <span className="text-fg-3"> · {filtering ? "1 city" : "79 cities"}</span>}
           </p>
         </div>
