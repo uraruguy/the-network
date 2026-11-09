@@ -7,8 +7,8 @@ frame is code, deterministic and re-renderable. Same app, two different films. P
 | --- | --- | --- |
 | Canvas | 1080×1350 (4:5, most space in X's mobile feed) | 1920×1080 (16:9, X's default) |
 | Device | iPhone, light app UI | macOS window, light app UI that flips to dark mid-video |
-| Stage | Dark ink-teal night (`DarkStage`) | Bright app canvas (`LightStage`) → dark after the flip |
-| Language | Numbered chapters, kinetic headlines above the phone, phone camera moves, a globe that breaks out of the screen | One continuous 3D camera over a Mac window, a cursor drives the app, graph bloom intro, paste-import, terminal/MCP |
+| Stage | Dark ink-teal night (`DarkStage`) | Deep saturated teal behind a light app → dark after the flip |
+| Language | Data-kicker chapters, kinetic headlines above the phone, phone camera moves, one person (Nik Zupan) carried from capture to card, a globe that breaks out of the screen | One continuous 3D camera over a Mac window, a cursor drives the app, graph pull-back hook, paste-import, globe + dark flip, Claude over MCP in a terminal |
 
 Both: 60 fps, 1800 frames. Scene cuts land on multiples of 30 frames (a 120 BPM beat grid), so
 any 120 BPM track can be laid under them in an editor. No audio is rendered: X autoplays muted.
@@ -104,38 +104,35 @@ Style after the app's `src/components/graph/NetworkGraph.tsx`. Optional ambient 
 
 ## Pocket (phone, 1080×1350)
 
-Layout: headline zone at the top (y ≈ 80–380), phone below it, large (about 1.1–1.25× of its
-426×900 frame), often slightly cropped by the bottom edge. Camera moves between scenes: the phone
-travels, tilts (`perspective` + `rotateX/rotateY`), zooms into the relevant UI.
+Final cut (after four review rounds). Headlines sit in a masked band at the top; the phone pushes
+in on every payoff.
 
-| # | Frames | Seconds | Kicker / headline | What happens |
-| --- | --- | --- | --- | --- |
-| 0 | 0–180 | 0.0–3.0 | — / "You meet *hundreds* of people." → "Remember *every one.*" | ~160 avatar bubbles (`crowd()`) drift in depth, parallax, some showing names. Line 1 lands at ~f8. At ~f90 line 2 replaces it while the bubbles swirl into a vortex and stream into the phone, which rises from below. |
-| 1 | 180–420 | 3.0–7.0 | `01 · Follow-ups` / "Never forget / to *reach out.*" | Today screen (faithful to `today.jpg`): date, greeting, capture field, stat tiles counting up (285 / 79 / 3), Due (Sara, Max, Valentina), This week (Nik, Ola), tab bar. A tap on Sara's circle: ring fills turquoise, check pops, row collapses, Due 3→2, toast "Done · Sara Rossi". |
-| 2 | 420–690 | 7.0–11.5 | `02 · Quick capture` / "Jot it down. / AI *files it.*" | The capture field lifts out of the phone as a large floating glass card; the phone dims behind. `CAPTURE.text` types with a caret. Send. Shimmer. Key phrases highlight, then four filed chips fly out of them: Note → Nik Zupan, Moving to → Lisbon, Follow-up → in 2 weeks, Intro → Valentina Dubois, each landing with a check. |
-| 3 | 690–960 | 11.5–16.0 | `03 · A card for everyone` / "Everything you know, / *in one place.*" | iOS push to Sara Rossi's card (faithful to `person.jpg`). Phone slides left; callout pills with leader lines appear on the right pointing at: warmth, next follow-up, introduced by Max Larsen, notes (meeting / call / message). The card scrolls to reveal categories, tags, "How you met". |
-| 4 | 960–1170 | 16.0–19.5 | `04 · Search` / "Find anyone / in a *second.*" | People list (faithful to `people.jpg`). Typing "aljaz" filters live to the five Aljaž rows with the match highlighted (accent-insensitive search). A–Z index visible. Fast, snappy. |
-| 5 | 1170–1440 | 19.5–24.0 | `05 · Globe` / "Your people, / *on a globe.*" | Globe screen (faithful to `globe.jpg`), globe turning with clusters. Then the globe breaks out: it grows past the phone's edges to fill the canvas, the phone falls away, arcs fly from Ljubljana to Tokyo (Sara), Lisbon (Valentina), Copenhagen (Max), New York, San Francisco; avatar pins pop. Counter "79 cities". |
-| 6 | 1440–1650 | 24.0–27.5 | `06 · AI assistant` / "Ask your *network.*" sub: "Your own key. Or from Claude, ChatGPT, Cursor via MCP." | Phone returns with Chat: the question types into the composer, sends as a bubble, tool pills ("Searching people" → done), the answer streams with three person rows (Inês Sampaio, Mateo Fernández, Valentina Dubois). |
-| 7 | 1650–1800 | 27.5–30.0 | — | Phone recedes and dissolves. Logo draws itself (`draw`, then `nodes`), "The Network", tagline, chips "Open source · Self-hosted · MIT", `github.com/uraruguy/the-network` in mono. Settled and still from ~f1750. |
+| # | Frames | Kicker / headline | What happens |
+| --- | --- | --- | --- |
+| 0 | 0–150 | `OPEN SOURCE · SELF-HOSTED` / "You meet *hundreds* of people." → "Remember *every one.*" | Poster-ready f0. Faces from the seed lists, some with memory chips ("Met at Web Summit", "Owes you an intro"), drift with depth of field, rack focus, then stream into the rising phone as squash-and-stretch smears. |
+| 1 | 150–390 | `3 DUE TODAY` → `2 DUE TODAY` / "Never miss / a *follow-up.*" | Today (285 / 79 / 3). Push-in, tap Sara's circle: check pops, row clip-collapses, Due 3→2, "Done · Sara Rossi" toast above the tab bar. |
+| 2 | 390–660 | `AI CAPTURE` / "Jot it down. / AI *files it.*" | The capture field lifts out of the dimmed phone, the note types, send, colour-matched highlights launch four chips: Note → Nik Zupan, Moving to → Lisbon, Intro → Valentina Dubois, Follow-up → in 2 weeks. |
+| 3 | 660–930 | `ONE CARD PER PERSON` / "How you met. / *What they said.*" | The chips land in Nik Zupan's card at 1.8×: "Ljubljana → Lisbon in March", the intro this week, the padel rematch moved to Fri 13 Nov, the new note. Captions: daily digest, Apple Notes import. |
+| 4 | 930–1110 | `ALJAZ = ALJAŽ` / "Find anyone / in a *second.*" | "aljaz" filters to the five Aljaž rows with accent highlights and an `aljaz → Aljaž` hint; Globe tab tap, one-frame swap. |
+| 5 | 1110–1380 | `285 PEOPLE · 79 CITIES` / "Your people, / *on a globe.*" | The globe breaks out of the phone (frozen clustering), arcs alternate west and east from Ljubljana, name chips (Valentina · Lisbon, Max · Copenhagen, Sara · Tokyo), a counter ticks to 79, the globe returns into the phone. |
+| 6 | 1380–1620 | `WORKS WITH CLAUDE VIA MCP` / "Ask your *network.*" + "…or ask *Claude.*" | Chat mid-thread (history consistent with the film), "Who do I know in Lisbon who climbs?", tool pills, three person rows. |
+| 7 | 1620–1800 | — | The logo draws with its tile, "The Network", tagline, chips, the `github.com/uraruguy/the-network` pill, "★ Star it on GitHub". Still for the last second. |
 
 ## Studio (desktop, 1920×1080)
 
-One continuous camera: the Mac window lives in 3D (`perspective` on a wrapper; animate
-`rotateX/rotateY/translateZ/scale`), the camera pushes into regions of interest and pulls back
-between scenes. A macOS cursor (with click ripple) drives the app. Headlines sit centred above the
-window (or the window shifts to make room). The light canvas flips to dark at ~f1260 with a
-circular reveal from the cursor.
+Final cut (after five review rounds). A 200 px headline band at the top; the camera pushes into
+every payoff and whip-pans between scenes (one establishing pull-back, on Today).
 
-| # | Frames | Seconds | Kicker / headline | What happens |
-| --- | --- | --- | --- | --- |
-| 0 | 0–200 | 0.0–3.3 | — / "Everyone you've met." → "*Connected.*" | Light canvas. Alex's node at the centre; introduction edges grow out (`NetworkGraph grow`), avatars pop, light pulses run along edges; slow camera rotation/zoom-out. |
-| 1 | 200–500 | 3.3–8.3 | `Today` / "Follow-ups that *find you.*" | The graph shrinks into the Mac window, which settles from a tilt. Desktop Today (sidebar + content column). Cursor checks off Max Larsen. Then the daily e-mail digest card slides in from the right over the window (3 follow-ups, one-tap **Done** / **Snooze**); the cursor clicks Done → ✓. |
-| 2 | 500–800 | 8.3–13.3 | `Import` / "Paste anything. / AI *files it.*" | Paste sheet (faithful to `QuickImportSheet`): ⌘V drops a messy note from Web Summit Lisbon. AI pass: names and dates highlight in sequence; proposals appear in a side column (new person Inês Sampaio, note to Mateo Fernández, intro to Björn Østergaard, follow-up for Chloé Lefèvre). Cursor clicks Save; cards fly into place. |
-| 3 | 800–1080 | 13.3–18.0 | `People` / "Find anyone / *in a second.*" | People page: cursor clicks search, types "lisbon", list filters to the Lisbon people, click Inês → person page. Camera pushes into her card. |
-| 4 | 1080–1380 | 18.0–23.0 | `Globe` / "Your world, *mapped.*" → `Works like an app` / "Light, dark, *offline.*" | Sidebar → Globe (full bleed): globe turns, clusters, cursor hovers Lisbon → peek. At ~f1260 the theme flips to dark with a circular reveal from the cursor (window + stage). An iPhone slides in beside the window showing the same globe; an "Offline · synced" pill. |
-| 5 | 1380–1620 | 23.0–27.0 | `AI + MCP` / "Ask your *network.*" → "…or ask *Claude.*" | Dark Chat: question, tool pills, streamed answer with person rows. A terminal slides over the corner: `claude mcp add --transport http --scope user network https://your-network/api/mcp --header "Authorization: Bearer ntk_…"`, then `claude mcp list` → `network … ✓ Connected`, the 13 tool names stream in. |
-| 6 | 1620–1800 | 27.0–30.0 | "Open source. Self-hosted. *Yours.*" | Window pulls away; logo lockup, tagline, `github.com/uraruguy/the-network`, "MIT · Next.js · Supabase". Still from ~f1750. |
+| # | Frames | Headline | What happens |
+| --- | --- | --- | --- |
+| 0 | 0–120 | "Everyone you've met. / …and who *introduced you.*" | Tight on "You", fast pull-back while the introducer graph and an ambient crowd fill in; a counter ticks to 285, lands in the People tile, the graph implodes into the window. |
+| 1 | 120–360 | "Follow-ups that *find you.*" | The Mac app (sidebar + Today). The daily digest e-mail at 2.1×: Done on Sara → "✓ Marked done"; whip to the app, her row checks itself, Due 3→2. |
+| 2 | 360–660 | "Paste anything. / AI *files it.*" | ⌘V keycap, the paste sheet with a Web Summit Lisbon note, highlights, names lift into four proposal cards (new person Inês Sampaio, Mateo, Björn, Chloé). Save: avatars fly into People, 285→286, toast. |
+| 3 | 660–810 | "Type a city. / *Get your people.*" | Whip to People; "lisbon" filters to all 7 Lisbon people (7 of 286), "Show on globe". |
+| 4 | 810–1110 | "Landing in Lisbon? / *Know who's there.*" → "Installs like an app. / *Works offline.*" | Globe on Europe, Lisbon panel at 1.6×, arcs; a circular dark wipe from the Lisbon pin; the dark planet outgrows the window; an iPhone with the same globe, Offline · 2 changes waiting → Synced. |
+| 5 | 1110–1320 | "Ask your *network.*" | Dark Chat thread: the question rises from the composer, tool pills, an answer card with three person rows. |
+| 6 | 1320–1620 | "…or ask *Claude.*" | Terminal: the real `claude mcp add …` from docs/mcp.md, `claude mcp list` → `network: … (HTTP) - ✓ Connected`, `# 13 tools: …`, then `claude -p "Who should I catch up with in Lisbon?" --allowedTools mcp__network` and its answer. |
+| 7 | 1620–1800 | "Open source. Self-hosted. *Yours.*" | Lockup over a dimmed globe, "★ Star on GitHub · uraruguy/the-network", "Runs on Vercel + Supabase · MIT licensed". Still from ~f1730. |
 
 ## Render
 
