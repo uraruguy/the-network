@@ -21,16 +21,17 @@ export type GlobeScreenProps = {
   arcs?: GlobeArc[];
   clusterAngle?: number;
   raise?: string[];
+  hideLabels?: string[];
 };
 
 /** The Globe tab on a phone (GlobeView: MapHeader, ViewSwitch, map FilterBar, controls), faithful to docs/screenshots/globe.jpg. */
-export function GlobeScreen({ rotate, reveal = 1, globeHidden = false, globeOpacity = 1, chromeOut = 0, tab = 2, arcs, clusterAngle, raise }: GlobeScreenProps) {
+export function GlobeScreen({ rotate, reveal = 1, globeHidden = false, globeOpacity = 1, chromeOut = 0, tab = 2, arcs, clusterAngle, raise, hideLabels }: GlobeScreenProps) {
   const c = 1 - chromeOut;
   return (
     <Screen style={{ background: "var(--bg)" }}>
       <div style={{ position: "absolute", inset: 0, background: "radial-gradient(120% 80% at 50% 45%, var(--bg) 0%, var(--bg-2) 100%)" }} />
       {!globeHidden && (
-        <Globe style={{ opacity: globeOpacity }} width={402} height={874} radius={PHONE_GLOBE.r} center={[PHONE_GLOBE.cx, PHONE_GLOBE.cy]} rotate={rotate} theme="light" reveal={reveal} labels uiScale={0.92} atmosphere={0.7} arcs={arcs} clusterAngle={clusterAngle} raise={raise} />
+        <Globe style={{ opacity: globeOpacity }} width={402} height={874} radius={PHONE_GLOBE.r} center={[PHONE_GLOBE.cx, PHONE_GLOBE.cy]} rotate={rotate} theme="light" reveal={reveal} labels uiScale={0.92} atmosphere={0.7} arcs={arcs} clusterAngle={clusterAngle} raise={raise} hideLabels={hideLabels} />
       )}
       <div className="absolute inset-x-0 top-0 z-10 px-3" style={{ paddingTop: SAT + 10 - 24, opacity: c, transform: `translateY(${-14 * chromeOut}px)` }}>
         <div className="flex items-start justify-between gap-2">

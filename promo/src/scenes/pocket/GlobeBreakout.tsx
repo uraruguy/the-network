@@ -20,6 +20,8 @@ export function globeRotation(frame: number): [number, number] {
 export const CLUSTER_ANGLE = 0.13;
 /** The home cluster draws above the landing pins. */
 export const RAISE = ["Ljubljana"];
+/** The Marie · Lisbon leader runs down through Morocco: both globes leave that label out. */
+export const HIDE_LABELS = ["Morocco"];
 
 /** West and east, alternating. Start frames; each arc takes ARC frames to land. */
 const ARCS: [string, number][] = [
@@ -92,6 +94,7 @@ export function GlobeBreakout({ cam }: { cam: (f: number) => Pose }) {
         arcs={arcsAt(frame)}
         clusterAngle={CLUSTER_ANGLE}
         raise={RAISE}
+        hideLabels={HIDE_LABELS}
         uiScale={ui}
         atmosphere={mix(mix(0.7, 1.1, t), 0.7, back)}
       />

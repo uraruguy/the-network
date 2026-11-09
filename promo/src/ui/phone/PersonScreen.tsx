@@ -34,7 +34,7 @@ const flashBg = (t: number) => {
  */
 export function PersonScreen({ scrollY = 0, rootRef, tab = 1, filed = NOTHING_FILED, glow = NOTHING_FILED }: { scrollY?: number; rootRef?: Ref<HTMLDivElement>; tab?: number; filed?: Filed; glow?: Filed }) {
   const compact = clamp01((scrollY - 230) / 40);
-  const padelNew = filed.padel > 0.5;
+  const padelNew = glow.padel > 0;
   return (
     <Screen>
       <AppBg />
@@ -89,7 +89,7 @@ export function PersonScreen({ scrollY = 0, rootRef, tab = 1, filed = NOTHING_FI
                 </span>
               }
             >
-              <Grow t={filed.intro} h={60}>
+              <Grow t={filed.intro} h={60} show={clamp01(glow.intro * 2)}>
                 <FollowUpRow anchor="intro" title="Intro to Marie Dupont" when="This week" tone="text-accent-text" bg={flashBg(glow.intro)} />
               </Grow>
               <FollowUpRow
@@ -107,14 +107,14 @@ export function PersonScreen({ scrollY = 0, rootRef, tab = 1, filed = NOTHING_FI
           <section className="space-y-3" data-anchor="notes">
             <div className="flex items-center justify-between gap-3 pl-1">
               <h2 className="flex items-baseline gap-2 text-title3 text-fg">
-                Notes <span className="text-subhead font-normal text-fg-3 tabular-nums">{filed.note > 0.5 ? 4 : 3}</span>
+                Notes <span className="text-subhead font-normal text-fg-3 tabular-nums">{glow.note > 0 ? 4 : 3}</span>
               </h2>
               <span className="grid h-11 w-11 place-items-center text-accent-text">
                 <SquarePen size={20} />
               </span>
             </div>
             <div>
-              <Grow t={filed.note} h={92}>
+              <Grow t={filed.note} h={92} show={clamp01(glow.note * 2)}>
                 <section className="space-y-1.5 pb-5">
                   <h3 className="px-4 text-footnote font-semibold tracking-[0.02em] text-fg-3 uppercase">Today</h3>
                   <ul className="surface overflow-hidden rounded-lg">
@@ -201,10 +201,11 @@ export function PersonScreen({ scrollY = 0, rootRef, tab = 1, filed = NOTHING_FI
 }
 
 /** Height-animated insert (motion's `height: 0 → auto` in the app's lists). */
-function Grow({ t, h, children }: { t: number; h: number; children: React.ReactNode }) {
-  if (t <= 0) return <div data-grow style={{ height: 0, overflow: "hidden" }}>{children}</div>;
+function Grow({ t, h, show, children }: { t: number; h: number; show: number; children: React.ReactNode }) {
+  if (t <= 0) return <div data-grow style={{ height: 0, overflow: "hidden", opacity: 0 }}>{children}</div>;
   const k = clamp01(t);
-  return <div style={{ height: k >= 1 ? "auto" : h * k, overflow: k >= 1 ? undefined : "hidden", opacity: clamp01(k * 1.6 - 0.3) }}>{children}</div>;
+  // The slot opens first (empty); its content appears when the chip lands in it.
+  return <div style={{ height: k >= 1 ? "auto" : h * k, overflow: k >= 1 ? undefined : "hidden", opacity: show }}>{children}</div>;
 }
 
 function FollowUpRow({ anchor, title, when, tone, repeat, bg, divider }: { anchor: string; title: string; when: string; tone: string; repeat?: boolean; bg?: string; divider?: boolean }) {

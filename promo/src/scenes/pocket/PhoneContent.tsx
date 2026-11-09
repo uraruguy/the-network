@@ -9,7 +9,7 @@ import { PeopleScreen } from "../../ui/phone/PeopleScreen";
 import { PersonScreen, type Filed } from "../../ui/phone/PersonScreen";
 import { TodayScreen } from "../../ui/phone/TodayScreen";
 import { B, LANDING, landAt } from "./beats";
-import { CLUSTER_ANGLE, RAISE, arcsAt, globeRotation } from "./GlobeBreakout";
+import { CLUSTER_ANGLE, HIDE_LABELS, RAISE, arcsAt, globeRotation } from "./GlobeBreakout";
 
 /** iOS push: `from` slides 30% left and dims, `to` slides in from the right with an edge shadow. `reverse` pops. */
 function Push({ t, from, to, reverse = false }: { t: number; from: ReactNode; to: ReactNode; reverse?: boolean }) {
@@ -39,7 +39,8 @@ export function filedAt(frame: number): { filed: Filed; glow: Filed } {
   const glow = {} as Filed;
   LANDING.forEach((k, i) => {
     const land = landAt(i);
-    filed[k] = progress(frame, land - 18, 14, EASE.inOut);
+    // Inserted rows (intro, note) open as empty slots first; the rest change when the chip lands.
+    filed[k] = k === "intro" || k === "note" ? progress(frame, land - 18, 14, EASE.inOut) : k === "moving" ? progress(frame, land, 12, EASE.out) : frame >= land ? 1 : 0;
     glow[k] = frame < land ? 0 : (frame - land) / 12;
   });
   return { filed, glow };
@@ -128,6 +129,7 @@ function globe(frame: number) {
       arcs={arcsAt(frame)}
       clusterAngle={CLUSTER_ANGLE}
       raise={RAISE}
+      hideLabels={HIDE_LABELS}
     />
   );
 }

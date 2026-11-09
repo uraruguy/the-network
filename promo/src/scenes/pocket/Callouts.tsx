@@ -48,14 +48,25 @@ export function Callouts({ cam, anchors, scroll }: { cam: (f: number) => Pose; a
         const t = springAt(frame, c.at, SPRINGS.smooth);
         const out = progress(frame, c.out, 16, EASE.out);
         const vis = clamp01(t * 1.6) * (1 - out);
-        const p = project(pose, a.x + a.w - 34, a.y + a.h / 2 - scroll(frame));
+        const p = project(pose, a.x + a.w - 4, a.y + a.h / 2 - scroll(frame));
+        // Up the outside of the phone, then in to the section: never through the tab bar's labels.
+        const lane = project(pose, 402 + 40, 0).x;
         const draw = progress(frame, c.at + 4, 16, EASE.out);
         const pulse = ((frame - c.at) % 54) / 54;
         return (
           <div key={c.id} style={{ position: "absolute", inset: 0, opacity: vis }}>
             <svg width={1080} height={1350} style={{ position: "absolute", inset: 0 }}>
-              <line x1={p.x} y1={BOX_Y} x2={p.x} y2={BOX_Y - (BOX_Y - p.y) * draw} stroke="#5ff0f4" strokeOpacity={0.9} strokeWidth={3} strokeDasharray="2 8" strokeLinecap="round" />
-              <circle cx={p.x} cy={p.y} r={9} fill="#5ff0f4" opacity={draw} />
+              <polyline
+                points={`${lane},${BOX_Y} ${lane},${BOX_Y - (BOX_Y - p.y) * Math.min(1, draw * 1.6)} ${lane - (lane - p.x) * clamp01(draw * 1.6 - 0.6)},${p.y}`}
+                fill="none"
+                stroke="#5ff0f4"
+                strokeOpacity={0.9}
+                strokeWidth={3}
+                strokeDasharray="2 8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <circle cx={p.x} cy={p.y} r={9} fill="#5ff0f4" opacity={clamp01(draw * 1.6 - 0.6)} />
               <circle cx={p.x} cy={p.y} r={9 + pulse * 22} fill="none" stroke="#5ff0f4" strokeOpacity={0.7 * (1 - pulse) * draw} strokeWidth={2.5} />
             </svg>
             <div

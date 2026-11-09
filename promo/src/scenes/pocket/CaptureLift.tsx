@@ -165,7 +165,7 @@ export function CaptureLift({ cam, anchors }: { cam: (f: number) => Pose; anchor
           cx = mix(slot.x, tp.x, EASE.out(u));
           cy = mix(slot.y, tp.y, EASE.in(u));
           sc = mix(1.05, tp.k * 0.95, EASE.inOut(u));
-          o = 1 - clamp01((u - 0.62) / 0.38);
+          o = 1 - clamp01((u - 0.88) / 0.12);
         }
         const land = springAt(frame, start + 14, SPRINGS.pop);
         const Icon = p.icon;

@@ -39,7 +39,7 @@ const bez = (p0: number, c: number, p1: number, u: number) => (1 - u) * (1 - u) 
  * dim behind "You meet hundreds of people."; on "Remember every one." they rack into focus and
  * stream along curved paths into the phone's screen (`sink`), squashing and stretching with speed.
  */
-export function Hook({ sink }: { sink: (frame: number) => { x: number; y: number; s: number } }) {
+export function Hook({ sink, layer = "bubbles" }: { sink: (frame: number) => { x: number; y: number; s: number }; layer?: "bubbles" | "memories" }) {
   const frame = useCurrentFrame();
   if (frame > B.hookStream + 80) return null;
   const sharp = progress(frame, B.hookSharp, 12, EASE.out);
@@ -81,8 +81,9 @@ export function Hook({ sink }: { sink: (frame: number) => { x: number; y: number
   return (
     <AbsoluteFill>
       {drawn
-        .filter(({ u }) => u < 1)
-        .sort((a, b) => Number(!!a.p.it.note) - Number(!!b.p.it.note) || b.p.z - a.p.z)
+        // Memories draw on their own layer above the rising phone, so they stay readable until they stream in.
+        .filter(({ u, p }) => u < 1 && !!p.it.note === (layer === "memories"))
+        .sort((a, b) => b.p.z - a.p.z)
         .map(({ p, pos, u, speed, angle }) => {
           const fade = 1 - clamp01((u - 0.82) / 0.18);
           const scale = mix(1, 0.18, u * u);
@@ -159,7 +160,7 @@ export function Hook({ sink }: { sink: (frame: number) => { x: number; y: number
             </div>
           );
         })}
-      {arriving > 0 && (
+      {layer === "bubbles" && arriving > 0 && (
         <div
           style={{
             position: "absolute",

@@ -183,6 +183,7 @@ export function Pocket() {
         <Callouts cam={cam} anchors={anchors} scroll={personScroll} />
         <SearchHint pose={pose} />
       </Band>
+      <Hook sink={sink} layer="memories" />
       {KICKERS.map((k) => (frame >= k.at - 2 && frame <= k.out + 10 ? <Kicker key={k.text} {...k} /> : null))}
       {HEADLINES.map((h, i) =>
         frame >= h.at - 12 && frame <= h.out + 20 ? (

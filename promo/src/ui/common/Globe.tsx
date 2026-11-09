@@ -35,6 +35,8 @@ export type GlobeProps = {
   clusterAngle?: number;
   /** Seed cities whose markers draw above everything else (e.g. the home cluster). */
   raise?: string[];
+  /** Country labels to leave out (e.g. one a callout's leader line would cross). */
+  hideLabels?: string[];
   focus?: string;
   /** Scales bubbles, pins, labels and strokes (1 = the app's sizes in pt). */
   uiScale?: number;
@@ -132,6 +134,7 @@ export function Globe({
   clusterRadius,
   clusterAngle,
   raise,
+  hideLabels,
   focus,
   uiScale = 1,
   atmosphere = 1,
@@ -359,7 +362,7 @@ export function Globe({
   const labelSize = uiScale * (10.5 + Math.min(1, Math.max(0, (k - 0.8) / 2.2)) * 3);
   const placed: { x0: number; y0: number; x1: number; y1: number }[] = [];
   const labelEls = labels
-    ? [...COUNTRY_LABELS]
+    ? COUNTRY_LABELS.filter((l) => !hideLabels?.includes(l.name))
         .sort((a, b) => a.rank - b.rank)
         .flatMap((l) => {
           if ((l.rank === 2 && k < 0.8) || (l.rank === 3 && k < 0.9)) return [];
