@@ -571,6 +571,7 @@ pnpm dev</code></pre>
     });
     frame.addEventListener("pointermove", wake);
     frame.addEventListener("focusin", wake);
+    frame.addEventListener("focusout", function () { setTimeout(wake, 0); });
     big.addEventListener("click", withSound);
     sound.addEventListener("click", function () {
       if (!voiced) return withSound();
