@@ -1,6 +1,6 @@
 /**
  * Diacritic- and case-insensitive matching for pickers and search fields:
- * "zan" finds "Žan", "lukic" finds "Lukić", "ostergaard" finds "Østergaard".
+ * "zan" finds "Žan", "markovic" finds "Marković", "oyvind" finds "Øyvind".
  */
 
 /** Letters that NFD doesn't decompose into base + combining mark. */

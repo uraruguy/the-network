@@ -1,0 +1,48 @@
+{
+  "name": "the-network-promo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Launch videos for The Network, built with Remotion. Not part of the app build.",
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio",
+    "sync:tokens": "node scripts/sync-tokens.mjs",
+    "still": "remotion still",
+    "render:pocket": "remotion render Pocket out/the-network-phone.mp4",
+    "render:studio": "remotion render Studio out/the-network-desktop.mp4",
+    "render": "pnpm render:pocket && pnpm render:studio",
+    "fetch:music": "node scripts/fetch-music.mjs",
+    "score": "node scripts/score.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "5.3.0",
+    "@fontsource-variable/jetbrains-mono": "5.3.0",
+    "@remotion/bundler": "4.0.538",
+    "@remotion/cli": "4.0.538",
+    "@remotion/noise": "4.0.538",
+    "@remotion/paths": "4.0.538",
+    "@remotion/renderer": "4.0.538",
+    "@remotion/tailwind-v4": "4.0.538",
+    "@remotion/transitions": "4.0.538",
+    "@tailwindcss/postcss": "4.3.3",
+    "d3-force": "3.0.1",
+    "d3-geo": "3.1.2",
+    "lucide-react": "1.61.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.538",
+    "tailwindcss": "4.3.3",
+    "topojson-client": "3.1.0",
+    "world-atlas": "2.0.2"
+  },
+  "devDependencies": {
+    "@types/d3-force": "^3.0.10",
+    "@types/d3-geo": "^3.1.0",
+    "@types/react": "^19",
+    "@types/topojson-client": "^3.1.5",
+    "@types/topojson-specification": "^1.0.5",
+    "typescript": "^6"
+  },
+  "packageManager": "pnpm@12.4.2"
+}

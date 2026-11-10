@@ -22,6 +22,8 @@ const eslintConfig = defineConfig([
     "public/sw.js.map",
     ".cache/**",
     ".claude/**",
+    // Launch videos: a separate Remotion package with its own deps and tsconfig.
+    "promo/**",
   ]),
 ]);
 

@@ -18,7 +18,7 @@ function sameName(a: string, b: string) {
   if (na === nb) return true;
   const ta = nameTokens(a);
   const tb = nameTokens(b);
-  // "Matevž" vs "Matevž Nartnik" in different chunks: same first name, one side has no surname.
+  // "Janez" vs "Janez Novak" in different chunks: same first name, one side has no surname.
   if (ta.length === 1 || tb.length === 1) {
     const la = new Set(lemmaCandidates(ta[0] ?? "").map(normName));
     return lemmaCandidates(tb[0] ?? "").some((l) => la.has(normName(l))) && (ta.length === 1) !== (tb.length === 1);

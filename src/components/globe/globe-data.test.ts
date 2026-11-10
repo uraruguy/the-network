@@ -34,10 +34,10 @@ function person(over: Partial<GlobePerson> & { displayName: string }): GlobePers
 
 describe("buildCityData", () => {
   const people = [
-    person({ displayName: "Ana Nartnik", homeLocation: LJ, warmth: "dormant" }),
-    person({ displayName: "Bor Kos", homeLocation: LJ, warmth: "inner" }),
-    person({ displayName: "Cene Zadnik", homeLocation: LJ, lastInteractionAt: "2026-01-01T00:00:00Z" }),
-    person({ displayName: "Dana Habjan", homeLocation: LJ, lastInteractionAt: "2026-06-01T00:00:00Z", avatarUrl: "https://x/d.jpg" }),
+    person({ displayName: "Marija Novak", homeLocation: LJ, warmth: "dormant" }),
+    person({ displayName: "Petra Kovač", homeLocation: LJ, warmth: "inner" }),
+    person({ displayName: "Janez Novak", homeLocation: LJ, lastInteractionAt: "2026-01-01T00:00:00Z" }),
+    person({ displayName: "Ivan Horvat", homeLocation: LJ, lastInteractionAt: "2026-06-01T00:00:00Z", avatarUrl: "https://x/i.jpg" }),
     person({ displayName: "Eve Smith", homeLocation: LDN }),
     person({ displayName: "No City" }),
     person({ displayName: "Broken", homeLocation: { ...SF, lat: Number.NaN } }),
@@ -57,11 +57,11 @@ describe("buildCityData", () => {
 
   it("orders by warmth, then recency, then name; keeps the top 3 avatars", () => {
     const g = groups.get("lj")!;
-    expect(g.people.map((p) => p.displayName)).toEqual(["Bor Kos", "Dana Habjan", "Cene Zadnik", "Ana Nartnik"]);
+    expect(g.people.map((p) => p.displayName)).toEqual(["Petra Kovač", "Ivan Horvat", "Janez Novak", "Marija Novak"]);
     expect(g.avatars).toEqual([
-      { id: g.people[0]!.id, name: "Bor Kos", url: null, initials: "BK" },
-      { id: g.people[1]!.id, name: "Dana Habjan", url: "https://x/d.jpg", initials: "DH" },
-      { id: g.people[2]!.id, name: "Cene Zadnik", url: null, initials: "CZ" },
+      { id: g.people[0]!.id, name: "Petra Kovač", url: null, initials: "PK" },
+      { id: g.people[1]!.id, name: "Ivan Horvat", url: "https://x/i.jpg", initials: "IH" },
+      { id: g.people[2]!.id, name: "Janez Novak", url: null, initials: "JN" },
     ]);
     expect(collection.features[0]!.properties.avatars).toHaveLength(3);
   });

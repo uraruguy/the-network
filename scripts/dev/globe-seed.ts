@@ -56,9 +56,20 @@ const CITIES: [string, string, string, number, number][] = [
   ["Mexico City", "Mexico", "MX", 19.4326, -99.1332],
   ["Buenos Aires", "Argentina", "AR", -34.6037, -58.3816],
 ];
-const FIRST = ["Ana", "Bor", "Cene", "Dana", "Eva", "Filip", "Gaja", "Han", "Iris", "Jan", "Neža", "Luka", "Maja", "Nik", "Ola", "Pia", "Rok", "Sara", "Tim", "Urša", "Vid", "Neža", "Max", "Lea", "Noah", "Emma", "Leo", "Mia"];
-const LAST = ["Nartnik", "Habjan", "Kos", "Zadnik", "Kunstelj", "Smith", "Müller", "Rossi", "Dubois", "Tanaka", "Kim", "Silva", "Cohen", "Ivanova", "Larsen", "Garcia"];
-const ROLES = [["Founder", "Northwind"], ["Designer", "Studio Mono"], ["Engineer", "Figma"], ["Investor", null], ["Doctor", null], ["Product manager", "Stripe"], ["Architect", null], [null, null]];
+const FIRST = [
+  "Anna", "Maria", "John", "Jane", "Max", "Erika", "Ola", "Kari", "Jan", "Janez", "Marija", "Ivan", "Petra", "Marko", "Ana", "José",
+  "Juan", "Carlos", "Sofia", "Emma", "Lucas", "Noah", "Mia", "Leon", "Hanna", "Sven", "Matti", "Maija", "Hanako", "Taro", "Kenji", "Wei",
+  "Ali", "Fatima", "Omar", "Grace", "Thabo", "Raj", "Pedro", "João", "Rita", "Tiago", "Elena", "Luca", "Giulia", "Marie", "Jean", "Pierre",
+  "David", "Daniel", "Laura", "Paul", "Peter", "Eva", "Tom", "Nina", "Lina", "Lena", "Oscar", "Zoë",
+];
+const LAST = [
+  "Doe", "Smith", "Bloggs", "Novak", "Horvat", "Kovač", "Mustermann", "Weber", "Schmidt", "Rossi", "Bianchi", "Dupont", "Martin", "García",
+  "Pérez", "López", "Silva", "Santos", "Costa", "Jansen", "de Vries", "Nordmann", "Hansen", "Andersson", "Svensson", "Virtanen", "Nagy",
+  "Popescu", "Petrović", "Yılmaz", "Cohen", "Hassan", "Kim", "Lee", "Park", "Wang", "Li", "Zhang", "Chen", "Yamada", "Sato", "Suzuki",
+  "Nguyen", "Singh", "Kumar", "Mwangi", "Okafor", "Brown", "Wilson", "Taylor",
+];
+// Leadership roles never name a company (see seed-people.ts).
+const ROLES = [["Founder", null], ["Designer", "Studio Mono"], ["Engineer", "Figma"], ["Investor", null], ["Doctor", null], ["Product manager", "Stripe"], ["Architect", null], [null, null]];
 const WARMTH = ["inner", "active", "active", "active", "dormant", "dormant", "archive"];
 
 async function main() {

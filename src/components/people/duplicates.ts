@@ -5,7 +5,7 @@
 import type { MergeReport } from "@/lib/queries/people";
 import { fold } from "@/lib/text";
 
-/** "Tit  Čadež" and "čadež, tit" → "cadez tit": case, accents, punctuation and word order don't count. */
+/** "Marko  Marković" and "marković, marko" → "marko markovic": case, accents, punctuation and word order don't count. */
 export function nameKey(name: string): string {
   return fold(name)
     .replace(/[^\p{L}\p{N}]+/gu, " ")

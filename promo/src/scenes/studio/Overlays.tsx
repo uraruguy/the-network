@@ -1,0 +1,300 @@
+import { Globe2, MessageCircle, Settings, Share2, Sun, Users } from "lucide-react";
+import { AbsoluteFill } from "remotion";
+import { IPhone, PHONE_H, PHONE_W } from "../../devices/IPhone";
+import { EASE, SPRINGS, clamp01, mix, springAt, tween } from "../../kit/motion";
+import { Globe } from "../../ui/common/Globe";
+import { DigestEmail } from "../../ui/desktop/DigestEmail";
+import { Terminal, type TermLine } from "../../ui/desktop/Terminal";
+import { camAt, project } from "./camera";
+import { CAM } from "./camKeys";
+import { FLIP, main } from "./timeline";
+import { BAND } from "./WindowLayer";
+import { GLOBE, PIN_NUDGE, arcsAt, globeRotate } from "./WindowContent";
+
+const bandMask = `linear-gradient(to bottom, transparent 0px, transparent ${BAND}px, black ${BAND + 30}px)`;
+
+/* ---------- Digest e-mail (Today) ---------- */
+
+/** Card-space position of Hanako's Done button (under the 44 px label row). */
+const DONE = { x: 97, y: 44 + 288 };
+const REST = { x: 1110 + DONE.x, y: 360 + DONE.y };
+const PUSHED = { x: 900, y: 650 };
+const pushAt = (frame: number) => tween(frame, [180, 202], [0, 1], EASE.inOut);
+/** Screen position of Hanako's Done button at `frame` (the cursor aims here). */
+export const emailDone = (frame: number) => {
+  const p = pushAt(frame);
+  return { x: mix(REST.x, PUSHED.x, p), y: mix(REST.y, PUSHED.y, p) };
+};
+
+export function EmailOverlay({ frame }: { frame: number }) {
+  if (frame < 132 || frame > 286) return null;
+  const enter = springAt(frame, 134, SPRINGS.sheet);
+  const whip = tween(frame, [262, 280], [0, 1], EASE.in);
+  const done = tween(frame, [206, 214], [0, 1], EASE.out);
+  const press = Math.max(0, 1 - Math.abs(frame - 204) / 5);
+  const p = pushAt(frame);
+  const at = emailDone(frame);
+  const v = whip > 0 && whip < 1 ? 28 * Math.sin(Math.PI * whip) : 0;
+  return (
+    <AbsoluteFill style={{ perspective: 2200, WebkitMaskImage: bandMask, maskImage: bandMask }}>
+      {v > 0 && (
+        <svg width="0" height="0" style={{ position: "absolute" }}>
+          <filter id="email-whip" x="-10%" y="-10%" width="120%" height="120%">
+            <feGaussianBlur stdDeviation={`${v} 0`} />
+          </filter>
+        </svg>
+      )}
+      <div
+        style={{
+          position: "absolute",
+          left: at.x - DONE.x,
+          top: at.y - DONE.y,
+          opacity: clamp01(enter * 1.5),
+          transformOrigin: `${DONE.x}px ${DONE.y}px`,
+          transform: `translateX(${(1 - enter) * 760 + whip * 1700}px) rotateY(${(1 - enter) * -24}deg) scale(${1 + 1.1 * p})`,
+          filter: v > 0 ? "url(#email-whip)" : undefined,
+        }}
+      >
+        <div style={{ height: 44, display: "flex", alignItems: "center", gap: 8, font: '500 15px "JetBrains Mono Variable", monospace', letterSpacing: "0.12em", color: "#ffffff", textTransform: "uppercase" }}>
+          <span style={{ width: 8, height: 8, borderRadius: 9, background: "#7ef3f6", boxShadow: "0 0 0 4px rgba(126,243,246,0.25)" }} /> Daily digest · 07:00
+        </div>
+        <DigestEmail done={{ "Hanako Yamada": done }} press={{ "Hanako Yamada": press }} />
+      </div>
+    </AbsoluteFill>
+  );
+}
+
+/* ---------- ⌘V keycap (Import trigger) ---------- */
+
+function Key({ k }: { k: string }) {
+  return (
+    <span style={{ minWidth: 128, height: 128, padding: "0 24px", display: "grid", placeItems: "center", borderRadius: 26, background: "linear-gradient(#ffffff, #eef3f4)", boxShadow: "0 0 0 1px rgba(10,40,50,0.12), 0 5px 0 rgba(10,40,50,0.16), 0 18px 34px -10px rgba(0,30,40,0.4)", font: '600 62px "Inter Variable", sans-serif', color: "#0d1a1c" }}>
+      {k}
+    </span>
+  );
+}
+
+export function PasteKeys({ frame }: { frame: number }) {
+  if (frame < 338 || frame > 370) return null;
+  // Opaque, in/out by scale only, over the empty margin left of the Due list.
+  const a = Math.max(0, springAt(frame, 338, SPRINGS.pop) - tween(frame, [360, 370], [0, 1], EASE.in));
+  const press = Math.max(0, 1 - Math.abs(frame - 354) / 5);
+  if (a <= 0.01) return null;
+  return (
+    <div style={{ position: "absolute", left: 209, top: 620, transform: `translate(-50%, -50%) scale(${0.85 * a})`, display: "flex", flexDirection: "column", alignItems: "center", gap: 10, padding: "22px 24px 18px", borderRadius: 40, background: "#ffffff", boxShadow: "0 0 0 1px rgba(10,40,50,0.08), 0 30px 70px -20px rgba(0,30,40,0.5)" }}>
+      <span style={{ display: "flex", gap: 16 }}>
+        {["⌘", "V"].map((k) => (
+          <span key={k} style={{ transform: `translateY(${press * 5}px)` }}>
+            <Key k={k} />
+          </span>
+        ))}
+      </span>
+      <span style={{ font: '650 58px "Inter Variable", sans-serif', letterSpacing: "-0.02em", color: "#0d1a1c" }}>Paste</span>
+    </div>
+  );
+}
+
+/* ---------- The dark planet outgrows the window (flip → phone beat) ---------- */
+
+/** The offline beat (planet, phone, pill) leaves together, before the chat comes in. */
+export const SCENE_OUT = 1108;
+
+/** Window-space centre of the globe at its page geometry. */
+const globeWin = main(GLOBE.cx, GLOBE.cy);
+/** Where the window's globe is when the wipe completes: the planet starts growing from there. */
+const START = (() => {
+  const c = project(camAt(CAM, FLIP.end), globeWin.x, globeWin.y);
+  return { x: c.x, y: c.y, r: GLOBE.r * c.k, k: c.k };
+})();
+
+/**
+ * Drawn at the window globe's logical size and scaled up (that scale eases to 1 as it grows), and
+ * masked under the headline band like the window: the hand-off at FLIP.end is pixel-identical.
+ */
+export function BigGlobe({ frame }: { frame: number }) {
+  if (frame < FLIP.end || frame > 1130) return null;
+  const grow = tween(frame, [FLIP.end, 1012], [0, 1], EASE.inOut);
+  const settle = tween(frame, [1006, 1032], [0, 1], EASE.inOut);
+  const out = tween(frame, [SCENE_OUT, SCENE_OUT + 6], [0, 1], EASE.in);
+  const x = mix(mix(START.x, 960, grow), 600, settle);
+  const y = mix(mix(START.y, 790, grow), 860, settle);
+  const r = mix(mix(START.r, 720, grow), 560, settle);
+  const dim = 0.45 * settle;
+  const s = mix(START.k, 1, grow);
+  const band = tween(frame, [FLIP.end, 1004], [0, 1], EASE.inOut);
+  const mask = band < 1 ? `linear-gradient(to bottom, rgba(0,0,0,${band}) ${BAND}px, black ${BAND + 30}px)` : undefined;
+  return (
+    <AbsoluteFill style={{ opacity: (1 - dim) * (1 - out), WebkitMaskImage: mask, maskImage: mask }}>
+      <div style={{ position: "absolute", left: 0, top: 0, transformOrigin: "0 0", transform: `scale(${s})` }}>
+        <Globe width={1920 / s} height={1080 / s} radius={r / s} center={[x / s, y / s]} rotate={globeRotate(frame)} theme="dark" home="Lisbon" reveal={1} focus="Lisbon" arcs={arcsAt(frame)} uiScale={mix(1.48, 1.7, grow) / s} atmosphere={mix(1, 1.3, grow)} clusterAngle={0.115} nudge={PIN_NUDGE} />
+      </div>
+    </AbsoluteFill>
+  );
+}
+
+/* ---------- iPhone + Offline → Synced (dark) ---------- */
+
+/** The phone's smaller planet packs Toronto and New York closer: a wider spread. */
+const PHONE_NUDGE: Record<string, [number, number]> = { ...PIN_NUDGE, Toronto: [6, -18], "New York City": [-4, 9] };
+
+function PhoneGlobe({ frame }: { frame: number }) {
+  const tabs = [Sun, Users, Globe2, MessageCircle, Settings];
+  return (
+    <div className="absolute inset-0">
+      <Globe width={PHONE_W} height={PHONE_H} radius={186} center={[PHONE_W / 2, 470]} rotate={globeRotate(frame)} theme="dark" home="Lisbon" focus="Lisbon" uiScale={0.85} arcs={arcsAt(frame)} clusterAngle={0.115} nudge={PHONE_NUDGE} />
+      <div className="absolute inset-x-0 top-0 px-3" style={{ paddingTop: 60 }}>
+        <div className="flex items-start justify-between gap-2">
+          <div className="glass-map specular rounded-lg px-4 py-2">
+            <div className="text-title3 leading-tight text-fg">Globe</div>
+            <div className="text-footnote text-fg-2">286 people · 79 cities</div>
+          </div>
+          <div className="glass-map specular rounded-full p-1">
+            <span className="flex h-9 items-center rounded-full bg-fill-2 p-0.5">
+              <span className="grid h-full w-10 place-items-center rounded-full bg-segment-thumb text-fg [&_svg]:size-4">
+                <Globe2 />
+              </span>
+              <span className="grid h-full w-10 place-items-center text-fg-2 [&_svg]:size-4">
+                <Share2 />
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div className="absolute inset-x-0 bottom-0 px-4" style={{ paddingBottom: 18 }}>
+        <div className="glass-thick specular relative mx-auto flex h-[62px] items-stretch rounded-full p-1">
+          <span className="absolute top-1 bottom-1 left-1 rounded-full bg-accent-soft" style={{ width: "calc((100% - 8px) / 5)", transform: "translateX(200%)" }} />
+          {tabs.map((Icon, i) => {
+            const label = ["Today", "People", "Globe", "Chat", "Settings"][i]!;
+            return (
+              <span key={label} className="relative z-[1] flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-full" style={{ color: i === 2 ? "var(--accent-text)" : "var(--fg-3)" }}>
+                <Icon size={22} strokeWidth={i === 2 ? 2.3 : 1.9} />
+                <span className="text-caption2 font-medium">{label}</span>
+              </span>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Offline → Synced: the label rolls (old up and out, new up and in), the width springs, the dot turns green. */
+const SYNC = { from: 1052, to: 1062 };
+const PILL_W = { offline: 690, synced: 290 };
+const PILL_H = 92;
+/** Once the window's UI is gone: the pill pops in as its dot and unrolls to the text (opaque). */
+const PILL_AT = 1000;
+
+export function PhoneOverlay({ frame }: { frame: number }) {
+  if (frame < 992 || frame > 1124) return null;
+  const enter = springAt(frame, 994, SPRINGS.sheet);
+  const exit = tween(frame, [SCENE_OUT, SCENE_OUT + 6], [0, 1], EASE.in);
+  const dot = springAt(frame, PILL_AT, SPRINGS.snappy);
+  const unroll = springAt(frame, PILL_AT + 2, SPRINGS.snappy);
+  const morph = tween(frame, [SYNC.from, SYNC.to], [0, 1], EASE.inOut);
+  const width = mix(PILL_H, PILL_W.offline, unroll) + (PILL_W.synced - PILL_W.offline) * springAt(frame, SYNC.from, SPRINGS.snappy);
+  const pop = 1 + 0.06 * Math.sin(Math.PI * tween(frame, [SYNC.from + 4, SYNC.to + 6], [0, 1]));
+  return (
+    <AbsoluteFill className="dark" style={{ perspective: 2200 }}>
+      <div
+        style={{
+          position: "absolute",
+          left: 1190,
+          top: 236,
+          transformOrigin: "0 0",
+          transform: `translateY(${(1 - enter) * 900 + exit * 900}px) rotateX(${(1 - enter) * 18}deg) scale(0.9)`,
+          opacity: 1 - exit,
+        }}
+      >
+        <IPhone dark rim="rgba(95,240,244,0.2)">
+          <PhoneGlobe frame={frame} />
+        </IPhone>
+      </div>
+      {/* Over empty sky above the planet, so its size change never uncovers a marker. */}
+      <div
+        style={{
+          position: "absolute",
+          left: 130,
+          top: 238,
+          width,
+          height: PILL_H,
+          borderRadius: 999,
+          background: "var(--surface-solid)",
+          boxShadow: "inset 0 1px 0 var(--specular-top), 0 0 0 1px var(--hairline-strong), 0 24px 60px -20px rgba(0,0,0,0.7)",
+          opacity: frame >= PILL_AT ? 1 - exit : 0,
+          transform: `scale(${dot * pop})`,
+          transformOrigin: `${PILL_H / 2}px 50%`,
+          overflow: "hidden",
+          color: "var(--fg)",
+          font: '650 44px "Inter Variable", sans-serif',
+          letterSpacing: "-0.02em",
+          whiteSpace: "nowrap",
+        }}
+      >
+        <span
+          style={{
+            position: "absolute",
+            left: 32,
+            top: 35,
+            width: 22,
+            height: 22,
+            borderRadius: 99,
+            background: `color-mix(in oklab, var(--success) ${morph * 100}%, var(--warm-dormant))`,
+            boxShadow: `0 0 0 7px color-mix(in oklab, var(--success-soft) ${morph * 100}%, var(--warning-soft))`,
+          }}
+        />
+        <span style={{ position: "absolute", left: 76, top: 20, transform: `translateY(${-morph * PILL_H}px)` }}>Offline · 2 changes waiting</span>
+        <span style={{ position: "absolute", left: 76, top: 20, transform: `translateY(${(1 - morph) * PILL_H}px)` }}>Synced</span>
+      </div>
+    </AbsoluteFill>
+  );
+}
+
+/* ---------- Terminal: add the MCP server, then ask Claude through it ---------- */
+
+/** As docs/mcp.md writes it: the header on a continuation line. */
+const CMD_ADD = 'claude mcp add --transport http --scope user network https://your-network/api/mcp \\\n  --header "Authorization: Bearer ntk_…"';
+/** Print mode can't prompt for permission, so the MCP tools are allowed up front. */
+const CMD_ASK = 'claude -p "Who should I catch up with in Lisbon?" \\\n  --allowedTools mcp__network';
+
+/**
+ * A plain shell transcript with only what the CLI prints (`mcp list`: one line per server;
+ * `-p`: just the answer). The `#` lines are dim annotations, not CLI output.
+ */
+export function TerminalOverlay({ frame }: { frame: number }) {
+  if (frame < 1316 || frame > 1626) return null;
+  const enter = springAt(frame, 1316, SPRINGS.sheet);
+  const exit = tween(frame, [1594, 1612], [0, 1], EASE.inOut);
+  const push = tween(frame, [1490, 1560], [0, 1], EASE.inOut);
+  const on = (f: number) => (frame >= f ? springAt(frame, f, SPRINGS.snappy) : 0);
+  const lines: TermLine[] = [
+    { kind: "cmd", text: CMD_ADD, shown: tween(frame, [1318, 1356], [0.06, 1], (t) => t) },
+    { kind: "out", text: "Added HTTP MCP server network with URL: https://your-network/api/mcp to user config", shown: on(1360) },
+    { kind: "cmd", text: "claude mcp list", shown: tween(frame, [1368, 1376], [0, 1], (t) => t) },
+    { kind: "ok", text: "network: https://your-network/api/mcp (HTTP) - ✓ Connected", shown: on(1382) },
+    { kind: "dim", text: "# 13 tools: search_people, get_person, list_notes, search_notes, add_note, …", shown: on(1394) },
+    { kind: "gap", text: "", shown: on(1416) },
+    { kind: "cmd", text: CMD_ASK, shown: tween(frame, [1418, 1448], [0, 1], (t) => t) },
+    { kind: "dim", text: '# via MCP: network › search_people(city: "Lisbon") · 7 people', shown: on(1452) },
+    { kind: "person", text: "You know 7 people in Lisbon. Three worth a catch-up:", shown: on(1468) },
+    { kind: "person", text: "- Anna Kowalska — met at Web Summit today; climbs on Thursdays.", shown: on(1478) },
+    { kind: "person", text: "- Juan Pérez — raising a seed round; wants an intro to Sven.", shown: on(1488) },
+    { kind: "person", text: "- Marie Dupont — introduced you to Juan; you owe her an intro.", shown: on(1498) },
+  ];
+  return (
+    <AbsoluteFill style={{ perspective: 2400, WebkitMaskImage: bandMask, maskImage: bandMask }}>
+      <div
+        style={{
+          position: "absolute",
+          left: 90,
+          top: 232,
+          transformOrigin: "30px 100%",
+          transform: `translateY(${(1 - enter) * 900 + exit * 220}px) rotateX(${(1 - enter) * 14}deg) scale(${(0.95 + 0.05 * enter) * (1 + 0.3 * push)})`,
+          opacity: 1 - exit,
+        }}
+      >
+        <Terminal lines={lines} caretOn={Math.floor(frame / 16) % 2 === 0} width={1740} size={32} />
+      </div>
+    </AbsoluteFill>
+  );
+}

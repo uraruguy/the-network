@@ -47,9 +47,9 @@ const mb = loc("mb", "Maribor");
 const ldn = loc("ldn", "London", "United Kingdom");
 
 const PEOPLE: PeopleRow[] = [
-  person("zan", { displayName: "Žan Kolenič", headline: "Founder", company: "Northwind", homeLocation: lj, warmth: "inner", categoryIds: ["friend"], activityIds: ["ski", "run"], tagIds: ["yc"] }),
-  person("ana", { displayName: "Ana Lukić", headline: "Designer", homeLocation: mb, warmth: "active", categoryIds: ["friend", "client"], activityIds: ["run"] }),
-  person("soren", { displayName: "Søren Østergaard", company: "Hooli", homeLocation: ldn, warmth: "dormant", categoryIds: ["investor"], activityIds: ["ski"], tagIds: ["yc", "angel"] }),
+  person("ziga", { displayName: "Žiga Kovač", headline: "Founder", company: "Northwind", homeLocation: lj, warmth: "inner", categoryIds: ["friend"], activityIds: ["ski", "run"], tagIds: ["yc"] }),
+  person("ana", { displayName: "Ana Marković", headline: "Designer", homeLocation: mb, warmth: "active", categoryIds: ["friend", "client"], activityIds: ["run"] }),
+  person("oyvind", { displayName: "Øyvind Nordmann", company: "Hooli", homeLocation: ldn, warmth: "dormant", categoryIds: ["investor"], activityIds: ["ski"], tagIds: ["yc", "angel"] }),
   person("noloc", { displayName: "No Location", warmth: "archive" }),
 ];
 
@@ -58,41 +58,41 @@ const f = (over: Partial<PeopleFilters>): PeopleFilters => ({ ...EMPTY_FILTERS, 
 
 describe("filterPeople", () => {
   it("returns everyone for empty filters", () => {
-    expect(ids(filterPeople(PEOPLE, EMPTY_FILTERS))).toEqual(["zan", "ana", "soren", "noloc"]);
+    expect(ids(filterPeople(PEOPLE, EMPTY_FILTERS))).toEqual(["ziga", "ana", "oyvind", "noloc"]);
     expect(isEmpty(EMPTY_FILTERS)).toBe(true);
     expect(isEmpty(f({ q: "   " }))).toBe(true);
   });
 
   it("ORs values within a facet", () => {
-    expect(ids(filterPeople(PEOPLE, f({ activityIds: ["ski"] })))).toEqual(["zan", "soren"]);
-    expect(ids(filterPeople(PEOPLE, f({ activityIds: ["ski", "run"] })))).toEqual(["zan", "ana", "soren"]);
-    expect(ids(filterPeople(PEOPLE, f({ warmth: ["inner", "archive"] })))).toEqual(["zan", "noloc"]);
+    expect(ids(filterPeople(PEOPLE, f({ activityIds: ["ski"] })))).toEqual(["ziga", "oyvind"]);
+    expect(ids(filterPeople(PEOPLE, f({ activityIds: ["ski", "run"] })))).toEqual(["ziga", "ana", "oyvind"]);
+    expect(ids(filterPeople(PEOPLE, f({ warmth: ["inner", "archive"] })))).toEqual(["ziga", "noloc"]);
   });
 
   it("ANDs across facets", () => {
     expect(ids(filterPeople(PEOPLE, f({ activityIds: ["run"], categoryIds: ["client"] })))).toEqual(["ana"]);
-    expect(ids(filterPeople(PEOPLE, f({ activityIds: ["ski"], tagIds: ["yc"], locationIds: ["ldn"] })))).toEqual(["soren"]);
+    expect(ids(filterPeople(PEOPLE, f({ activityIds: ["ski"], tagIds: ["yc"], locationIds: ["ldn"] })))).toEqual(["oyvind"]);
     expect(ids(filterPeople(PEOPLE, f({ activityIds: ["run"], warmth: ["dormant"] })))).toEqual([]);
   });
 
   it("city filter excludes people without a home city", () => {
-    expect(ids(filterPeople(PEOPLE, f({ locationIds: ["lj", "mb"] })))).toEqual(["zan", "ana"]);
+    expect(ids(filterPeople(PEOPLE, f({ locationIds: ["lj", "mb"] })))).toEqual(["ziga", "ana"]);
   });
 
   it("searches name, role, company and city ignoring case and diacritics", () => {
-    expect(ids(filterPeople(PEOPLE, f({ q: "zan" })))).toEqual(["zan"]);
-    expect(ids(filterPeople(PEOPLE, f({ q: "KOLENIC" })))).toEqual(["zan"]);
-    expect(ids(filterPeople(PEOPLE, f({ q: "lukic" })))).toEqual(["ana"]);
-    expect(ids(filterPeople(PEOPLE, f({ q: "ostergaard" })))).toEqual(["soren"]);
-    expect(ids(filterPeople(PEOPLE, f({ q: "Žan" })))).toEqual(["zan"]);
-    expect(ids(filterPeople(PEOPLE, f({ q: "northwind" })))).toEqual(["zan"]);
-    expect(ids(filterPeople(PEOPLE, f({ q: "ljubljana" })))).toEqual(["zan"]);
-    expect(ids(filterPeople(PEOPLE, f({ q: "united kingdom" })))).toEqual(["soren"]);
+    expect(ids(filterPeople(PEOPLE, f({ q: "ziga" })))).toEqual(["ziga"]);
+    expect(ids(filterPeople(PEOPLE, f({ q: "KOVAC" })))).toEqual(["ziga"]);
+    expect(ids(filterPeople(PEOPLE, f({ q: "markovic" })))).toEqual(["ana"]);
+    expect(ids(filterPeople(PEOPLE, f({ q: "oyvind" })))).toEqual(["oyvind"]);
+    expect(ids(filterPeople(PEOPLE, f({ q: "Žiga" })))).toEqual(["ziga"]);
+    expect(ids(filterPeople(PEOPLE, f({ q: "northwind" })))).toEqual(["ziga"]);
+    expect(ids(filterPeople(PEOPLE, f({ q: "ljubljana" })))).toEqual(["ziga"]);
+    expect(ids(filterPeople(PEOPLE, f({ q: "united kingdom" })))).toEqual(["oyvind"]);
   });
 
   it("requires every search term (in any order) and combines with facets", () => {
-    expect(ids(filterPeople(PEOPLE, f({ q: "founder zan" })))).toEqual(["zan"]);
-    expect(ids(filterPeople(PEOPLE, f({ q: "founder lukic" })))).toEqual([]);
+    expect(ids(filterPeople(PEOPLE, f({ q: "founder ziga" })))).toEqual(["ziga"]);
+    expect(ids(filterPeople(PEOPLE, f({ q: "founder markovic" })))).toEqual([]);
     expect(ids(filterPeople(PEOPLE, f({ q: "a", warmth: ["active"] })))).toEqual(["ana"]);
   });
 
@@ -113,7 +113,7 @@ describe("facetCounts", () => {
     const filters = f({ activityIds: ["ski"], warmth: ["inner"] });
     expect(Object.fromEntries(facetCounts(PEOPLE, filters, "activity"))).toEqual({ ski: 1, run: 1 });
     expect(Object.fromEntries(facetCounts(PEOPLE, filters, "warmth"))).toEqual({ inner: 1, dormant: 1 });
-    expect(Object.fromEntries(facetCounts(PEOPLE, f({ q: "lukic" }), "category"))).toEqual({ friend: 1, client: 1 });
+    expect(Object.fromEntries(facetCounts(PEOPLE, f({ q: "markovic" }), "category"))).toEqual({ friend: 1, client: 1 });
   });
 
   it("counts cities by home location id", () => {

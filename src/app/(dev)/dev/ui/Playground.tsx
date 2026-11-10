@@ -99,14 +99,14 @@ const ACCENT_STEPS =[50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as co
 
 type Person = { id: string; name: string; city: string };
 const PEOPLE: Person[] = [
-  { id: "1", name: "Žan Kolenič", city: "Ljubljana" },
-  { id: "2", name: "Ana Nartnik", city: "Maribor" },
-  { id: "3", name: "Luka Habjan", city: "Vienna" },
-  { id: "4", name: "Špela Kunstelj", city: "Berlin" },
-  { id: "5", name: "Matej Lukić", city: "Zagreb" },
-  { id: "6", name: "Søren Østergaard", city: "Copenhagen" },
-  { id: "7", name: "Hana Potočnik", city: "London" },
-  { id: "8", name: "Tim Zadnik", city: "Ljubljana" },
+  { id: "1", name: "Žiga Kovač", city: "Ljubljana" },
+  { id: "2", name: "Marija Novak", city: "Maribor" },
+  { id: "3", name: "Max Mustermann", city: "Vienna" },
+  { id: "4", name: "Erika Mustermann", city: "Berlin" },
+  { id: "5", name: "Marko Marković", city: "Zagreb" },
+  { id: "6", name: "Øyvind Nordmann", city: "Oslo" },
+  { id: "7", name: "John Smith", city: "London" },
+  { id: "8", name: "Janez Novak", city: "Ljubljana" },
 ];
 const searchPeople = (q: string) =>
   new Promise<Person[]>((resolve) => setTimeout(() => resolve(filterByQuery(PEOPLE, q, (p) => `${p.name} ${p.city}`)), 250));
@@ -419,7 +419,7 @@ function InputSection() {
         <Demo label="Text">
           <form noValidate className="space-y-3" onSubmit={(e) => e.preventDefault()}>
             <Field label="Name" hint="As you'd say it out loud." required>
-              <GlassInput value={name} onChange={(e) => setName(e.target.value)} placeholder="Anna Nartnik" />
+              <GlassInput value={name} onChange={(e) => setName(e.target.value)} placeholder="Anna Kowalska" />
             </Field>
             <Field label="Email" error="That doesn't look like an email address.">
               <GlassInput defaultValue="anna@" type="email" />
@@ -439,7 +439,7 @@ function InputSection() {
           </Field>
           <Switch label="Daily digest" description="One email when something is due" checked={notify} onCheckedChange={setNotify} />
         </Demo>
-        <Demo label="Combobox (async, try “zan” or “ostergaard”)">
+        <Demo label="Combobox (async, try “ziga” or “oyvind”)">
           <Field label="Introduced by">
             <Combobox<Person>
               value={person}
@@ -582,8 +582,8 @@ function OverlaySection() {
     { label: "Delete", icon: <Trash2 />, destructive: true, onSelect: () => void confirmDelete(), shortcut: "⌘⌫" },
   ];
   async function confirmDelete() {
-    const ok = await confirm({ title: "Delete Ana Nartnik?", message: "Her notes and reminders will be deleted too.", confirmLabel: "Delete", destructive: true });
-    if (ok) toast.undo("Ana Nartnik deleted", () => toast("Restored"));
+    const ok = await confirm({ title: "Delete Marija Novak?", message: "Her notes and reminders will be deleted too.", confirmLabel: "Delete", destructive: true });
+    if (ok) toast.undo("Marija Novak deleted", () => toast("Restored"));
   }
   return (
     <Section id="overlays" title="Overlays">
@@ -664,14 +664,14 @@ function OverlaySection() {
         </Demo>
         <Demo label="Menu (action sheet on touch phones) · ActionSheet">
           <div className="flex flex-wrap items-center gap-2">
-            <Menu trigger={<IconButton label="More" variant="glass" icon={<MoreHorizontal />} />} items={menuItems} title="Ana Nartnik" />
+            <Menu trigger={<IconButton label="More" variant="glass" icon={<MoreHorizontal />} />} items={menuItems} title="Marija Novak" />
             <Menu trigger={<GlassButton>Open menu</GlassButton>} items={menuItems} align="start" />
             <GlassButton onClick={() => setActions(true)}>Action sheet</GlassButton>
           </div>
           <ActionSheet
             open={actions}
             onOpenChange={setActions}
-            title="Ana Nartnik"
+            title="Marija Novak"
             message="Choose what to do"
             actions={[
               { label: "Call", icon: <Phone />, onSelect: () => toast("Calling…") },
@@ -777,7 +777,7 @@ function ListSection() {
           </InsetGroup>
           <InsetGroup header="Settings">
             <ListRow icon={<Bell />} label="Daily digest" accessory={<Switch aria-label="Daily digest" checked={digest} onCheckedChange={setDigest} />} />
-            <ListRow leading={<Avatar name="Ana Nartnik" size={36} />} label="Ana Nartnik" description={<RelativeTime date={seenAt} />} chevron onClick={() => {}} />
+            <ListRow leading={<Avatar name="Marija Novak" size={36} />} label="Marija Novak" description={<RelativeTime date={seenAt} />} chevron onClick={() => {}} />
             <ListRow label="Sign out" destructive onClick={() => toast("Signed out")} />
           </InsetGroup>
         </div>

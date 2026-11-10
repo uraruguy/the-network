@@ -28,31 +28,31 @@ const candidate = (name: string, extra: Record<string, unknown> = {}) => ({
   confidence: 0.9,
   ...extra,
 });
-const extraction = (n = 2) => ({ noteSummary: "s", suggestedTitle: "Kava z Ano", occurredAt: null, candidates: [candidate("Ana Nartnik", { salience: 1 }), candidate("Matevž")].slice(0, n) });
+const extraction = (n = 2) => ({ noteSummary: "s", suggestedTitle: "Kava z Marijo", occurredAt: null, candidates: [candidate("Marija Novak", { salience: 1 }), candidate("Janez")].slice(0, n) });
 const uuid = "4b8c2f8e-3a7d-4c1e-9f0a-1234567890ab";
 
 describe("quickExtractInput", () => {
   it("trims and normalises line endings", () => {
-    expect(quickExtractInput.parse({ text: "  Kava z Ano\r\nje bila super  " }).text).toBe("Kava z Ano\nje bila super");
+    expect(quickExtractInput.parse({ text: "  Kava z Marijo\r\nje bila super  " }).text).toBe("Kava z Marijo\nje bila super");
   });
   it("rejects empty, too long and malformed requests", () => {
     expect(quickExtractInput.safeParse({ text: "   " }).success).toBe(false);
     expect(quickExtractInput.safeParse({ text: "x".repeat(QUICK_MAX_CHARS + 1) }).success).toBe(false);
-    expect(quickExtractInput.safeParse({ text: "Kava z Ano", personId: "not-a-uuid" }).success).toBe(false);
+    expect(quickExtractInput.safeParse({ text: "Kava z Marijo", personId: "not-a-uuid" }).success).toBe(false);
     expect(quickExtractInput.safeParse({}).success).toBe(false);
   });
   it("accepts an optional person", () => {
-    expect(quickExtractInput.parse({ text: "Kava z Ano", personId: uuid }).personId).toBe(uuid);
+    expect(quickExtractInput.parse({ text: "Kava z Marijo", personId: uuid }).personId).toBe(uuid);
   });
 });
 
 describe("quickSaveInput", () => {
   const ok = {
-    text: "Kava z Ano Nartnik in Matevžem.",
+    text: "Kava z Marijo Novak in Janezom.",
     extraction: extraction(),
     people: [
-      { index: 0, action: "create", displayName: "Ana Nartnik" },
-      { index: 1, action: "merge", matchPersonId: uuid, displayName: "Matevž Zidar" },
+      { index: 0, action: "create", displayName: "Marija Novak" },
+      { index: 1, action: "merge", matchPersonId: uuid, displayName: "Janez Horvat" },
     ],
     primaryIndex: 0,
   };
@@ -63,7 +63,7 @@ describe("quickSaveInput", () => {
     expect(r.extraction.version).toBe(2);
   });
   it("needs a target for merges", () => {
-    const r = quickSaveInput.safeParse({ ...ok, people: [{ index: 0, action: "merge", displayName: "Ana" }] });
+    const r = quickSaveInput.safeParse({ ...ok, people: [{ index: 0, action: "merge", displayName: "Marija" }] });
     expect(r.success).toBe(false);
   });
   it("rejects unknown and duplicate candidate indexes", () => {
@@ -81,7 +81,7 @@ describe("quickSaveInput", () => {
     expect(r.success).toBe(false);
   });
   it("rejects an invalid category", () => {
-    expect(quickSaveInput.safeParse({ ...ok, people: [{ index: 0, action: "create", displayName: "Ana", categories: ["boss"] }] }).success).toBe(false);
+    expect(quickSaveInput.safeParse({ ...ok, people: [{ index: 0, action: "create", displayName: "Marija", categories: ["boss"] }] }).success).toBe(false);
   });
 });
 

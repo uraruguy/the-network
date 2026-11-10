@@ -7,7 +7,7 @@ import { signAction } from "@/lib/signing";
  */
 
 const ID = "3ae4df27-f2e0-42ce-a859-92f1dab46b2a";
-const reminder = { id: ID, ownerId: "owner-1", status: "sent" as const, dueAt: new Date(), message: null, personName: "Ana Nartnik", personDeletedAt: null };
+const reminder = { id: ID, ownerId: "owner-1", status: "sent" as const, dueAt: new Date(), message: null, personName: "Marija Novak", personDeletedAt: null };
 
 const completeReminder = vi.fn(async () => null);
 const snoozeReminder = vi.fn(async () => null);

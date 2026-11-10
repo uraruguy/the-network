@@ -12,9 +12,9 @@ const person = (i: number, over: Partial<{ name: string; city: string | null; ca
 
 describe("prompt", () => {
   it("renders one index line per person, sorted by name, without separators leaking", () => {
-    const lines = peopleIndex([person(2, { name: "Žan | Kos", city: "Ljubljana/SI", categories: ["Friend"], tags: ["climber", "ski"] }), person(1, { name: "Ana" })]).split("\n");
+    const lines = peopleIndex([person(2, { name: "Žiga | Kovač", city: "Ljubljana/SI", categories: ["Friend"], tags: ["climber", "ski"] }), person(1, { name: "Ana" })]).split("\n");
     expect(lines[0]).toBe("00000000-0000-4000-8000-000000000001|Ana|||");
-    expect(lines[1]).toBe("00000000-0000-4000-8000-000000000002|Žan Kos|Ljubljana/SI|Friend|climber,ski");
+    expect(lines[1]).toBe("00000000-0000-4000-8000-000000000002|Žiga Kovač|Ljubljana/SI|Friend|climber,ski");
   });
 
   it("caps the index and says how many were left out", () => {

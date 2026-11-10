@@ -257,6 +257,7 @@ Run with `pnpm tsx scripts/…`:
 | Script | What it does |
 | --- | --- |
 | `seed-dev-user.ts` | Local owner `dev@local.test` (superseded by `pnpm bootstrap`) |
+| `dev/seed-demo.ts seed` / `clean` | Local only: the placeholder cast from the screenshots (Hanako Yamada, John Doe, …) |
 | `dev/seed-people.ts seed [n]` / `clean` | Local only: fake people for list and filter testing |
 | `dev/globe-seed.ts [--remove]` | Local only: fake people across 40 cities for the globe |
 | `send-test-digest.ts you@example.com` | Send today's digest through the configured transport |

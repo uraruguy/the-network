@@ -41,7 +41,7 @@ export function clusterNodes(nodes: ClusterNode[]): Cluster[] {
   const firstFreq = new Map<string, number>();
   const multiFirsts = new Set<string>();
   const lastIndex = new Map<string, string[]>();
-  // Aliases only count when they look like names ("Tine", "Valentin Brus"), not descriptions.
+  // Aliases only count when they look like names ("Tine", "Valentin Novak"), not descriptions.
   const names = (n: ClusterNode) => [n.name, ...(n.aliases ?? []).filter((a) => /^\p{Lu}/u.test(a.trim()) && a.trim().split(/\s+/).length <= 4)].filter((s) => s && s.trim());
 
   for (const n of nodes) {
@@ -72,7 +72,7 @@ export function clusterNodes(nodes: ClusterNode[]): Cluster[] {
       const { toks, first } = splitName(nm);
       if (!first) continue;
       uf.union(n.id, `fn:${canonFirst(first)}`);
-      // Lone surname ("Gorjup") joins the full-name clusters with that surname.
+      // Lone surname ("Horvat") joins the full-name clusters with that surname.
       if (toks.length === 1 && !multiFirsts.has(first)) for (const other of lastIndex.get(first) ?? []) uf.union(n.id, other);
     }
   }

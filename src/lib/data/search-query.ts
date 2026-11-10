@@ -44,7 +44,7 @@ function tokenize(input: string): (Term | "OR")[] {
       continue;
     }
     const negated = raw.startsWith("-") && raw.length > 1;
-    // "e-mail" or "ana.kolar" become several words that must all match.
+    // "e-mail" or "jane.doe" become several words that must all match.
     for (const w of words(negated ? raw.slice(1) : raw)) out.push({ words: [w], phrase: false, negated });
   }
   return out;

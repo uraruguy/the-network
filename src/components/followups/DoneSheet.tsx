@@ -23,7 +23,7 @@ export type DoneSheetProps = {
   onConfirm: (note: DoneNote | null) => void;
 };
 
-/** "Dr. Ana Kos" → "Ana": the first word that isn't a title or an initial. */
+/** "Dr. Marija Novak" → "Marija": the first word that isn't a title or an initial. */
 export const firstName = (name: string) => {
   const words = name.trim().split(/\s+/);
   return words.find((w) => !w.endsWith(".")) ?? words[0] ?? name;

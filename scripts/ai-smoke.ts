@@ -28,7 +28,7 @@ async function main() {
   const r = await generateText({
     model: await aiModel({ tier: "fast", tools }),
     ...(toolsAreProviderExecuted() ? {} : { tools, stopWhen: stepCountIs(4) }),
-    prompt: "Where does David Kolar live? Use the lookup tool, then answer in one short sentence.",
+    prompt: "Where does John Doe live? Use the lookup tool, then answer in one short sentence.",
   });
   console.log("tool answer:", r.text.trim(), `${Date.now() - t1}ms`);
 }

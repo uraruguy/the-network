@@ -20,12 +20,12 @@ const ljubljana = { cityId: 3196359, name: "Ljubljana", admin: "Ljubljana", coun
 describe("seedPersonDetail", () => {
   it("builds a complete detail with resolved relations", () => {
     const p = seedPersonDetail(
-      { id: "new", displayName: "  Ana Nartnik ", homeLocation: ljubljana, categoryIds: ["c2", "c1"], activityIds: ["a1", "a2"], tagNames: ["founder", "Climber"], introducedById: "intro" },
+      { id: "new", displayName: "  Marija Novak ", homeLocation: ljubljana, categoryIds: ["c2", "c1"], activityIds: ["a1", "a2"], tagNames: ["founder", "Climber"], introducedById: "intro" },
       lookups,
       now,
     );
     expect(p.id).toBe("new");
-    expect(p.displayName).toBe("Ana Nartnik");
+    expect(p.displayName).toBe("Marija Novak");
     expect(p.warmth).toBe("active");
     expect(p.homeLocation).toMatchObject({ name: "Ljubljana", timezone: "Europe/Ljubljana" });
     expect(isTempId(p.homeLocation!.id)).toBe(true);
