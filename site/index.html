@@ -137,7 +137,7 @@ h1 {
 .film-ui.away::before { opacity: 0; }
 .film-ui.away > span, .film-ui.away .sound.is-on { opacity: 0; transform: translateY(6px); pointer-events: none; }
 .film-ui.away .sound:not(.is-on) { width: 44px; padding: 0; justify-content: center; }
-.film-ui.away .sound:not(.is-on) b { display: none; }
+.film-ui.away .sound:not(.is-on) b { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .pill {
   display: inline-flex; align-items: center; gap: 8px;
   min-height: 44px; padding: 0 16px 0 13px; border: 0; border-radius: 999px;
@@ -513,7 +513,7 @@ pnpm dev</code></pre>
     var wake = function () {
       ui.classList.remove("away");
       clearTimeout(idle);
-      if (!v.paused && !ui.contains(document.activeElement)) idle = setTimeout(function () { if (ui.matches(":hover")) wake(); else ui.classList.add("away"); }, 2200);
+      if (!v.paused && !ui.querySelector(":focus-visible")) idle = setTimeout(function () { if (ui.matches(":hover")) wake(); else ui.classList.add("away"); }, 2200);
     };
     var go = function () {
       var p = v.play();
