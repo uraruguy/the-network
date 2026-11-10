@@ -124,32 +124,41 @@ h1 {
   isolation: isolate;
 }
 .film-frame video { display: block; width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
-.film-ui { position: absolute; inset: auto 0 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: clamp(10px, 1.6vw, 18px); pointer-events: none; }
+.film-ui {
+  position: absolute; inset: auto 0 0; z-index: 2;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: clamp(10px, 1.6vw, 18px) clamp(10px, 1.6vw, 18px) clamp(13px, 1.9vw, 21px);
+  background: linear-gradient(transparent, oklch(0.12 0.02 210 / 0.45));
+  pointer-events: none;
+  transition: opacity .35s ease, transform .35s ease;
+}
 .film-ui > * { pointer-events: auto; }
 .film-ui span { display: flex; gap: 8px; }
+.film-ui.away { opacity: 0; transform: translateY(6px); }
+.film-ui.away > * { pointer-events: none; }
 .pill {
   display: inline-flex; align-items: center; gap: 8px;
   min-height: 44px; padding: 0 16px 0 13px; border: 0; border-radius: 999px;
-  font: 600 0.9375rem/1 var(--font); letter-spacing: -0.01em; color: #fff;
-  background: oklch(0.22 0.02 210 / 0.5);
+  font: 600 0.9375rem/1 var(--font); letter-spacing: -0.01em; color: #fff; white-space: nowrap;
+  background: oklch(0.22 0.02 210 / 0.62);
   -webkit-backdrop-filter: blur(14px) saturate(1.6); backdrop-filter: blur(14px) saturate(1.6);
   box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.16), 0 6px 18px -8px oklch(0 0 0 / 0.5);
-  cursor: pointer; transition: background .2s, transform .2s, opacity .3s;
+  cursor: pointer; transition: background .2s, transform .2s;
 }
-.pill:hover { background: oklch(0.22 0.02 210 / 0.68); }
+.pill:hover { background: oklch(0.22 0.02 210 / 0.78); }
 .pill:active { transform: scale(.96); }
 .pill.round { width: 44px; padding: 0; justify-content: center; }
 .pill svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.pill .on { display: none; }
-.pill[aria-pressed="true"] .on { display: block; }
-.pill[aria-pressed="true"] .off { display: none; }
+.pill .on, .pill.is-on .off { display: none; }
+.pill.is-on .on { display: block; }
+.film :focus-visible { outline: 2px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 5px oklch(0.2 0.02 210 / 0.55); }
 .film-big {
   position: absolute; inset: 0; z-index: 2; margin: auto; width: 84px; height: 84px; border: 0; border-radius: 50%;
   display: grid; place-items: center; color: #fff; cursor: pointer;
-  background: oklch(0.22 0.02 210 / 0.45);
+  background: oklch(0.22 0.02 210 / 0.55);
   -webkit-backdrop-filter: blur(16px) saturate(1.6); backdrop-filter: blur(16px) saturate(1.6);
   box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.2), 0 10px 30px -10px oklch(0 0 0 / 0.6);
-  transition: transform .25s cubic-bezier(.2, .8, .2, 1), opacity .3s;
+  transition: transform .25s cubic-bezier(.2, .8, .2, 1);
 }
 .film-big:hover { transform: scale(1.06); }
 .film-big svg { width: 30px; height: 30px; margin-left: 4px; fill: currentColor; }
@@ -158,6 +167,14 @@ h1 {
 .film-bar i { display: block; height: 100%; transform-origin: 0 50%; transform: scaleX(0); background: linear-gradient(90deg, #34dbe3, #12a3ab); }
 .film-frame:fullscreen { border-radius: 0; aspect-ratio: auto; }
 .film-frame:fullscreen video { object-fit: contain; }
+/* Short laptop screens: pull the film up so it shows on load. */
+@media (max-height: 820px) and (min-width: 601px) {
+  .hero { padding-top: 16px; }
+  h1 { font-size: clamp(2.5rem, 5.6vw, 4.25rem); }
+  .lede { margin-top: 16px; }
+  .cta { margin-top: 22px; }
+  .film { margin-top: 26px; }
+}
 @media (max-width: 600px) {
   .film-frame { aspect-ratio: 4 / 5; }
 }
@@ -273,7 +290,7 @@ footer { border-top: 1px solid var(--line); }
         Get it on GitHub
       </a>
       <a class="more down" href="#how">
-        See how it works
+        How it works
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6l5 5 5-5"/></svg>
       </a>
     </div>
@@ -282,16 +299,20 @@ footer { border-top: 1px solid var(--line); }
   <section class="wrap film" id="tour" aria-label="A 30-second tour">
     <div class="film-glow" aria-hidden="true"></div>
     <div class="film-frame">
-      <video controls playsinline muted loop preload="metadata" poster="assets/tour-desktop.jpg" width="1920" height="1080"
+      <video controls playsinline muted loop preload="none" width="1920" height="1080"
         aria-label="A 30-second tour of The Network: follow-ups and the daily e-mail, pasting a note that AI files under the right people, search, the globe, and asking your network from Claude over MCP.">
         <source src="assets/tour-phone.mp4" type="video/mp4" media="(max-width: 600px)">
         <source src="assets/tour-desktop.mp4" type="video/mp4">
       </video>
+      <script>
+        // Set the poster before anything is fetched, so phones only download the phone one.
+        document.currentScript.previousElementSibling.poster = matchMedia("(max-width: 600px)").matches ? "assets/tour-phone.jpg" : "assets/tour-desktop.jpg";
+      </script>
       <button class="film-big" type="button" aria-label="Play the tour with sound" hidden>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>
       </button>
       <div class="film-ui" hidden>
-        <button class="pill sound" type="button" aria-pressed="false">
+        <button class="pill sound" type="button">
           <svg class="off" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="m22 9-6 6"/><path d="m16 9 6 6"/></svg>
           <svg class="on" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg>
           <b>Watch with sound</b>
@@ -450,8 +471,9 @@ pnpm dev</code></pre>
     });
   }
 
-  // The tour: muted autoplay while in view, "Watch with sound" restarts it with music.
-  // Reduced motion or Save-Data: no autoplay, a play button instead.
+  // The tour: muted autoplay while in view (desktop cut above 600px, phone cut below, swapped on
+  // rotate/resize). "Watch with sound" restarts it with music. Controls fade while it plays.
+  // Reduced motion or Save-Data: nothing autoplays or preloads; one play button instead.
   var film = document.querySelector(".film");
   if (film) {
     var v = film.querySelector("video");
@@ -463,47 +485,91 @@ pnpm dev</code></pre>
     var play = ui.querySelector(".play");
     var full = ui.querySelector(".full");
     var bar = film.querySelector(".film-bar i");
+    var narrow = matchMedia("(max-width: 600px)");
     var calm = matchMedia("(prefers-reduced-motion: reduce)").matches || !!(navigator.connection && navigator.connection.saveData);
     var held = false;
     var voiced = false;
-    if (matchMedia("(max-width: 600px)").matches) v.poster = "assets/tour-phone.jpg";
-    v.removeAttribute("controls");
-    ui.hidden = false;
+    var raf = 0;
+    var idle = 0;
 
     var icons = function () {
       play.querySelector(".pause").style.display = v.paused ? "none" : "";
       play.querySelector(".go").style.display = v.paused ? "" : "none";
       play.setAttribute("aria-label", v.paused ? "Play" : "Pause");
     };
+    var setSound = function (text, on) {
+      soundLabel.textContent = text;
+      sound.classList.toggle("is-on", on);
+    };
     var tick = function () {
       if (v.duration) bar.style.transform = "scaleX(" + v.currentTime / v.duration + ")";
-      if (!v.paused) requestAnimationFrame(tick);
+      raf = v.paused ? 0 : requestAnimationFrame(tick);
+    };
+    var wake = function () {
+      ui.classList.remove("away");
+      clearTimeout(idle);
+      if (!v.paused && !ui.contains(document.activeElement)) idle = setTimeout(function () { ui.classList.add("away"); }, 2200);
     };
     var go = function () {
       var p = v.play();
-      if (p && p.catch) p.catch(function () { big.hidden = false; icons(); });
+      if (p && p.catch) p.catch(function (e) {
+        if (e && e.name === "NotAllowedError") { big.hidden = false; ui.hidden = true; }
+        icons();
+      });
     };
     var withSound = function () {
+      var refocus = document.activeElement === big;
+      big.hidden = true;
+      ui.hidden = false;
+      if (refocus) sound.focus();
       v.muted = false;
       v.loop = false;
       v.currentTime = 0;
       held = false;
       voiced = true;
-      sound.setAttribute("aria-pressed", "true");
-      soundLabel.textContent = "Sound on";
+      setSound("Mute", true);
       go();
     };
+    var swap = function () {
+      var playing = !v.paused;
+      v.poster = narrow.matches ? "assets/tour-phone.jpg" : "assets/tour-desktop.jpg";
+      v.src = narrow.matches ? "assets/tour-phone.mp4" : "assets/tour-desktop.mp4";
+      bar.style.transform = "scaleX(0)";
+      if (playing) go(); else icons();
+    };
 
-    v.addEventListener("play", function () { big.hidden = true; icons(); requestAnimationFrame(tick); });
-    v.addEventListener("pause", icons);
-    v.addEventListener("ended", function () { big.hidden = false; big.setAttribute("aria-label", "Watch again"); icons(); });
-    v.addEventListener("click", function () { play.click(); });
+    v.removeAttribute("controls");
+    if (!calm) v.preload = "metadata";
+    ui.hidden = calm;
+    big.hidden = !calm;
+    icons();
+
+    v.addEventListener("play", function () {
+      big.hidden = true;
+      ui.hidden = false;
+      icons();
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(tick);
+      wake();
+    });
+    v.addEventListener("pause", function () { icons(); wake(); });
+    v.addEventListener("ended", function () {
+      voiced = false;
+      setSound("Watch again", true);
+      icons();
+      wake();
+    });
+    v.addEventListener("click", function () {
+      if (ui.classList.contains("away")) wake(); else play.click();
+    });
+    frame.addEventListener("pointermove", wake);
+    frame.addEventListener("focusin", wake);
     big.addEventListener("click", withSound);
     sound.addEventListener("click", function () {
       if (!voiced) return withSound();
       v.muted = !v.muted;
-      sound.setAttribute("aria-pressed", String(!v.muted));
-      soundLabel.textContent = v.muted ? "Sound off" : "Sound on";
+      setSound(v.muted ? "Unmute" : "Mute", !v.muted);
+      wake();
     });
     play.addEventListener("click", function () {
       if (v.paused) { held = false; go(); } else { held = true; v.pause(); }
@@ -513,16 +579,17 @@ pnpm dev</code></pre>
       if (frame.requestFullscreen) frame.requestFullscreen();
       else if (v.webkitEnterFullscreen) v.webkitEnterFullscreen();
     });
+    document.addEventListener("fullscreenchange", function () {
+      full.setAttribute("aria-label", document.fullscreenElement ? "Exit full screen" : "Full screen");
+    });
+    if (narrow.addEventListener) narrow.addEventListener("change", swap); else narrow.addListener(swap);
 
-    if (calm) {
-      big.hidden = false;
-      icons();
-    } else if ("IntersectionObserver" in window) {
+    if ("IntersectionObserver" in window) {
       new IntersectionObserver(function (entries) {
-        if (entries[0].intersectionRatio >= 0.2) { if (!held && v.paused && !v.ended) go(); }
+        if (entries[entries.length - 1].intersectionRatio >= 0.1) { if (!calm && !held && v.paused && !v.ended) go(); }
         else if (!v.paused) v.pause();
-      }, { threshold: [0, 0.2] }).observe(frame);
-    } else {
+      }, { threshold: [0, 0.1] }).observe(frame);
+    } else if (!calm) {
       go();
     }
   }
