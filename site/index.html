@@ -118,7 +118,7 @@ h1 {
   aspect-ratio: 16 / 9;
   border-radius: clamp(16px, 2.2vw, 28px);
   overflow: hidden;
-  background: #03100f;
+  background: #03100f url(assets/tour-desktop.jpg) center / cover;
   box-shadow: 0 0 0 1px oklch(1 0 0 / 0.08), 0 2px 4px oklch(0.2 0.03 215 / 0.12), 0 34px 80px -26px oklch(0.24 0.06 205 / 0.55), 0 70px 130px -70px oklch(0.24 0.06 205 / 0.6);
   transform-origin: 50% 100%;
   isolation: isolate;
@@ -128,14 +128,16 @@ h1 {
   position: absolute; inset: auto 0 0; z-index: 2;
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   padding: clamp(10px, 1.6vw, 18px) clamp(10px, 1.6vw, 18px) clamp(13px, 1.9vw, 21px);
-  background: linear-gradient(transparent, oklch(0.12 0.02 210 / 0.45));
   pointer-events: none;
-  transition: opacity .35s ease, transform .35s ease;
 }
-.film-ui > * { pointer-events: auto; }
+.film-ui::before { content: ""; position: absolute; inset: -32px 0 0; z-index: -1; background: linear-gradient(transparent, oklch(0.12 0.02 210 / 0.45)); transition: opacity .35s ease; }
+.film-ui > * { pointer-events: auto; transition: opacity .35s ease, transform .35s ease; }
 .film-ui span { display: flex; gap: 8px; }
-.film-ui.away { opacity: 0; transform: translateY(6px); }
-.film-ui.away > * { pointer-events: none; }
+/* While it plays, the controls fade; a muted video keeps a small sound button so sound stays one tap away. */
+.film-ui.away::before { opacity: 0; }
+.film-ui.away > span, .film-ui.away .sound.is-on { opacity: 0; transform: translateY(6px); pointer-events: none; }
+.film-ui.away .sound:not(.is-on) { width: 44px; padding: 0; justify-content: center; }
+.film-ui.away .sound:not(.is-on) b { display: none; }
 .pill {
   display: inline-flex; align-items: center; gap: 8px;
   min-height: 44px; padding: 0 16px 0 13px; border: 0; border-radius: 999px;
@@ -176,7 +178,10 @@ h1 {
   .film { margin-top: 26px; }
 }
 @media (max-width: 600px) {
-  .film-frame { aspect-ratio: 4 / 5; }
+  .film-frame { aspect-ratio: 4 / 5; background-image: url(assets/tour-phone.jpg); }
+}
+@media (max-width: 400px) {
+  .cta { column-gap: 14px; }
 }
 /* The frame lies back a little and stands up as it scrolls into view. */
 @supports (animation-timeline: view()) {
@@ -508,7 +513,7 @@ pnpm dev</code></pre>
     var wake = function () {
       ui.classList.remove("away");
       clearTimeout(idle);
-      if (!v.paused && !ui.contains(document.activeElement)) idle = setTimeout(function () { ui.classList.add("away"); }, 2200);
+      if (!v.paused && !ui.contains(document.activeElement)) idle = setTimeout(function () { if (ui.matches(":hover")) wake(); else ui.classList.add("away"); }, 2200);
     };
     var go = function () {
       var p = v.play();
@@ -532,6 +537,8 @@ pnpm dev</code></pre>
     };
     var swap = function () {
       var playing = !v.paused;
+      var at = v.currentTime;
+      v.addEventListener("loadedmetadata", function () { v.currentTime = Math.min(at, v.duration - 0.5); }, { once: true });
       v.poster = narrow.matches ? "assets/tour-phone.jpg" : "assets/tour-desktop.jpg";
       v.src = narrow.matches ? "assets/tour-phone.mp4" : "assets/tour-desktop.mp4";
       bar.style.transform = "scaleX(0)";
@@ -586,9 +593,11 @@ pnpm dev</code></pre>
 
     if ("IntersectionObserver" in window) {
       new IntersectionObserver(function (entries) {
-        if (entries[entries.length - 1].intersectionRatio >= 0.1) { if (!calm && !held && v.paused && !v.ended) go(); }
+        var seen = entries[entries.length - 1].intersectionRatio;
+        if (seen >= 0.1) { if (!calm && !held && v.paused && !v.ended) go(); }
         else if (!v.paused) v.pause();
-      }, { threshold: [0, 0.1] }).observe(frame);
+        if (seen >= 0.6) wake();
+      }, { threshold: [0, 0.1, 0.6] }).observe(frame);
     } else if (!calm) {
       go();
     }
