@@ -1,0 +1,44 @@
+# The Network
+
+> An open-source (MIT), self-hosted personal CRM: a private vault for everyone you've met. One card per person with your notes, how you met and who introduced you, follow-ups that remind you when to reach out, a globe of where your people live, an AI assistant and a built-in MCP server. It has exactly one owner and runs on your own Supabase and Vercel.
+
+The Network is for anyone whose circle keeps growing: founders and investors, but also students, people who move cities and people who travel. You host it yourself, so your notes stay in your own database. It installs like an app on iPhone and Mac, works offline and syncs when it's back online.
+
+What it does:
+
+- A card for everyone: notes in an Apple Notes-style editor (note, meeting, call, message), plus categories, warmth, tags, activities, home city, how you met and who introduced you.
+- Follow-ups: "tomorrow", "in 2 weeks", "in 3 months" or a date, optionally repeating. The Today screen shows what's due and who you haven't talked to in a while. A daily e-mail digest has one-tap Done and Snooze.
+- Search: instant and accent-insensitive, with filters by category, warmth, activity, tag and city, and an A–Z index. Removed people wait in Recently deleted.
+- A MapLibre globe with city clusters, and a graph of who introduced whom.
+- An AI assistant with tools over everything you've written, on your own Anthropic or OpenRouter key.
+- A built-in MCP server, so Claude, ChatGPT, Cursor or any MCP client can read your network and, if you allow it, add notes, people and follow-ups. It has 13 tools: search_people, get_person, list_notes, recent_interactions, search_notes, people_by_place, due_followups, list_taxonomy, add_note, create_person, update_person, create_followup and complete_followup. Nothing can be deleted through it.
+- Import: paste any text (a note, an e-mail, a call transcript) and the AI files it under the right people; years of Apple Notes can come in bulk, with you confirming the unsure matches.
+- Security: one owner and no sign-up, password plus passkey (Face ID / Touch ID), strict headers, encrypted keys and a one-click JSON export.
+
+Stack: Next.js 16, React 19, TypeScript, Tailwind CSS 4, Supabase (Postgres and Auth), Drizzle ORM, TanStack Query, MapLibre GL, Tiptap 3, the Vercel AI SDK and the MCP SDK.
+
+To run it locally you need Node 22, pnpm, Docker and the Supabase CLI:
+
+```
+git clone https://github.com/uraruguy/the-network.git
+cd the-network
+pnpm install
+supabase start
+pnpm bootstrap
+pnpm db:seed-cities
+pnpm dev
+```
+
+## Docs
+
+- [README](https://raw.githubusercontent.com/uraruguy/the-network/main/README.md): what it does, quick start, deploying to Supabase and Vercel, the security model
+- [MCP server](https://raw.githubusercontent.com/uraruguy/the-network/main/docs/mcp.md): connecting Claude, ChatGPT, Cursor and other MCP clients, OAuth and personal access tokens, the tool list
+- [Import](https://raw.githubusercontent.com/uraruguy/the-network/main/docs/import.md): pasting text and the Apple Notes import pipeline
+- [Security](https://raw.githubusercontent.com/uraruguy/the-network/main/SECURITY.md): sign-in and passkeys, connected apps (MCP), secrets, HTTP headers and CSP, and the release checklist
+
+## Optional
+
+- [Source code on GitHub](https://github.com/uraruguy/the-network)
+- [Contributing](https://raw.githubusercontent.com/uraruguy/the-network/main/CONTRIBUTING.md)
+- [30-second tour video](https://thenetwork-app.vercel.app/assets/tour-desktop.mp4)
+- [Author: Jakob Kavčič](https://jakobkavcic.com)

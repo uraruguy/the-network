@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  <url>
+    <loc>https://thenetwork-app.vercel.app/</loc>
+    <lastmod>2026-11-12</lastmod>
+    <image:image><image:loc>https://thenetwork-app.vercel.app/assets/og.jpg</image:loc></image:image>
+    <image:image><image:loc>https://thenetwork-app.vercel.app/assets/today.jpg</image:loc></image:image>
+    <image:image><image:loc>https://thenetwork-app.vercel.app/assets/person.jpg</image:loc></image:image>
+    <image:image><image:loc>https://thenetwork-app.vercel.app/assets/people.jpg</image:loc></image:image>
+    <image:image><image:loc>https://thenetwork-app.vercel.app/assets/globe.jpg</image:loc></image:image>
+    <video:video>
+      <video:thumbnail_loc>https://thenetwork-app.vercel.app/assets/tour-desktop.jpg</video:thumbnail_loc>
+      <video:title>The Network: a 30-second tour</video:title>
+      <video:description>Follow-ups and the daily e-mail, pasting a note that AI files under the right people, search, the globe, and asking your network from Claude over MCP.</video:description>
+      <video:content_loc>https://thenetwork-app.vercel.app/assets/tour-desktop.mp4</video:content_loc>
+      <video:duration>30</video:duration>
+      <video:publication_date>2026-11-10T12:00:00+01:00</video:publication_date>
+      <video:family_friendly>yes</video:family_friendly>
+    </video:video>
+  </url>
+</urlset>
