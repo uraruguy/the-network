@@ -76,7 +76,7 @@ const isOverdue = (d: string | Date | null, now: number) => !!d && new Date(d).g
 
 /**
  * One person in the list: avatar, name + warmth, "City · Role, Company", up to three activity
- * emoji and the last interaction. Opening a row remembers your place in the list (list-memory).
+ * emoji and a time (last interaction, next follow-up or date added). Opening a row remembers your place in the list (list-memory).
  * In select mode it's a checkbox instead of a link. Memoized — rows only re-render when their
  * person or their selection/highlight changes.
  */
@@ -182,6 +182,7 @@ function RowBody({ p, emojiById, detail, now }: { p: PeopleRow; emojiById: Reado
       <span className="flex shrink-0 flex-col items-end gap-1 self-stretch justify-center pl-1">
         {when ? (
           <RelativeTime
+            label={detail === "added" ? "Added" : undefined}
             date={when}
             format={detail === "followup" ? compactDue : compactAgo}
             className={cn("text-footnote tabular-nums", detail === "followup" && isOverdue(when, now) ? "text-danger" : "text-fg-3")}
