@@ -1,0 +1,6 @@
+# The Network: open-source, self-hosted personal CRM.
+# Search engines and AI agents are welcome. A plain-text summary for AI agents is at /llms.txt.
+User-agent: *
+Allow: /
+
+Sitemap: https://thenetwork-app.vercel.app/sitemap.xml

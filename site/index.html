@@ -3,18 +3,134 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>The Network: a private vault for everyone you’ve met</title>
-<meta name="description" content="One card per person: your notes, how you met, and a follow-up that reminds you when it’s time to reach out. Open source, self-hosted, and yours alone.">
+<title>The Network: open-source personal CRM for everyone you’ve met</title>
+<meta name="description" content="A private vault for everyone you’ve met: one card per person, notes, follow-ups that remind you to reach out, a globe of your people, AI chat and MCP.">
+<link rel="canonical" href="https://thenetwork-app.vercel.app/">
+<meta name="robots" content="index, follow, max-image-preview:large, max-video-preview:-1, max-snippet:-1">
+<meta name="author" content="Jakob Kavčič">
 <meta name="theme-color" content="#f8fbfb" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1718" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="sitemap" type="application/xml" href="/sitemap.xml">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="The Network">
+<meta property="og:locale" content="en_US">
 <meta property="og:url" content="https://thenetwork-app.vercel.app/">
-<meta property="og:title" content="The Network">
-<meta property="og:description" content="A private vault for everyone you’ve met. Open source and self-hosted.">
+<meta property="og:title" content="The Network: a private vault for everyone you’ve met">
+<meta property="og:description" content="Open-source, self-hosted personal CRM: your notes, how you met, and follow-ups that remind you to reach out.">
 <meta property="og:image" content="https://thenetwork-app.vercel.app/assets/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Network on two phones: a person’s card and the Today screen with follow-ups due.">
+<meta property="og:video" content="https://thenetwork-app.vercel.app/assets/tour-desktop.mp4">
+<meta property="og:video:type" content="video/mp4">
+<meta property="og:video:width" content="1920">
+<meta property="og:video:height" content="1080">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The Network: a private vault for everyone you’ve met">
+<meta name="twitter:description" content="Open-source, self-hosted personal CRM: your notes, how you met, and follow-ups that remind you to reach out.">
+<meta name="twitter:image" content="https://thenetwork-app.vercel.app/assets/og.jpg">
+<meta name="twitter:image:alt" content="The Network on two phones: a person’s card and the Today screen with follow-ups due.">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "WebSite",
+   "@id": "https://thenetwork-app.vercel.app/#website",
+   "url": "https://thenetwork-app.vercel.app/",
+   "name": "The Network",
+   "description": "A private vault for everyone you’ve met: one card per person, notes, follow-ups that remind you to reach out, a globe of your people, AI chat and MCP.",
+   "inLanguage": "en",
+   "publisher": {
+    "@id": "https://jakobkavcic.com/#person"
+   }
+  },
+  {
+   "@type": "Person",
+   "@id": "https://jakobkavcic.com/#person",
+   "name": "Jakob Kavčič",
+   "url": "https://jakobkavcic.com/",
+   "sameAs": [
+    "https://github.com/uraruguy"
+   ]
+  },
+  {
+   "@type": "SoftwareApplication",
+   "@id": "https://thenetwork-app.vercel.app/#app",
+   "name": "The Network",
+   "url": "https://thenetwork-app.vercel.app/",
+   "description": "An open-source, self-hosted personal CRM: one card per person with your notes, how you met and who introduced you, follow-ups that remind you when to reach out, a globe of where your people live, an AI assistant and a built-in MCP server.",
+   "applicationCategory": "BusinessApplication",
+   "applicationSubCategory": "Personal CRM",
+   "operatingSystem": "Web, iOS, iPadOS, macOS (installable web app)",
+   "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+   },
+   "isAccessibleForFree": true,
+   "license": "https://opensource.org/licenses/MIT",
+   "author": {
+    "@id": "https://jakobkavcic.com/#person"
+   },
+   "image": "https://thenetwork-app.vercel.app/assets/og.jpg",
+   "screenshot": [
+    "https://thenetwork-app.vercel.app/assets/today.jpg",
+    "https://thenetwork-app.vercel.app/assets/person.jpg",
+    "https://thenetwork-app.vercel.app/assets/people.jpg",
+    "https://thenetwork-app.vercel.app/assets/globe.jpg"
+   ],
+   "video": {
+    "@id": "https://thenetwork-app.vercel.app/#tour"
+   },
+   "featureList": [
+    "One card per person: notes, how you met, who introduced you, home city",
+    "Follow-ups with a daily e-mail digest and one-tap Done or Snooze",
+    "Instant, accent-insensitive search with filters and an A–Z index",
+    "A globe of your people and a graph of who introduced whom",
+    "AI assistant over your notes on your own Anthropic or OpenRouter key",
+    "Built-in MCP server for Claude, ChatGPT, Cursor and other MCP clients",
+    "Paste any text or import Apple Notes; AI files it under the right people",
+    "Installable on iPhone and Mac, works offline",
+    "One owner, password plus passkey, encrypted keys, one-click JSON export"
+   ],
+   "keywords": "personal CRM, open source, self-hosted, relationship manager, follow-ups, contacts, MCP, Claude"
+  },
+  {
+   "@type": "SoftwareSourceCode",
+   "@id": "https://github.com/uraruguy/the-network#code",
+   "name": "the-network",
+   "codeRepository": "https://github.com/uraruguy/the-network",
+   "programmingLanguage": "TypeScript",
+   "runtimePlatform": "Node.js 22",
+   "license": "https://opensource.org/licenses/MIT",
+   "author": {
+    "@id": "https://jakobkavcic.com/#person"
+   },
+   "targetProduct": {
+    "@id": "https://thenetwork-app.vercel.app/#app"
+   }
+  },
+  {
+   "@type": "VideoObject",
+   "@id": "https://thenetwork-app.vercel.app/#tour",
+   "name": "The Network: a 30-second tour",
+   "description": "Follow-ups and the daily e-mail, pasting a note that AI files under the right people, search, the globe, and asking your network from Claude over MCP. The people in it are made up.",
+   "thumbnailUrl": [
+    "https://thenetwork-app.vercel.app/assets/tour-desktop.jpg"
+   ],
+   "contentUrl": "https://thenetwork-app.vercel.app/assets/tour-desktop.mp4",
+   "uploadDate": "2026-11-10T12:00:00+01:00",
+   "duration": "PT30S",
+   "width": 1920,
+   "height": 1080,
+   "inLanguage": "en"
+  }
+ ]
+}
+</script>
 <style>
 :root {
   color-scheme: light dark;
@@ -288,7 +404,7 @@ footer { border-top: 1px solid var(--line); }
 
 <main>
   <section class="wrap hero">
-    <p class="kicker">Open source and self-hosted</p>
+    <p class="kicker">Open-source, self-hosted personal CRM</p>
     <h1>A private vault for everyone you’ve met.</h1>
     <p class="lede">One card per person: your notes, how you met, and a follow-up that reminds you when it’s time to reach out again.</p>
     <div class="cta">
