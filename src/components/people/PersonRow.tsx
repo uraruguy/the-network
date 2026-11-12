@@ -19,8 +19,8 @@ export type PersonRowProps = {
   p: PeopleRow;
   /** Activity emoji by id (only the first three of the person's activities are shown). */
   emojiById: ReadonlyMap<string, string>;
-  /** Right-hand detail: time since the last interaction (default) or the next follow-up. */
-  detail?: "last" | "followup";
+  /** Right-hand detail: time since the last interaction (default), the next follow-up, or when they were added. */
+  detail?: RowDetail;
   /** Select mode: the row toggles selection instead of opening the profile. */
   selecting?: boolean;
   selected?: boolean;
@@ -33,6 +33,8 @@ export type PersonRowProps = {
   className?: string;
   style?: CSSProperties;
 };
+
+export type RowDetail = "last" | "followup" | "added";
 
 const DAY = 86_400_000;
 
@@ -152,7 +154,7 @@ export const PersonRow = memo(function PersonRow({ p, emojiById, detail = "last"
 });
 
 /** Avatar, name + warmth, "City · Role, Company", activity emoji and the right-hand detail. */
-function RowBody({ p, emojiById, detail, now }: { p: PeopleRow; emojiById: ReadonlyMap<string, string>; detail: "last" | "followup"; now: number }) {
+function RowBody({ p, emojiById, detail, now }: { p: PeopleRow; emojiById: ReadonlyMap<string, string>; detail: RowDetail; now: number }) {
   const work = [p.headline, p.company].filter(Boolean).join(", ");
   const city = p.homeLocation ? `${flag(p.homeLocation.countryCode)} ${p.homeLocation.name}`.trim() : "";
   const sub = [city, work].filter(Boolean).join(" · ");
@@ -161,7 +163,7 @@ function RowBody({ p, emojiById, detail, now }: { p: PeopleRow; emojiById: Reado
     .filter(Boolean)
     .slice(0, 3)
     .join("");
-  const when = detail === "followup" ? p.nextFollowupAt : p.lastInteractionAt;
+  const when = detail === "followup" ? p.nextFollowupAt : detail === "added" ? p.createdAt : p.lastInteractionAt;
   const warmth = WARMTH_META[p.warmth];
   return (
     <>

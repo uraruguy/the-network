@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PeopleRow } from "./people-filters";
-import { comparePeople, indexLetter, parseSort, sortPeople } from "./sort";
+import { comparePeople, indexLetter, parseSort, SORT_KEYS, sortPeople } from "./sort";
 
 function person(id: string, over: Partial<PeopleRow> = {}): PeopleRow {
   return {
@@ -38,6 +38,11 @@ describe("sortPeople", () => {
     expect(ids(sortPeople(PEOPLE, "recent"))).toEqual(["b", "d", "a", "c", "e", "f"]);
   });
 
+  it("added: newest person first, whatever the last interaction (then name)", () => {
+    const rows = [...PEOPLE, person("g", { displayName: "Cene", createdAt: new Date("2026-10-30T00:00:00Z"), lastInteractionAt: "2026-02-01T00:00:00Z" })];
+    expect(ids(sortPeople(rows, "added"))).toEqual(["g", "c", "e", "f", "d", "b", "a"]);
+  });
+
   it("name: case- and accent-insensitive, numbers in natural order", () => {
     expect(ids(sortPeople(PEOPLE, "name"))).toEqual(["d", "b", "e", "f", "c", "a"]);
   });
@@ -70,7 +75,7 @@ describe("sortPeople", () => {
   });
 
   it("comparePeople matches sortPeople", () => {
-    for (const key of ["recent", "name", "followup", "warmth"] as const) {
+    for (const key of SORT_KEYS) {
       expect(ids([...PEOPLE].sort(comparePeople(key)))).toEqual(ids(sortPeople(PEOPLE, key)));
     }
   });
@@ -79,6 +84,7 @@ describe("sortPeople", () => {
 describe("helpers", () => {
   it("parses the sort param with a safe default", () => {
     expect(parseSort("name")).toBe("name");
+    expect(parseSort("added")).toBe("added");
     expect(parseSort("bogus")).toBe("recent");
     expect(parseSort(null)).toBe("recent");
   });

@@ -295,7 +295,7 @@ export function PeopleList() {
             <PeopleVirtualList
               people={list.rows}
               emojiById={emojiById}
-              detail={sort === "followup" ? "followup" : "last"}
+              detail={sort === "followup" || sort === "added" ? sort : "last"}
               onFollowUp={openFollowUp}
               stale={list.isStale}
               handleRef={listHandle}
