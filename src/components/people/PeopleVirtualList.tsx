@@ -9,7 +9,7 @@ import { toast } from "@/components/ui/Toast";
 import type { PeopleRow } from "@/lib/filters/people-filters";
 import { rememberListPosition, restoreScrollTop } from "@/lib/people/list-memory";
 import { cn } from "@/lib/utils";
-import { PERSON_ROW_HEIGHT, PersonRow } from "./PersonRow";
+import { PERSON_ROW_HEIGHT, PersonRow, type RowDetail } from "./PersonRow";
 import "./people.css";
 
 /** How long the "you were here" glow stays on the row you came back to. */
@@ -20,7 +20,7 @@ export type PeopleVirtualListHandle = { scrollToIndex: (index: number) => void }
 export type PeopleVirtualListProps = {
   people: readonly PeopleRow[];
   emojiById: ReadonlyMap<string, string>;
-  detail?: "last" | "followup";
+  detail?: RowDetail;
   /** Opens the follow-up sheet for a person (context menu "Follow up…"). */
   onFollowUp?: (person: PeopleRow) => void;
   /** Dims the list while newer filters are rendering. */

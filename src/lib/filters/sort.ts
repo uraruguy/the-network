@@ -6,13 +6,14 @@ import { matchRank, normalizeForSearch } from "@/components/ui/search";
 import { WARMTH } from "@/lib/constants";
 import type { PeopleRow } from "./people-filters";
 
-export const SORT_KEYS = ["recent", "name", "followup", "warmth"] as const;
+export const SORT_KEYS = ["recent", "added", "name", "followup", "warmth"] as const;
 export type SortKey = (typeof SORT_KEYS)[number];
 
 export const DEFAULT_SORT: SortKey = "recent";
 
 export const SORT_META: Record<SortKey, { label: string; hint: string }> = {
   recent: { label: "Recent", hint: "Last interaction first" },
+  added: { label: "Recently added", hint: "Newest first" },
   name: { label: "Name", hint: "A to Z" },
   followup: { label: "Next follow-up", hint: "Soonest first" },
   warmth: { label: "Warmth", hint: "Inner circle first" },
@@ -46,6 +47,7 @@ const byRecent = <T extends PeopleRow>(a: Keyed<T>, b: Keyed<T>) =>
 
 const COMPARE: Record<SortKey, <T extends PeopleRow>(a: Keyed<T>, b: Keyed<T>) => number> = {
   recent: byRecent,
+  added: (a, b) => b.created - a.created || byName(a, b),
   name: byName,
   followup: (a, b) => nullsLast(a.next, b.next, 1) || byRecent(a, b),
   warmth: (a, b) => (WARMTH_RANK.get(a.row.warmth) ?? 9) - (WARMTH_RANK.get(b.row.warmth) ?? 9) || byRecent(a, b),

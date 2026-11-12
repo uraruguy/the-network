@@ -7,6 +7,8 @@ type Props = {
   /** Render something custom from the live `now` (epoch ms). Defaults to "5 minutes ago". */
   format?: (date: Date, now: number) => string;
   className?: string;
+  /** What the time means when the context does not say ("Added"): read out before it, not shown. */
+  label?: string;
   /** Tooltip (`title`) with the absolute date. Default true. */
   title?: boolean;
 };
@@ -16,7 +18,7 @@ type Props = {
  * Renders a semantic <time> with the ISO value; hydration drift between server and client
  * clocks is expected and suppressed.
  */
-export function RelativeTime({ date, format, className, title = true }: Props) {
+export function RelativeTime({ date, format, className, label, title = true }: Props) {
   const now = useNow();
   const d = toDate(date);
   if (!d) return null;
@@ -27,6 +29,7 @@ export function RelativeTime({ date, format, className, title = true }: Props) {
       className={className}
       suppressHydrationWarning
     >
+      {label && <span className="sr-only">{label} </span>}
       {format ? format(d, now) : formatRelative(d, now)}
     </time>
   );
