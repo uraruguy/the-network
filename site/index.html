@@ -240,6 +240,8 @@ footer { border-top: 1px solid var(--line); }
 .foot ul { display: flex; flex-wrap: wrap; gap: 0 20px; }
 .foot a { display: inline-flex; align-items: center; min-height: 44px; transition: color .2s; }
 .foot a:hover { color: var(--fg); }
+.foot a.me { display: inline; color: var(--fg-2); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; transition: color .2s, text-decoration-color .2s; }
+.foot a.me:hover { color: var(--fg); text-decoration-color: currentColor; }
 
 /* Motion */
 @keyframes rise { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
@@ -439,7 +441,7 @@ pnpm dev</code></pre>
 
 <footer>
   <div class="wrap foot">
-    <span>Built by <a href="https://github.com/uraruguy" style="display:inline">Jakob Kavčič</a>. MIT licensed.</span>
+    <span>Built by <a class="me" href="https://jakobkavcic.com">Jakob Kavčič</a>. MIT licensed.</span>
     <ul>
       <li><a href="https://github.com/uraruguy/the-network">GitHub</a></li>
       <li><a href="https://github.com/uraruguy/the-network/blob/main/docs/mcp.md">MCP</a></li>
