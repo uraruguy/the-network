@@ -6,6 +6,14 @@ import { sourceLabel } from "@/components/import/review/text";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SOURCE = /^[a-z0-9-]{1,40}$/;
 
+/**
+ * No owner data in this render (a client shell): each path is rendered once and cached (ISR)
+ * instead of on every navigation. The proxy still gates every request.
+ */
+export function generateStaticParams() {
+  return [];
+}
+
 export async function generateMetadata({ params }: PageProps<"/import/[source]">) {
   const { source } = await params;
   return { title: SOURCE.test(source) && !UUID.test(source) ? `Review · ${sourceLabel(source)}` : "Import" };
