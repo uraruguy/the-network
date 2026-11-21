@@ -70,7 +70,7 @@
     right: 0;
     top: 100%;
     height: var(--bleed);
-    background-color: var(--surface-4);
+    background-color: inherit;
   }
   .ui-sheet[data-starting-style],
   .ui-sheet[data-ending-style] {

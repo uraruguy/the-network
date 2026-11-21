@@ -125,7 +125,8 @@ function PhoneSheet(p: InnerProps) {
               initialFocus={p.initialFocus}
               data-size={size}
               data-snap={points ? "" : undefined}
-              className={cn("ui-sheet glass-thick specular touch-none text-fg", p.className)}
+              // Touch screens: a near-opaque fill instead of a 30px blur recomputed on every frame of the slide.
+              className={cn("ui-sheet glass-thick specular touch-none text-fg pointer-coarse:bg-surface-2 pointer-coarse:backdrop-filter-none", p.className)}
             >
               <SheetHeader {...p} kit={Drawer} phone />
               <Drawer.Content

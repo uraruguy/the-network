@@ -120,6 +120,12 @@
 .tab-list:not([data-active]) .tab-pill {
   opacity: 0;
 }
+/* Like glass-map: while the globe moves or spins, no blur over a canvas that redraws every frame. */
+.app-shell:has([data-map-moving]) .tab-list {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background-color: var(--surface-map);
+}
 
 /* People → Select: the selection bar sits where the tab bar was (safe area included). */
 .selection-bar {
