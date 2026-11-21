@@ -9,3 +9,13 @@ import { getTableName, sql, type Column } from "drizzle-orm";
 export function qcol(column: Column) {
   return sql.raw(`"${getTableName(column.table)}"."${column.name}"`);
 }
+
+type PgError = { code?: unknown; constraint_name?: unknown; cause?: unknown };
+
+/** The Postgres error with SQLSTATE `code` in `err` or its causes (drizzle wraps driver errors in `DrizzleQueryError`). */
+export function pgError(err: unknown, code: string): PgError | null {
+  for (let e = err as PgError | undefined, depth = 0; e && depth < 4; e = e.cause as PgError | undefined, depth++) {
+    if (e.code === code) return e;
+  }
+  return null;
+}
