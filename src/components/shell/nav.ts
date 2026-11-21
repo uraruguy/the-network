@@ -12,12 +12,14 @@ export type NavItem = {
 
 /** The MapLibre globe is the largest chunk in the app. */
 const preloadGlobe = () => void import("@/components/globe/MapCanvas").catch(() => {});
+/** The chat screen carries the AI SDK. */
+const preloadChat = () => void import("@/components/chat/ChatView").catch(() => {});
 
 export const NAV: readonly NavItem[] = [
   { href: "/today", label: "Today", icon: Sun },
   { href: "/people", label: "People", icon: Users },
   { href: "/globe", label: "Globe", icon: Globe2, also: ["/graph"], preload: preloadGlobe },
-  { href: "/chat", label: "Chat", icon: MessageCircle },
+  { href: "/chat", label: "Chat", icon: MessageCircle, preload: preloadChat },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

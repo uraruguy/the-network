@@ -6,11 +6,13 @@ import { useCallback, useState, useSyncExternalStore } from "react";
 import { IconButton } from "@/components/ui/IconButton";
 import { SkeletonText } from "@/components/ui/Skeleton";
 import { Tooltip } from "@/components/ui/Tooltip";
+import { useOnIdle } from "@/lib/idle";
 import { useCacheReady, useReadyData } from "@/lib/offline/useCacheReady";
 import { useChatThread, useChatTurnFinished } from "@/lib/queries/chat";
 import { useProfile } from "@/lib/queries/misc";
 import { usePersonDetail } from "@/lib/queries/people";
 import { ChatSession, type ChatModelChoice } from "./ChatSession";
+import { preloadMarkdown } from "./Message";
 import { ThreadsSheet } from "./ThreadsSheet";
 import "./chat.css";
 
@@ -58,6 +60,7 @@ function useModelChoice(): [ChatModelChoice, (m: ChatModelChoice) => void] {
 export function ChatView() {
   const params = useSearchParams();
   const router = useRouter();
+  useOnIdle(preloadMarkdown);
   const urlThread = params.get("t");
   const urlPerson = params.get("person");
 

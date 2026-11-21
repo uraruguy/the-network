@@ -1,11 +1,19 @@
 "use client";
 import { getToolOrDynamicToolName, isToolUIPart, type UIMessage } from "ai";
 import { Check, Copy } from "lucide-react";
-import { memo, useState } from "react";
+import { lazy, memo, Suspense, useState } from "react";
 import { IconButton } from "@/components/ui/IconButton";
 import { cn } from "@/lib/utils";
-import { MemoMarkdown } from "./MemoMarkdown";
 import { ToolPills, type ToolCall } from "./ToolPills";
+
+/**
+ * Markdown (react-markdown + remark-gfm) is its own chunk: a new chat, the tab's default screen,
+ * has no messages, so the chat opens without it. ChatView preloads it on idle; until it arrives a
+ * reply shows as plain text.
+ */
+const loadMarkdown = () => import("./MemoMarkdown");
+const MemoMarkdown = lazy(() => loadMarkdown().then((m) => ({ default: m.MemoMarkdown })));
+export const preloadMarkdown = () => void loadMarkdown().catch(() => {});
 
 type Segment = { kind: "text"; key: string; text: string } | { kind: "tools"; key: string; calls: ToolCall[] };
 
@@ -69,7 +77,9 @@ export const Message = memo(function Message({ message, live, streaming }: { mes
           <ToolPills key={s.key} calls={s.calls} animateIn={streaming} />
         ) : (
           <div key={s.key} className="surface max-w-full rounded-lg rounded-bl-xs px-4 py-3 text-body text-fg">
-            <MemoMarkdown text={s.text} streaming={streaming} />
+            <Suspense fallback={<div className="prose-chat whitespace-pre-wrap">{s.text}</div>}>
+              <MemoMarkdown text={s.text} streaming={streaming} />
+            </Suspense>
           </div>
         ),
       )}

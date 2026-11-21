@@ -7,6 +7,7 @@
 import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState, useSyncExternalStore } from "react";
+import { useOnIdle } from "@/lib/idle";
 
 const QuickAddPersonSheet = dynamic(() => import("./QuickAddPersonSheet").then((m) => m.QuickAddPersonSheet), { ssr: false });
 
@@ -89,15 +90,7 @@ function Host() {
     };
   }, []);
 
-  useEffect(() => {
-    const show = () => setSheet(true);
-    if (typeof requestIdleCallback === "function") {
-      const id = requestIdleCallback(show, { timeout: 3000 });
-      return () => cancelIdleCallback(id);
-    }
-    const t = setTimeout(show, 1500);
-    return () => clearTimeout(t);
-  }, []);
+  useOnIdle(() => setSheet(true));
 
   // Pages that give ⌘N its own meaning (person and note pages: a new note) handle it in the
   // capture phase and preventDefault; handled events are skipped here, so one press = one action.

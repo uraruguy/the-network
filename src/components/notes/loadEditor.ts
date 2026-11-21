@@ -4,6 +4,7 @@
  * and on pointerdown of "New note", so the editor renders instantly when the note opens.
  */
 import { useEffect, useState } from "react";
+import { useOnIdle } from "@/lib/idle";
 
 type EditorModule = typeof import("./NoteEditor");
 
@@ -28,16 +29,7 @@ export function preloadNoteEditor() {
 
 /** Preloads the editor when the browser is idle. */
 export function usePreloadNoteEditorOnIdle() {
-  useEffect(() => {
-    if (loaded) return;
-    const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void };
-    if (w.requestIdleCallback) {
-      const id = w.requestIdleCallback(preloadNoteEditor, { timeout: 4000 });
-      return () => w.cancelIdleCallback?.(id);
-    }
-    const t = setTimeout(preloadNoteEditor, 1500);
-    return () => clearTimeout(t);
-  }, []);
+  useOnIdle(preloadNoteEditor, 4000);
 }
 
 /** The editor module — synchronously when already preloaded, otherwise once it arrives. */
