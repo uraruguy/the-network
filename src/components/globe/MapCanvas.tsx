@@ -40,7 +40,7 @@ import {
 import { useResolvedTokens } from "@/lib/design/useResolvedTokens";
 import { pinchZoom, usePinch } from "@/lib/gestures";
 import { cn } from "@/lib/utils";
-import { CityPins } from "./CityPins";
+import { CityPins, isSpin, SPIN } from "./CityPins";
 import { GlobeSkeleton } from "./GlobeSkeleton";
 import { MapFallback } from "./MapFallback";
 import { planetZoom, type ArcCollection, type CityCollection, type CityGroup, type LngLatPair } from "./globe-data";
@@ -300,14 +300,29 @@ function MapCanvasInner({
     m.jumpTo({ center: saved?.center ?? center, padding: saved?.padding ?? pad });
     m.addControl(new AttributionControl({ compact: true }), "bottom-left");
 
+    // The idle spin moves the camera every frame (movestart + moveend each time): it only refreshes
+    // `lastMove`, so the flag flips once per spin instead of re-arming a timer per frame.
     let idle: ReturnType<typeof setTimeout> | undefined;
-    m.on("movestart", () => {
-      clearTimeout(idle);
-      emitMoving(true);
+    let moving = false;
+    let lastMove = 0;
+    const setMoving = (next: boolean) => {
+      if (next !== moving) emitMoving((moving = next));
+    };
+    const settle = () => {
+      const wait = lastMove + 160 - performance.now();
+      idle = wait > 0 ? setTimeout(settle, wait) : undefined;
+      if (!idle) setMoving(false);
+    };
+    m.on("movestart", (e) => {
+      if (!isSpin(e)) {
+        clearTimeout(idle);
+        idle = undefined;
+      }
+      setMoving(true);
     });
     m.on("moveend", () => {
-      clearTimeout(idle);
-      idle = setTimeout(() => emitMoving(false), 160);
+      lastMove = performance.now();
+      if (!idle) idle = setTimeout(settle, 160);
       if (resumeAfterFly.current) {
         resumeAfterFly.current = false;
         setSpinning(true);
@@ -430,7 +445,7 @@ function MapCanvasInner({
       last = now;
       if (!document.hidden && map.getZoom() < ROTATE_MAX_ZOOM && !map.isMoving()) {
         const c = map.getCenter();
-        map.jumpTo({ center: [c.lng - dt * DEG_PER_MS, c.lat] });
+        map.jumpTo({ center: [c.lng - dt * DEG_PER_MS, c.lat] }, SPIN);
       }
       raf = requestAnimationFrame(tick);
     };
