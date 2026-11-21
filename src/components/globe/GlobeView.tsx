@@ -44,10 +44,12 @@ const plural = (n: number, one: string, many: string) => `${n.toLocaleString()} 
 
 export function GlobeView() {
   const { filters: state, setFilters } = usePeopleFilters();
-  const filters = useMemo<PeopleFilters>(() => ({ ...state, locationIds: [] }), [state]);
+  // Memoised without the city: a city tap must not re-filter and re-upload the map's data mid-fly.
+  const { q, categoryIds, warmth, activityIds, tagIds } = state;
+  const filters = useMemo<PeopleFilters>(() => ({ q, categoryIds, warmth, activityIds, tagIds, locationIds: [] }), [q, categoryIds, warmth, activityIds, tagIds]);
   const selectedId = state.locationIds.length === 1 ? state.locationIds[0]! : null;
-  /** The filters with the city selection; `null` clears it. */
-  const update = (next: PeopleFilters, city: string | null) => setFilters({ ...next, locationIds: city ? [city] : [] });
+  /** Selects a city (`null` clears it) on top of the latest filters, a still-rendering change included. */
+  const setCity = (city: string | null) => setFilters((prev) => ({ ...prev, locationIds: city ? [city] : [] }));
   // The field updates at once; filtering and the map's new data follow when React has time.
   const mapFilters = useDeferredValue(filters);
 
@@ -119,7 +121,7 @@ export function GlobeView() {
     handle.current?.flyToCity(g.location, { zoom: CITY_ZOOM, padding: padding(g.people.length === 1 ? "peek" : "city") });
   };
   const selectCity = (id: string | null) => {
-    update(filters, id);
+    setCity(id);
     if (id) flyTo(id);
   };
 
@@ -137,13 +139,20 @@ export function GlobeView() {
   const fitTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(fitTimer.current), []);
   const onFiltersChange = (next: PeopleFilters) => {
-    const keepCity = selectedId && filterPeople(people, next).some((p) => p.homeLocation?.id === selectedId) ? selectedId : null;
-    update(next, keepCity);
+    const matches = filterPeople(people, next);
+    // Against the latest city (setFilters runs the updater at once), so a keystroke can't drop a
+    // city tap that is still rendering.
+    let keepCity = false;
+    setFilters((prev) => {
+      const city = prev.locationIds.length === 1 ? prev.locationIds[0]! : null;
+      keepCity = !!city && matches.some((p) => p.homeLocation?.id === city);
+      return { ...next, locationIds: keepCity ? [city!] : [] };
+    });
     clearTimeout(fitTimer.current);
     if (isEmpty({ ...next, locationIds: [] }) || keepCity) return;
     // Show where the matches are (debounced so typing a search doesn't swing the camera).
     fitTimer.current = setTimeout(() => {
-      const bounds = citiesBounds(buildCityData(filterPeople(people, next)).groups.values());
+      const bounds = citiesBounds(buildCityData(matches).groups.values());
       if (bounds) handle.current?.fitPeople(bounds, { padding: padding(), maxZoom: 6 });
     }, 450);
   };
@@ -216,7 +225,7 @@ export function GlobeView() {
         onZoomOut={() => handle.current?.zoomBy(-1)}
         onHome={home ? () => handle.current?.flyToCity(home, { zoom: HOME_ZOOM, padding: padding() }) : null}
         onPlanet={() => {
-          update(filters, null);
+          setCity(null);
           handle.current?.resetPlanet(planetCenter(), padding());
         }}
         arcs={arcsOn}
