@@ -10,9 +10,12 @@ export type NavItem = {
   preload?: () => void;
 };
 
-/** The MapLibre globe is the largest chunk in the app. */
-const preloadGlobe = () => void import("@/components/globe/MapCanvas").catch(() => {});
-/** The chat screen carries the AI SDK. */
+/**
+ * The MapLibre globe is the largest chunk in the app. Loaded through the page's own module: a
+ * direct import of MapCanvas from here gets a chunk set of its own, partly unlike the page's.
+ */
+const preloadGlobe = () => void import("@/components/globe/GlobeView").then((m) => m.preloadMap()).catch(() => {});
+/** The chat screen carries the AI SDK (the same chunks the /chat page loads). */
 const preloadChat = () => void import("@/components/chat/ChatView").catch(() => {});
 
 export const NAV: readonly NavItem[] = [

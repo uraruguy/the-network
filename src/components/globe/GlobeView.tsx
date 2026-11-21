@@ -31,7 +31,10 @@ import { PersonPeek } from "./PersonPeek";
 import { buildArcCollection, buildCityData, citiesBounds, peopleCentroid, type LngLatPair } from "./globe-data";
 import type { MapHandle } from "./MapCanvas";
 
-const MapCanvas = dynamic(() => import("./MapCanvas"), { ssr: false, loading: () => <GlobeSkeleton /> });
+const loadMap = () => import("./MapCanvas");
+const MapCanvas = dynamic(loadMap, { ssr: false, loading: () => <GlobeSkeleton /> });
+/** The tab bar's intent preload goes through here: this import site loads the very chunks the page will. */
+export const preloadMap = () => loadMap();
 
 /** The city facet is the globe's selection, so the filter bar offers everything else. */
 const GLOBE_FACETS: Facet[] = ["category", "warmth", "activity", "tag"];
