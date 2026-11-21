@@ -1,7 +1,7 @@
 "use client";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowRightLeft, Bell, Pin, PinOff, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type Ref } from "react";
 import { FollowUpSheet } from "@/components/followups/FollowUpSheet";
 import { ContextMenu } from "@/components/ui/ContextMenu";
 import { toast } from "@/components/ui/Toast";
@@ -24,7 +24,8 @@ export function NotesList({ notes, personId, personName }: { notes: NoteSummary[
   const actions = useNoteActions();
   const sections = useMemo(() => groupNotes(notes, now), [notes, now]);
   // Rows only re-measure their layout when the list's order changes (add, delete, pin), not on
-  // every unrelated re-render.
+  // every unrelated re-render. So a leaving row pops out of the flow in that same commit
+  // (popLayout) and the rest slide up while it fades; after its exit nothing would re-measure.
   const order = useMemo(() => sections.map((s) => s.items.map((n) => n.id).join()).join("|"), [sections]);
   const [followUp, setFollowUp] = useState<NoteSummary | null>(null);
   const [moving, setMoving] = useState<NoteSummary | null>(null);
@@ -34,8 +35,8 @@ export function NotesList({ notes, personId, personName }: { notes: NoteSummary[
       {sections.map((section) => (
         <section key={section.key} aria-label={section.label} className="space-y-1.5">
           <h3 className="px-4 text-footnote font-semibold tracking-[0.02em] text-fg-3 uppercase">{section.label}</h3>
-          <ul className="surface overflow-hidden rounded-lg">
-            <AnimatePresence initial={false}>
+          <ul className="surface relative overflow-hidden rounded-lg">
+            <AnimatePresence initial={false} mode="popLayout">
               {section.items.map((n) => (
                 <NoteItem key={n.id} note={n} personId={personId} order={order} actions={actions} onFollowUp={setFollowUp} onMove={setMoving} />
               ))}
@@ -67,6 +68,7 @@ export function NotesList({ notes, personId, personName }: { notes: NoteSummary[
 }
 
 type NoteItemProps = {
+  ref?: Ref<HTMLLIElement>;
   note: NoteSummary;
   personId: string;
   order: string;
@@ -75,9 +77,10 @@ type NoteItemProps = {
   onMove: (n: NoteSummary) => void;
 };
 
-function NoteItem({ note: n, personId, order, actions, onFollowUp, onMove }: NoteItemProps) {
+function NoteItem({ ref, note: n, personId, order, actions, onFollowUp, onMove }: NoteItemProps) {
   return (
     <motion.li
+      ref={ref}
       layout="position"
       layoutDependency={order}
       initial={{ opacity: 0 }}
