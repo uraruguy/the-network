@@ -8,12 +8,15 @@ import { ToolPills, type ToolCall } from "./ToolPills";
 
 /**
  * Markdown (react-markdown + remark-gfm) is its own chunk: a new chat, the tab's default screen,
- * has no messages, so the chat opens without it. ChatView preloads it on idle; until it arrives a
- * reply shows as plain text.
+ * has no messages, so the chat opens without it. ChatView preloads it on idle, a saved thread
+ * waits for it (markdownLoaded); until it arrives a reply shows as plain text.
  */
 const loadMarkdown = () => import("./MemoMarkdown");
 const MemoMarkdown = lazy(() => loadMarkdown().then((m) => ({ default: m.MemoMarkdown })));
-export const preloadMarkdown = () => void loadMarkdown().catch(() => {});
+let markdown: Promise<void> | undefined;
+/** Settles once the markdown chunk has loaded (or failed to, then the next call retries): one promise, for `use()`. */
+export const markdownLoaded = () => (markdown ??= loadMarkdown().then(() => {}, () => void (markdown = undefined)));
+export const preloadMarkdown = () => void markdownLoaded();
 
 type Segment = { kind: "text"; key: string; text: string } | { kind: "tools"; key: string; calls: ToolCall[] };
 
