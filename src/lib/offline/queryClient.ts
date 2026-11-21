@@ -1,5 +1,5 @@
 "use client";
-import { defaultShouldDehydrateQuery, onlineManager, QueryClient, type Mutation, type Query } from "@tanstack/react-query";
+import { onlineManager, QueryClient, type Mutation, type Query } from "@tanstack/react-query";
 import type { PersistedClient, Persister, PersistQueryClientOptions } from "@tanstack/react-query-persist-client";
 import { del, get, set } from "idb-keyval";
 import type { NoteDoc } from "@/lib/notes/cache";
@@ -58,8 +58,21 @@ const hasLocalContent = (query: Pick<Query, "queryKey" | "state">) => {
 export function shouldPersistQuery(query: Pick<Query, "queryKey" | "meta" | "state">): boolean {
   const [root, sub] = query.queryKey;
   if (NEVER_PERSIST.has(String(root)) || sub === "search") return false;
-  if (query.meta?.persist === false || !defaultShouldDehydrateQuery(query as Query)) return false;
-  return Date.now() - query.state.dataUpdatedAt <= PERSIST_MAX_AGE || !onlineManager.isOnline() || hasLocalContent(query);
+  if (hasLocalContent(query)) return true;
+  // Data, not status: a refetch that failed (a timeout on a weak signal) keeps the last good data.
+  if (query.meta?.persist === false || query.state.data === undefined) return false;
+  return Date.now() - query.state.dataUpdatedAt <= PERSIST_MAX_AGE || !onlineManager.isOnline();
+}
+
+/**
+ * A query whose last refetch failed is stored as its last success: restored as an error, screens
+ * that show an error state would hide the data it still has (and an Error serialises to `{}`).
+ */
+export function asLastSuccess(client: PersistedClient): PersistedClient {
+  const queries = client.clientState.queries.map((q) =>
+    q.state.status === "error" && q.state.data !== undefined ? { ...q, state: { ...q.state, status: "success" as const, error: null, fetchStatus: "idle" as const } } : q,
+  );
+  return { ...client, clientState: { ...client.clientState, queries } };
 }
 
 /**
@@ -144,7 +157,7 @@ export function makePersister(): Persister & { flush: () => Promise<void> } {
     dirty = false;
     lastWrite = Date.now();
     try {
-      await set(key, JSON.stringify(latest));
+      await set(key, JSON.stringify(asLastSuccess(latest)));
     } catch {
       dirty = true; // e.g. storage full: the next save or flush tries again
     }

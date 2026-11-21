@@ -1,4 +1,5 @@
 "use client";
+import { onlineManager } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { MotionConfig } from "motion/react";
 import { useEffect, useState } from "react";
@@ -22,6 +23,9 @@ import { ToastHost } from "@/components/ui/Toast";
  */
 export function Providers({ children }: { children: React.ReactNode }) {
   const [client] = useState(() => {
+    // TanStack assumes online until an "offline" event: an app opened without a connection would
+    // retry restored writes into failures instead of pausing them.
+    if (typeof navigator !== "undefined" && navigator.onLine === false) onlineManager.setOnline(false);
     const qc = makeQueryClient();
     // Mutation defaults first, so paused offline writes restored from IndexedDB know how to resume.
     registerPeopleMutations(qc);

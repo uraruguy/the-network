@@ -3,7 +3,7 @@ import type { PersistedClient } from "@tanstack/react-query-persist-client";
 import { set } from "idb-keyval";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { registerChatMutations } from "@/lib/queries/chat";
-import { isReplayableWrite, makePersister, PERSIST_MAX_AGE, PERSIST_THROTTLE_MS, resumeInFlight, shouldPersistMutation, shouldPersistQuery } from "./queryClient";
+import { asLastSuccess, isReplayableWrite, makePersister, PERSIST_MAX_AGE, PERSIST_THROTTLE_MS, resumeInFlight, shouldPersistMutation, shouldPersistQuery } from "./queryClient";
 
 vi.mock("idb-keyval", () => ({ get: vi.fn(), set: vi.fn(async () => {}), del: vi.fn(async () => {}) }));
 
@@ -12,6 +12,25 @@ function persisted(qc: QueryClient, key: readonly unknown[]) {
 }
 
 describe("shouldPersistQuery", () => {
+  it("keeps the last good data when a refetch failed, and unsynced note words even without data status", async () => {
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    qc.setQueryData(["people", "index"], [{ id: "a" }]);
+    await qc.fetchQuery({ queryKey: ["people", "index"], queryFn: () => Promise.reject(new Error("timeout")), staleTime: 0 }).catch(() => {});
+    expect(qc.getQueryState(["people", "index"])!.status).toBe("error");
+    expect(persisted(qc, ["people", "index"])).toBe(true);
+    qc.setQueryData(["note", "n1"], { id: "n1", syncPending: true }, { updatedAt: Date.now() - 2 * PERSIST_MAX_AGE });
+    expect(persisted(qc, ["note", "n1"])).toBe(true);
+  });
+
+  it("stores a failed refetch as its last success", () => {
+    const query = (status: "success" | "error", data: unknown) => ({ queryKey: ["k"], queryHash: "k", state: { status, data, error: status === "error" ? new Error("x") : null, fetchStatus: "fetching" } });
+    const client = { timestamp: 1, buster: "", clientState: { mutations: [], queries: [query("error", [1]), query("error", undefined), query("success", [2])] } } as unknown as PersistedClient;
+    const [failed, empty, ok] = asLastSuccess(client).clientState.queries;
+    expect(failed!.state).toMatchObject({ status: "success", error: null, fetchStatus: "idle", data: [1] });
+    expect(empty!.state.status).toBe("error");
+    expect(ok).toBe(client.clientState.queries[2]);
+  });
+
   it("persists ordinary successful queries", () => {
     const qc = new QueryClient();
     qc.setQueryData(["people", "index"], []);

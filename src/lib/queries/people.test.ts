@@ -1,4 +1,4 @@
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryObserver } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { keys } from "./keys";
 import { personDetailQuery, personWrites, prefetchPerson, registerPeopleMutations } from "./people";
@@ -70,5 +70,43 @@ describe("after a person save", () => {
     personWrites(qc).update(A, { displayName: "" });
     await vi.waitFor(() => expect(qc.isMutating()).toBe(0));
     expect([invalidated(keys.peopleIndex()), invalidated(keys.tags())]).toEqual([true, true]);
+  });
+});
+
+describe("review regressions", () => {
+  it("rolls a rejected edit back on screen (the failed write no longer guards the detail)", async () => {
+    const unsub = new QueryObserver(qc, { ...personDetailQuery(A), staleTime: 30_000 }).subscribe(() => {});
+    let fail!: (r: Response) => void;
+    fetchMock.mockImplementation((_u, init) => ((init?.method ?? "GET") === "GET" ? Promise.resolve(json(200, detail("Ana"))) : new Promise((r) => (fail = r))));
+    personWrites(qc).update(A, { displayName: "Rejected" });
+    await vi.waitFor(() => expect(qc.getQueryData<PersonDetailApi>(keys.person(A))!.displayName).toBe("Rejected"));
+    fail(json(422, { error: "invalid", message: "nope" }));
+    await vi.waitFor(() => expect(qc.getQueryData<PersonDetailApi>(keys.person(A))!.displayName).toBe("Ana"));
+    expect(gets()).toBe(1);
+    unsub();
+  });
+
+  it("refetches the index when a read of it was in flight while writes settled one after another", async () => {
+    const B = "22222222-2222-4222-8222-222222222222";
+    qc.setQueryData(keys.person(B), { ...detail("Bo"), id: B });
+    const gate: Record<string, (r: Response) => void> = {};
+    let indexGets = 0;
+    fetchMock.mockImplementation((u, init) => {
+      const url = String(u);
+      if ((init?.method ?? "GET") === "GET" && url === "/api/people") return new Promise((r) => (gate[`idx${++indexGets}`] = r));
+      return new Promise((r) => (gate[url] = r));
+    });
+    const unsub = new QueryObserver(qc, { queryKey: keys.peopleIndex(), queryFn: () => fetch("/api/people").then((r) => r.json()), staleTime: 5 * 60_000 }).subscribe(() => {});
+    void qc.invalidateQueries({ queryKey: keys.peopleIndex() });
+    await vi.waitFor(() => expect(gate.idx1).toBeTruthy());
+    personWrites(qc).update(A, { displayName: "Ana N." });
+    personWrites(qc).update(B, { displayName: "Bo N." });
+    await vi.waitFor(() => expect(gate[`/api/people/${A}`] && gate[`/api/people/${B}`]).toBeTruthy());
+    gate[`/api/people/${A}`]!(json(200, detail("Ana N.")));
+    await vi.waitFor(() => expect(qc.isMutating()).toBe(1));
+    gate.idx1!(json(200, [{ id: A, displayName: "Ana" }]));
+    gate[`/api/people/${B}`]!(json(200, { ...detail("Bo N."), id: B }));
+    await vi.waitFor(() => expect(indexGets).toBe(2));
+    unsub();
   });
 });

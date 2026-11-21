@@ -78,7 +78,9 @@ export function useDeleteChatThread() {
 /**
  * Call when a turn finished: refreshes the thread list (order, title) and writes the live
  * transcript into the cached thread (memory only, see above), so reopening it shortly after
- * shows the latest turn instantly.
+ * shows the latest turn instantly. The assistant's tools write on the server (people, notes,
+ * follow-ups), so everything else is marked stale too — active screens refetch, the rest on their
+ * next visit. Note documents are left alone: no tool edits one, and an open editor owns its cache.
  */
 export function useChatTurnFinished() {
   const qc = useQueryClient();
@@ -88,5 +90,6 @@ export function useChatTurnFinished() {
       old ? { ...old, messages, updatedAt: now } : { id: threadId, title: null, personId: null, createdAt: now, updatedAt: now, messages },
     );
     void qc.invalidateQueries({ queryKey: chatKeys.threads() });
+    void qc.invalidateQueries({ predicate: (q) => q.queryKey[0] !== "chat" && q.queryKey[0] !== "note" });
   };
 }

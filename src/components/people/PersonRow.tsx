@@ -129,7 +129,10 @@ export const PersonRow = memo(function PersonRow({ p, emojiById, detail = "last"
       prefetch={false}
       transitionTypes={NAV_FORWARD}
       {...prefetch}
-      onClick={() => rememberListPosition(p.id)}
+      onClick={() => {
+        prefetch.onClick();
+        rememberListPosition(p.id);
+      }}
       data-person-id={p.id}
       aria-current={lastOpened ? "true" : undefined}
       draggable={false}

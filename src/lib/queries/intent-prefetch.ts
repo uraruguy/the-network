@@ -13,18 +13,20 @@ import { prefetchPerson } from "./people";
 const FULL_PREFETCH = { kind: "full" as PrefetchKind };
 
 /**
- * Link handlers that prefetch on intent (pointer over, focus, touch start) rather than on
- * visibility — a fast scroll through 1,000 rows shouldn't fire 1,000 prefetches. Besides the page,
- * the data it waits for is warmed: a person link's detail, a note link's note (`personId` is then
- * its person, for the same draft fallback as the page).
+ * Link handlers that prefetch on intent rather than on visibility — a fast scroll through 1,000
+ * rows shouldn't fire 1,000 prefetches. Pointing at or touching a link prefetches the page (cheap,
+ * cached by the router); focusing or tapping it also starts the data the page waits for (a person
+ * link's detail, a note link's note), in parallel with the push transition instead of after it.
+ * Not on touch: on a phone every scroll gesture starts with one.
  */
 export function useIntentPrefetch(href: string, target: { personId?: string; noteId?: string } = {}) {
   const router = useRouter();
   const qc = useQueryClient();
-  const prefetch = () => {
-    router.prefetch(href, FULL_PREFETCH);
-    if (target.noteId) prefetchNote(qc, target.noteId, target.personId);
+  const page = () => router.prefetch(href, FULL_PREFETCH);
+  const data = () => {
+    page();
+    if (target.noteId) prefetchNote(qc, target.noteId);
     else if (target.personId) prefetchPerson(qc, target.personId);
   };
-  return { onPointerEnter: prefetch, onFocus: prefetch, onTouchStart: prefetch };
+  return { onPointerEnter: page, onTouchStart: page, onFocus: data, onClick: data };
 }

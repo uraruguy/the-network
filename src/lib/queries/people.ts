@@ -35,7 +35,7 @@ export function usePeopleIndex() {
     queryKey: keys.peopleIndex(),
     queryFn: () => api.get<PersonIndexRow[]>("/api/people"),
     staleTime: 5 * 60_000,
-    refetchOnWindowFocus: (q) => Date.now() - q.state.dataUpdatedAt > 60_000,
+    refetchOnWindowFocus: (q) => (Date.now() - q.state.dataUpdatedAt > 60_000 ? "always" : false),
   });
 }
 
@@ -235,12 +235,13 @@ const owedRefresh = new WeakMap<QueryClient, PeopleRefresh>();
  */
 function invalidatePeople(qc: QueryClient, id?: string, saved?: Partial<PersonPatch>) {
   const need = peopleRefresh(saved, owedRefresh.get(qc));
+  if (qc.isFetching({ queryKey: keys.peopleIndex() })) need.index = true;
   if (qc.isMutating({ mutationKey: ["people"] }) > 1) {
     owedRefresh.set(qc, need);
     return;
   }
   owedRefresh.delete(qc);
-  if (need.index || qc.isFetching({ queryKey: keys.peopleIndex() })) qc.invalidateQueries({ queryKey: ["people"] });
+  if (need.index) qc.invalidateQueries({ queryKey: ["people"] });
   else qc.invalidateQueries({ queryKey: ["people"], predicate: (q) => q.queryKey[1] !== "index" });
   if (id) qc.invalidateQueries({ queryKey: keys.person(id) });
   qc.invalidateQueries({ queryKey: keys.globe() });
@@ -348,8 +349,12 @@ export function registerPeopleMutations(qc: QueryClient) {
     onSuccess: (data: PersonDetailApi) => putPerson(qc, data),
     onError: (e: unknown, { id }: UpdatePersonVars) => {
       toast.error("Couldn’t save changes", { description: errorText(e) });
-      qc.invalidateQueries({ queryKey: keys.person(id) });
-      qc.invalidateQueries({ queryKey: keys.peopleIndex() });
+      // After the mutation has settled: until then it still counts as a queued write, and the
+      // detail's queryFn would answer with the rejected optimistic state (personDetailQuery).
+      setTimeout(() => {
+        qc.invalidateQueries({ queryKey: keys.person(id) });
+        qc.invalidateQueries({ queryKey: keys.peopleIndex() });
+      });
     },
     onSettled: (_d: unknown, e: unknown, { id, patch }: UpdatePersonVars) => invalidatePeople(qc, id, e ? undefined : patch),
   });

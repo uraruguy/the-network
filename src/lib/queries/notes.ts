@@ -104,11 +104,15 @@ export function useNoteDoc(id: string | null, opts: { personId?: string } = {}) 
   return useQuery<NoteDoc>({ ...noteDocQuery(id ?? "", opts.personId), enabled: (q) => !!id && !q.state.data?.localOnly });
 }
 
-/** Warms a note for the editor on intent (hover, focus, touch) — not a local draft, nor one with a save on its way. */
-export function prefetchNote(qc: QueryClient, id: string, personId?: string) {
+/**
+ * Warms a note for the editor on intent (focus, press) — not a local draft, nor one holding words
+ * the server doesn't have yet. Without a `personId`, so a note deleted elsewhere stays an error
+ * instead of becoming a draft nobody opened.
+ */
+export function prefetchNote(qc: QueryClient, id: string) {
   const cached = qc.getQueryData<NoteDoc>(keys.note(id));
-  if (cached && (cached.localOnly || pendingNoteWrites(qc, id).length)) return;
-  void qc.prefetchQuery(noteDocQuery(id, personId));
+  if (cached && (cached.localOnly || cached.syncPending || pendingNoteWrites(qc, id).length)) return;
+  void qc.prefetchQuery(noteDocQuery(id));
 }
 
 /** @deprecated use useNoteDoc */
