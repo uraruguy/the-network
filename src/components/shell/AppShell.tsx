@@ -78,6 +78,9 @@ function Sidebar({ active }: { active: number }) {
                 href={item.href}
                 transitionTypes={TAB}
                 aria-current={on ? "page" : undefined}
+                onPointerEnter={item.preload}
+                onPointerDown={item.preload}
+                onFocus={item.preload}
                 className={cn(
                   "pressable relative z-[1] flex h-11 items-center gap-3 rounded-sm px-3 text-subhead font-medium",
                   on ? "text-accent-text" : "text-fg-2 hover:bg-fill-1 hover:text-fg",
@@ -114,6 +117,9 @@ function TabBar({ active, hidden }: { active: number; hidden: boolean }) {
               href={item.href}
               transitionTypes={TAB}
               aria-current={on ? "page" : undefined}
+              onPointerEnter={item.preload}
+              onPointerDown={item.preload}
+              onFocus={item.preload}
               className={cn(
                 "pressable relative z-[1] flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-full",
                 on ? "text-accent-text" : "text-fg-3",

@@ -6,12 +6,17 @@ export type NavItem = {
   icon: LucideIcon;
   /** Other path prefixes that light up this tab (e.g. /graph is the Globe tab's second view). */
   also?: readonly string[];
+  /** Starts loading the page's heavy chunk on intent (hover, focus, press) before the tap lands. */
+  preload?: () => void;
 };
+
+/** The MapLibre globe is the largest chunk in the app. */
+const preloadGlobe = () => void import("@/components/globe/MapCanvas").catch(() => {});
 
 export const NAV: readonly NavItem[] = [
   { href: "/today", label: "Today", icon: Sun },
   { href: "/people", label: "People", icon: Users },
-  { href: "/globe", label: "Globe", icon: Globe2, also: ["/graph"] },
+  { href: "/globe", label: "Globe", icon: Globe2, also: ["/graph"], preload: preloadGlobe },
   { href: "/chat", label: "Chat", icon: MessageCircle },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
