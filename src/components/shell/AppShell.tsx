@@ -1,17 +1,20 @@
 "use client";
 import "@/app/transitions.css";
 import "./shell.css";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { CSSProperties } from "react";
-import { PasskeyPrompt } from "@/components/auth/PasskeyPrompt";
 import { cn } from "@/lib/utils";
 import { Logo } from "./Logo";
-import { QuickAddPersonHost } from "@/components/people/QuickAddPersonSheet";
+import { QuickAddPersonHost } from "@/components/people/QuickAddPersonHost";
 import { NAV, activeNavIndex, hidesTabBar, isFullBleed, transitionKey } from "./nav";
 import { SyncStatus } from "./SyncStatus";
 import { PageTransition, TAB } from "./transitions";
 import { useKeyboardInset } from "./useKeyboardInset";
+
+// Rarely shown (only without a required passkey): its own chunk, off every route's critical path.
+const PasskeyPrompt = dynamic(() => import("@/components/auth/PasskeyPrompt").then((m) => m.PasskeyPrompt), { ssr: false });
 
 /**
  * The app frame: ambient background, sidebar (≥lg) / floating tab bar (<lg), sync status,

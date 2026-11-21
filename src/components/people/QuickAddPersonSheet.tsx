@@ -1,8 +1,8 @@
 "use client";
 import { ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { GlassInput } from "@/components/glass/GlassInput";
 import { Field } from "@/components/ui/Field";
 import { Sheet } from "@/components/ui/Sheet";
@@ -11,103 +11,9 @@ import { usePersonWrites } from "@/lib/queries/people";
 import { ActivityPicker } from "./ActivityPicker";
 import { CityPicker } from "./CityPicker";
 import { confirmDiscard, emptyPerson, FormSection, isPersonDirty, PersonFormFields, toPersonInput, validatePerson, type PersonFormErrors, type PersonFormValues } from "./PersonForm";
+import { joinQuickAdd, useQuickAddHosted } from "./QuickAddPersonHost";
 
-/* ------------------------------------------------------------------ */
-/*  Global store: one quick-add sheet for the whole app                */
-/* ------------------------------------------------------------------ */
-
-type QuickAddState = { open: boolean; name: string; onClose: (() => void) | null };
-
-let state: QuickAddState = { open: false, name: "", onClose: null };
-let hosts = 0;
-const listeners = new Set<() => void>();
-const emit = () => listeners.forEach((l) => l());
-const subscribe = (l: () => void) => {
-  listeners.add(l);
-  return () => {
-    listeners.delete(l);
-  };
-};
-
-/** Opens the app-wide quick-add sheet (mounted by `QuickAddPersonHost`). */
-export function openQuickAdd(opts: { name?: string; onClose?: () => void } = {}) {
-  state = { open: true, name: opts.name ?? "", onClose: opts.onClose ?? null };
-  emit();
-}
-
-function closeQuickAdd() {
-  const cb = state.onClose;
-  state = { ...state, open: false, onClose: null };
-  emit();
-  cb?.();
-}
-
-const useQuickAddState = () => useSyncExternalStore(subscribe, () => state, () => state);
-const useHosted = () =>
-  useSyncExternalStore(
-    subscribe,
-    () => hosts > 0,
-    () => false,
-  );
-
-const isTyping = (el: EventTarget | null) => {
-  const t = el as HTMLElement | null;
-  return !!t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || !!t.closest?.("[contenteditable=true],[role=dialog],[role=menu],[role=listbox]"));
-};
-
-/**
- * Mount once inside the app shell: the quick-add sheet, the `⌘N` / `N` shortcuts and the
- * `?new=1` deep link (PWA shortcut "Add person").
- */
-export function QuickAddPersonHost() {
-  return (
-    <Suspense fallback={null}>
-      <Host />
-    </Suspense>
-  );
-}
-
-function Host() {
-  const s = useQuickAddState();
-  const router = useRouter();
-  const pathname = usePathname();
-  const params = useSearchParams();
-
-  useEffect(() => {
-    hosts += 1;
-    emit();
-    return () => {
-      hosts -= 1;
-      emit();
-    };
-  }, []);
-
-  // Pages that give ⌘N its own meaning (person and note pages: a new note) handle it in the
-  // capture phase and preventDefault; handled events are skipped here, so one press = one action.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.defaultPrevented || e.repeat || e.altKey || e.shiftKey) return;
-      const cmdN = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "n";
-      const bareN = !e.metaKey && !e.ctrlKey && e.key.toLowerCase() === "n" && !isTyping(e.target) && !isTyping(document.activeElement);
-      if (!cmdN && !bareN) return;
-      e.preventDefault();
-      if (!state.open) openQuickAdd();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  const deepLink = params.get("new") === "1";
-  useEffect(() => {
-    if (!deepLink) return;
-    if (!state.open) openQuickAdd();
-    const next = new URLSearchParams(params);
-    next.delete("new");
-    router.replace(`${pathname}${next.size ? `?${next}` : ""}`, { scroll: false });
-  }, [deepLink, params, pathname, router]);
-
-  return <QuickAddPersonSheet open={s.open} onOpenChange={(o) => (o ? openQuickAdd() : closeQuickAdd())} initialName={s.name} />;
-}
+export { openQuickAdd, QuickAddPersonHost } from "./QuickAddPersonHost";
 
 /* ------------------------------------------------------------------ */
 /*  The sheet                                                          */
@@ -250,17 +156,15 @@ export function QuickAddPersonSheet({ open, onOpenChange, initialName = "", onCr
  * drives the single app-wide sheet; otherwise it renders its own.
  */
 export function NewPersonSheet({ open, onClose, initialName }: { open: boolean; onClose: () => void; initialName?: string }) {
-  const hosted = useHosted();
+  const hosted = useQuickAddHosted();
   const onCloseRef = useRef(onClose);
   useEffect(() => {
     onCloseRef.current = onClose;
   }, [onClose]);
   useEffect(() => {
     if (!hosted || !open) return;
-    const cb = () => onCloseRef.current();
-    if (!state.open) openQuickAdd({ name: initialName, onClose: cb });
-    // Already open (the shortcut or the ?new=1 deep link got there first): report the close to us too.
-    else if (!state.onClose) state = { ...state, onClose: cb };
+    // Opens the shared sheet; if the shortcut or the ?new=1 deep link got there first, its close is reported to us too.
+    joinQuickAdd(initialName, () => onCloseRef.current());
   }, [hosted, open, initialName]);
   if (hosted) return null;
   return <QuickAddPersonSheet open={open} onOpenChange={(o) => !o && onClose()} initialName={initialName} />;

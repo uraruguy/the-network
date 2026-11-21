@@ -1,7 +1,7 @@
 "use client";
 import { Plus } from "lucide-react";
 import { GlassButton } from "@/components/glass/GlassButton";
-import { openQuickAdd } from "@/components/people/QuickAddPersonSheet";
+import { openQuickAdd } from "@/components/people/QuickAddPersonHost";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { useHydrated } from "@/components/shell/useHydrated";
 import { IconButton } from "@/components/ui/IconButton";
