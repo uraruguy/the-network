@@ -27,6 +27,7 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -35,7 +36,6 @@ import { Chip } from "@/components/glass/Chip";
 import { GlassButton } from "@/components/glass/GlassButton";
 import { FollowUpHistory } from "@/components/followups/FollowUpHistory";
 import { FollowUpSheet } from "@/components/followups/FollowUpSheet";
-import { QuickImportSheet } from "@/components/import/QuickImportSheet";
 import { primeKeyboard } from "@/components/notes/keyboard";
 import { PersonNotesSection } from "@/components/notes/PersonNotesSection";
 import { confirm } from "@/components/ui/confirm";
@@ -78,6 +78,9 @@ const CONTACT_ICON: Record<ContactKind, ReactNode> = {
   instagram: <Camera />,
   website: <Globe />,
 };
+
+// Its own chunk: the sheet pulls zod (request schemas) that the profile page doesn't need otherwise.
+const QuickImportSheet = dynamic(() => import("@/components/import/QuickImportSheet").then((m) => m.QuickImportSheet), { ssr: false });
 
 const firstName = (name: string) => name.trim().split(/\s+/)[0] ?? name;
 
@@ -128,6 +131,9 @@ export function PersonDetail({ id }: { id: string }) {
   const [editing, setEditing] = useState(false);
   const [followUp, setFollowUp] = useState(() => params.get("reminder") === "1");
   const [importing, setImporting] = useState(false);
+  // Mounted from the first open on, so the close animation still plays.
+  const [importUsed, setImportUsed] = useState(false);
+  if (importing && !importUsed) setImportUsed(true);
   const [merging, setMerging] = useState(false);
   const nameRef = useRef<HTMLHeadingElement>(null);
 
@@ -318,7 +324,7 @@ export function PersonDetail({ id }: { id: string }) {
 
       {person && <EditPersonSheet person={person} open={editing} onClose={() => setEditing(false)} />}
       <FollowUpSheet open={followUp} onOpenChange={setFollowUp} personId={id} personName={name} />
-      <QuickImportSheet open={importing} onOpenChange={setImporting} personId={id} personName={name} />
+      {importUsed && <QuickImportSheet open={importing} onOpenChange={setImporting} personId={id} personName={name} />}
       <MergePersonSheet
         open={merging}
         onOpenChange={setMerging}

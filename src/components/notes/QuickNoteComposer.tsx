@@ -11,8 +11,7 @@ import { plainTextToMarkdown } from "@/lib/notes/paste";
 import { titleFromText } from "@/lib/notes/title";
 import { saveNote, useNewNote } from "@/lib/queries/notes";
 import { cn } from "@/lib/utils";
-import { keepFocus } from "./FormatMenu";
-import { primeKeyboard } from "./keyboard";
+import { keepFocus, primeKeyboard } from "./keyboard";
 import { KIND_ITEMS, KIND_META } from "./kinds";
 import { preloadNoteEditor } from "./loadEditor";
 
