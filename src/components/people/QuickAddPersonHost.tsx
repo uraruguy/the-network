@@ -2,14 +2,14 @@
 /**
  * The app-wide quick-add: a tiny store, the `⌘N` / `N` shortcuts and the `?new=1` deep link,
  * mounted on every route by the app shell. The sheet itself (form, pickers) is its own chunk,
- * mounted when the browser is first idle so `⌘N` still opens it instantly.
+ * mounted (closed) when the browser is first idle so `⌘N` still opens it instantly.
  */
-import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState, useSyncExternalStore } from "react";
+import { lazy, Suspense, useEffect, useState, useSyncExternalStore } from "react";
 import { useOnIdle } from "@/lib/idle";
+import { Mounted } from "@/lib/mounted";
 
-const QuickAddPersonSheet = dynamic(() => import("./QuickAddPersonSheet").then((m) => m.QuickAddPersonSheet), { ssr: false });
+const QuickAddPersonSheet = lazy(() => import("./QuickAddPersonSheet").then((m) => ({ default: m.QuickAddPersonSheet })));
 
 /* ------------------------------------------------------------------ */
 /*  Global store: one quick-add sheet for the whole app                */
@@ -77,8 +77,10 @@ function Host() {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
-  // Mounted (closed) once the browser is idle, or right away when something opens it first.
+  // Mounted (closed) once the browser is idle, or right away when something opens it first
+  // (`?new=1`, an early ⌘N); it opens once it has mounted closed, so it still slides in.
   const [sheet, setSheet] = useState(false);
+  const [ready, setReady] = useState(false);
   if (s.open && !sheet) setSheet(true);
 
   useEffect(() => {
@@ -116,5 +118,11 @@ function Host() {
     router.replace(`${pathname}${next.size ? `?${next}` : ""}`, { scroll: false });
   }, [deepLink, params, pathname, router]);
 
-  return sheet ? <QuickAddPersonSheet open={s.open} onOpenChange={(o) => (o ? openQuickAdd() : closeQuickAdd())} initialName={s.name} /> : null;
+  if (!sheet) return null;
+  return (
+    <Suspense fallback={null}>
+      <QuickAddPersonSheet open={ready && s.open} onOpenChange={(o) => (o ? openQuickAdd() : closeQuickAdd())} initialName={s.name} />
+      <Mounted onMount={() => setReady(true)} />
+    </Suspense>
+  );
 }
