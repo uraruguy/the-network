@@ -130,7 +130,9 @@ export type NoteSummary = PersonDetail["notes"][number];
 /**
  * One person with everything the profile page shows — a single SQL statement (drizzle relational
  * query). Notes come as excerpts (first page only; see listNotes) plus the total `notesCount`;
- * the follow-up history newest first, plus the total `historyCount`.
+ * the follow-up history newest first, plus the total `historyCount`. Mentions (other people's
+ * notes naming this one) are filtered, ordered and capped in SQL, so only the first page of
+ * excerpts is read.
  */
 export async function getPerson(ownerId: string, id: string) {
   const row = await db.query.people.findFirst({
@@ -177,11 +179,15 @@ export async function getPerson(ownerId: string, id: string) {
       },
       mentions: {
         columns: {},
+        where: (t, { sql }) =>
+          sql`exists (select 1 from notes n join people np on np.id = n.person_id where n.id = ${t.noteId} and n.deleted_at is null and np.deleted_at is null)`,
+        orderBy: (t, { asc, sql }) => [sql`(select n.occurred_at from notes n where n.id = ${t.noteId}) desc`, asc(t.noteId)],
+        limit: PERSON_NOTES_PAGE,
         with: {
           note: {
-            columns: { id: true, personId: true, title: true, occurredAt: true, deletedAt: true },
+            columns: { id: true, personId: true, title: true, occurredAt: true },
             extras: (t, { sql }) => ({ excerpt: sql<string>`left(${t.contentText}, ${EXCERPT_LENGTH})`.as("excerpt") }),
-            with: { person: { columns: { id: true, displayName: true, deletedAt: true } } },
+            with: { person: { columns: { displayName: true } } },
           },
         },
       },
@@ -202,13 +208,9 @@ export async function getPerson(ownerId: string, id: string) {
     tags: tagList,
     tagIds: tagList.map((t) => t.id),
     history: completions.map(toHistoryEntry),
-    mentions: mentions
-      .filter((m) => !m.note.deletedAt && !m.note.person.deletedAt)
-      .sort((a, b) => +new Date(b.note.occurredAt) - +new Date(a.note.occurredAt))
-      .slice(0, PERSON_NOTES_PAGE)
-      .map((m) => ({
-        note: { id: m.note.id, personId: m.note.personId, title: m.note.title, excerpt: m.note.excerpt, occurredAt: m.note.occurredAt, personName: m.note.person.displayName },
-      })),
+    mentions: mentions.map((m) => ({
+      note: { id: m.note.id, personId: m.note.personId, title: m.note.title, excerpt: m.note.excerpt, occurredAt: m.note.occurredAt, personName: m.note.person.displayName },
+    })),
   };
 }
 
