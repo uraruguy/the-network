@@ -74,7 +74,7 @@ const bytea = customType<{ data: Buffer; driverData: Buffer }>({ dataType: () =>
 /*  Reference data                                                     */
 /* ------------------------------------------------------------------ */
 
-/** World cities dataset (simplemaps basic). Read-only reference, shared. */
+/** Places dataset (GeoNames, scripts/seed-cities.ts). Read-only reference, shared. */
 export const cities = pgTable(
   "cities",
   {
@@ -89,7 +89,12 @@ export const cities = pgTable(
     population: integer("population"),
     timezone: text("timezone"),
   },
-  (t) => [index("cities_ascii_name_idx").on(t.asciiName), index("cities_population_idx").on(t.population)],
+  (t) => [
+    index("cities_ascii_name_idx").on(t.asciiName),
+    index("cities_population_idx").on(t.population),
+    index("cities_ascii_name_trgm_idx").using("gin", sql`${t.asciiName} gin_trgm_ops`),
+    index("cities_name_trgm_idx").using("gin", sql`${t.name} gin_trgm_ops`),
+  ],
 );
 
 /* ------------------------------------------------------------------ */
