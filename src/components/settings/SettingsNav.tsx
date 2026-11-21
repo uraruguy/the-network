@@ -9,6 +9,8 @@ import { ListRow } from "@/components/ui/ListRow";
 import { SearchField } from "@/components/ui/SearchField";
 import { matchesQuery } from "@/components/ui/search";
 import { confirm } from "@/components/ui/confirm";
+import { preloadSignOut } from "@/lib/auth/signout";
+import { useOnIdle } from "@/lib/idle";
 import { useReadyData } from "@/lib/offline/useCacheReady";
 import { useProfile } from "@/lib/queries/settings";
 import { cn } from "@/lib/utils";
@@ -25,6 +27,7 @@ function useSearch() {
 
 export function useSignOut() {
   const qc = useQueryClient();
+  useOnIdle(preloadSignOut);
   return async () => {
     if (!(await confirm({ title: "Sign out?", message: "You'll need your password and passkey to sign back in.", confirmLabel: "Sign out", destructive: true }))) return;
     await signOut(qc);
