@@ -120,7 +120,11 @@
 .tab-list:not([data-active]) .tab-pill {
   opacity: 0;
 }
-/* Like glass-map: while the globe moves or spins, no blur over a canvas that redraws every frame. */
+/* Like glass-map: while the globe moves or spins, no blur over a canvas that redraws every frame
+   (and the same fill fade into and out of it). */
+.tab-list {
+  transition: background-color var(--dur-base) var(--ease-out);
+}
 .app-shell:has([data-map-moving]) .tab-list {
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
