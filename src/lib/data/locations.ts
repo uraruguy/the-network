@@ -1,6 +1,7 @@
 import "server-only";
 import { sql } from "drizzle-orm";
 import { db, schema, type Tx } from "@/lib/db";
+import { pgError } from "./sql";
 import type { LocationData } from "@/lib/schemas";
 
 /**
@@ -46,7 +47,15 @@ export async function searchCities(q: string, limit = 8, ownerId?: string) {
   // The country goes in through a lateral column: a subquery argument would stop Postgres from
   // inlining search_cities (and planning its trigram index scan with the actual prefix).
   const prefer = ownerId ? preferredCountry(ownerId) : sql`null::text`;
-  const rows = await db.execute(sql`select c.* from (select ${prefer} as code) p, search_cities(${q.trim()}, ${limit}, p.code) c`);
+  let rows;
+  try {
+    rows = await db.execute(sql`select c.* from (select ${prefer} as code) p, search_cities(${q.trim()}, ${limit}, p.code) c`);
+  } catch (err) {
+    // shortcut: a deploy that lands before migration 20261121000000 still has the two-argument
+    // search_cities (no country boost); drop this fallback once every database has it.
+    if (!pgError(err, "42883")) throw err;
+    rows = await db.execute(sql`select * from search_cities(${q.trim()}, ${limit})`);
+  }
   return rows.map((r) => ({
     id: Number(r.id),
     name: String(r.name),

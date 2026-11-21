@@ -2,7 +2,7 @@ import "server-only";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { HttpError } from "@/lib/errors";
-import { qcol } from "./sql";
+import { pgError, qcol } from "./sql";
 import type { CategoryData } from "@/lib/schemas";
 import { slugify } from "@/lib/text";
 
@@ -24,10 +24,8 @@ const DUPLICATE = "A category with this name already exists.";
 
 /** Postgres unique violation (23505), possibly wrapped by drizzle (`DrizzleQueryError.cause`). */
 export function isUniqueViolation(err: unknown, constraint?: string): boolean {
-  for (let e = err as { code?: unknown; constraint_name?: unknown; cause?: unknown } | undefined, depth = 0; e && depth < 4; e = e.cause as typeof e, depth++) {
-    if (e.code === "23505") return !constraint || e.constraint_name === constraint;
-  }
-  return false;
+  const e = pgError(err, "23505");
+  return !!e && (!constraint || e.constraint_name === constraint);
 }
 
 /** Turns a duplicate slug into 409 conflict. */
