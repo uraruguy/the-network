@@ -6,6 +6,7 @@ import { Bar } from "@/components/skeletons/parts";
 import { NAV_FORWARD } from "@/components/shell/transitions";
 import { useNow } from "@/lib/clock";
 import { useQueryReady } from "@/lib/offline/useCacheReady";
+import { useIntentPrefetch } from "@/lib/queries/intent-prefetch";
 import { usePeopleIndex } from "@/lib/queries/people";
 import { WARMTH_META } from "@/lib/utils";
 import { Section } from "./Section";
@@ -45,10 +46,13 @@ export function Reconnect({ className }: { className?: string }) {
 
 function Nudge({ person: p, now }: { person: { id: string; displayName: string; avatarUrl: string | null; warmth: keyof typeof WARMTH_META; lastInteractionAt: string | Date | null }; now: number }) {
   const silence = silenceLabel(p.lastInteractionAt, now);
+  const href = `/people/${p.id}`;
+  const prefetch = useIntentPrefetch(href, { personId: p.id });
   return (
     <Link
-      href={`/people/${p.id}`}
+      href={href}
       transitionTypes={NAV_FORWARD}
+      {...prefetch}
       className="surface pressable flex h-14 max-w-[15rem] shrink-0 snap-start items-center gap-2.5 rounded-full pr-4 pl-2 outline-none focus-visible:outline-2 focus-visible:outline-[var(--focus-ring)] [@media(hover:hover)]:hover:bg-surface-2"
     >
       <span className="relative shrink-0">

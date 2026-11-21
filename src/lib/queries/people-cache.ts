@@ -241,3 +241,23 @@ export function upsertIndexRow(rows: readonly PersonIndexRow[], row: PersonIndex
   out[i] = row;
   return out;
 }
+
+/** What a settled person write leaves stale, besides the person, the maps and the stats. */
+export type PeopleRefresh = { index: boolean; tags: boolean; activities: boolean; taxonomy: boolean };
+
+const touches = (fields: Partial<PersonPatch>, ...names: (keyof PersonPatch)[]) => names.some((k) => fields[k] !== undefined);
+
+/**
+ * `saved`: the fields of a create or update the server confirmed. Its answer is already in the
+ * index (putPerson), so only the lists those fields feed are stale; without it (removals,
+ * restores, merges, failures) everything is. `owed`: what writes that settled while others were
+ * still in flight left to refresh.
+ */
+export function peopleRefresh(saved: Partial<PersonPatch> | undefined, owed?: PeopleRefresh): PeopleRefresh {
+  return {
+    index: !saved || !!owed?.index,
+    tags: !saved || touches(saved, "tagNames") || !!owed?.tags,
+    activities: !saved || touches(saved, "activityIds", "hobbies", "hobbiesOther") || !!owed?.activities,
+    taxonomy: !saved || touches(saved, "tagNames", "activityIds", "hobbies", "hobbiesOther", "categoryIds") || !!owed?.taxonomy,
+  };
+}

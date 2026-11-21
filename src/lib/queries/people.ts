@@ -1,5 +1,5 @@
 "use client";
-import { onlineManager, useInfiniteQuery, useIsMutating, useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
+import { onlineManager, queryOptions, useInfiniteQuery, useIsMutating, useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { toast } from "@/components/ui/Toast";
 import { api, ApiError } from "@/lib/api";
@@ -12,11 +12,11 @@ import { fold } from "@/lib/text";
 import { matchesText, toLegacyDetail, toPersonListItem } from "./compat";
 import { chatKeys } from "./chat";
 import { keys } from "./keys";
-import { applyPersonPatch, indexRowFromDetail, seedPersonDetail, upsertIndexRow, type Lookups } from "./people-cache";
+import { applyPersonPatch, indexRowFromDetail, peopleRefresh, seedPersonDetail, upsertIndexRow, type Lookups, type PeopleRefresh } from "./people-cache";
 import { registerReminderMutations } from "./reminders";
 import { registerTaxonomyMutations, useActivities } from "./taxonomy";
 import type { ActivityRow, Category, NotesPage, PeopleSearchPage, PersonDetailApi, PersonIndexRow, RecentNoteApi, TagRow } from "./types";
-import { activityEntity, personEntity, scopeFor } from "./write-order";
+import { activityEntity, hasQueuedWrite, personEntity, scopeFor } from "./write-order";
 
 export type { MergeReport };
 
@@ -24,9 +24,19 @@ export type PeopleFilters = { q?: string; category?: string; warmth?: string; co
 
 /* ---------- reads ---------- */
 
-/** Every person as a compact row (cached whole, persisted offline). */
+/**
+ * Every person as a compact row (cached whole, persisted offline). About 1 MB for 1.5k people, so
+ * it isn't refetched on every visit: writes on this device patch or invalidate it, and coming back
+ * to the app refreshes it once it's a minute old. Not tied to the query `signal`: screens that
+ * read it unmount and mount within one navigation, which would abort and restart the download.
+ */
 export function usePeopleIndex() {
-  return useQuery({ queryKey: keys.peopleIndex(), queryFn: () => api.get<PersonIndexRow[]>("/api/people") });
+  return useQuery({
+    queryKey: keys.peopleIndex(),
+    queryFn: () => api.get<PersonIndexRow[]>("/api/people"),
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: (q) => (Date.now() - q.state.dataUpdatedAt > 60_000 ? "always" : false),
+  });
 }
 
 export function useCategories() {
@@ -79,9 +89,32 @@ export function usePeopleSearch(params: Record<string, string | string[] | undef
   });
 }
 
+/**
+ * A person's detail, for every reader of `["person", id]` and the intent prefetch. While a write
+ * to the person is queued (offline, or replaying after a reload) the cached detail already shows
+ * it and the server's would roll it back on screen, so the cache answers instead.
+ */
+export const personDetailQuery = (id: string) =>
+  queryOptions({
+    queryKey: keys.person(id),
+    queryFn: ({ client, signal }) => {
+      const cached = client.getQueryData<PersonDetailApi>(keys.person(id));
+      const entity = personEntity(id);
+      if (cached && entity && hasQueuedWrite(client, entity)) return cached;
+      return api.get<PersonDetailApi>(`/api/people/${id}`, { signal });
+    },
+    retry: (count, e) => !(e instanceof ApiError && e.status === 404) && count < 1,
+  });
+
+/** Warms a person's detail on intent (hover, focus, touch); not while a write to them is queued. */
+export function prefetchPerson(qc: QueryClient, id: string) {
+  const entity = personEntity(id);
+  if (entity && !hasQueuedWrite(qc, entity)) void qc.prefetchQuery(personDetailQuery(id));
+}
+
 /** Raw v2 person detail. */
 export function usePersonDetail(id: string | null) {
-  return useQuery({ queryKey: keys.person(id ?? ""), queryFn: () => api.get<PersonDetailApi>(`/api/people/${id}`), enabled: !!id });
+  return useQuery({ ...personDetailQuery(id ?? ""), enabled: !!id });
 }
 
 /**
@@ -91,12 +124,7 @@ export function usePersonDetail(id: string | null) {
  */
 export function usePersonProfile(id: string) {
   const creating = useIsMutating({ mutationKey: MUT.createPerson, predicate: (m) => (m.state.variables as { id?: string } | undefined)?.id === id });
-  const detail = useQuery({
-    queryKey: keys.person(id),
-    queryFn: () => api.get<PersonDetailApi>(`/api/people/${id}`),
-    enabled: !!id && creating === 0,
-    retry: (count, e) => !(e instanceof ApiError && e.status === 404) && count < 1,
-  });
+  const detail = useQuery({ ...personDetailQuery(id), enabled: !!id && creating === 0 });
   const { data: index } = usePeopleIndex();
   const preview = useMemo(() => index?.find((p) => p.id === id), [index, id]);
   const notFound = !detail.data && detail.error instanceof ApiError && detail.error.status === 404;
@@ -196,17 +224,32 @@ function invalidatePersonRows(qc: QueryClient) {
   qc.invalidateQueries({ queryKey: keys.stats() });
 }
 
-/** Server truth for everything a person write touches — skipped while other person writes are in flight. */
-function invalidatePeople(qc: QueryClient, id?: string) {
-  if (qc.isMutating({ mutationKey: ["people"] }) > 1) return;
-  qc.invalidateQueries({ queryKey: ["people"] });
+/** Refreshes owed by person writes that settled while others were still in flight. */
+const owedRefresh = new WeakMap<QueryClient, PeopleRefresh>();
+
+/**
+ * Server truth for everything a person write touches — deferred while other person writes are in
+ * flight (the last to settle refreshes for all). `saved`: the fields of a create/update that
+ * succeeded, whose answer is already in the index (see peopleRefresh) — the index is refetched
+ * only if a read of it was still in flight, which may predate the write.
+ */
+function invalidatePeople(qc: QueryClient, id?: string, saved?: Partial<PersonPatch>) {
+  const need = peopleRefresh(saved, owedRefresh.get(qc));
+  if (qc.isFetching({ queryKey: keys.peopleIndex() })) need.index = true;
+  if (qc.isMutating({ mutationKey: ["people"] }) > 1) {
+    owedRefresh.set(qc, need);
+    return;
+  }
+  owedRefresh.delete(qc);
+  if (need.index) qc.invalidateQueries({ queryKey: ["people"] });
+  else qc.invalidateQueries({ queryKey: ["people"], predicate: (q) => q.queryKey[1] !== "index" });
   if (id) qc.invalidateQueries({ queryKey: keys.person(id) });
   qc.invalidateQueries({ queryKey: keys.globe() });
   qc.invalidateQueries({ queryKey: keys.graph() });
   qc.invalidateQueries({ queryKey: keys.stats() });
-  qc.invalidateQueries({ queryKey: keys.taxonomy() });
-  qc.invalidateQueries({ queryKey: keys.tags() });
-  qc.invalidateQueries({ queryKey: keys.activities() });
+  if (need.taxonomy) qc.invalidateQueries({ queryKey: keys.taxonomy() });
+  if (need.tags) qc.invalidateQueries({ queryKey: keys.tags() });
+  if (need.activities) qc.invalidateQueries({ queryKey: keys.activities() });
 }
 
 const errorText = (e: unknown) => (e instanceof Error ? e.message : undefined);
@@ -294,7 +337,7 @@ export function registerPeopleMutations(qc: QueryClient) {
         action: { label: "Retry", onClick: () => void runPerson(qc, MUT.createPerson, input, input.id).catch(() => {}) },
       });
     },
-    onSettled: (_d: unknown, _e: unknown, input: CreatePersonVars) => invalidatePeople(qc, input.id),
+    onSettled: (_d: unknown, e: unknown, input: CreatePersonVars) => invalidatePeople(qc, input.id, e ? undefined : input),
   });
   qc.setMutationDefaults<PersonDetailApi, Error, UpdatePersonVars>(MUT.updatePerson, {
     mutationFn: ({ id, patch }: UpdatePersonVars) => api.patch<PersonDetailApi>(`/api/people/${id}`, patch),
@@ -306,10 +349,14 @@ export function registerPeopleMutations(qc: QueryClient) {
     onSuccess: (data: PersonDetailApi) => putPerson(qc, data),
     onError: (e: unknown, { id }: UpdatePersonVars) => {
       toast.error("Couldn’t save changes", { description: errorText(e) });
-      qc.invalidateQueries({ queryKey: keys.person(id) });
-      qc.invalidateQueries({ queryKey: keys.peopleIndex() });
+      // After the mutation has settled: until then it still counts as a queued write, and the
+      // detail's queryFn would answer with the rejected optimistic state (personDetailQuery).
+      setTimeout(() => {
+        qc.invalidateQueries({ queryKey: keys.person(id) });
+        qc.invalidateQueries({ queryKey: keys.peopleIndex() });
+      });
     },
-    onSettled: (_d: unknown, _e: unknown, { id }: UpdatePersonVars) => invalidatePeople(qc, id),
+    onSettled: (_d: unknown, e: unknown, { id, patch }: UpdatePersonVars) => invalidatePeople(qc, id, e ? undefined : patch),
   });
   qc.setMutationDefaults<unknown, Error, string>(MUT.deletePerson, {
     mutationFn: (id: string) => api.delete(`/api/people/${id}`),

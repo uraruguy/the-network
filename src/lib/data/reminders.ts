@@ -60,17 +60,14 @@ function getReminder(ownerId: string, id: string) {
  * With a client-generated `id`, re-sending is idempotent (the existing reminder is returned).
  */
 export async function createReminder(ownerId: string, input: ReminderData) {
-  if (input.id) {
-    const [existing] = await db.select({ ownerId: reminders.ownerId }).from(reminders).where(eq(reminders.id, input.id));
-    if (existing) return existing.ownerId === ownerId ? getReminder(ownerId, input.id) : null;
-  }
-  const [person] = await db.select({ id: people.id }).from(people).where(and(eq(people.ownerId, ownerId), eq(people.id, input.personId), isNull(people.deletedAt)));
+  const [[existing], [person], [note]] = await Promise.all([
+    input.id ? db.select({ ownerId: reminders.ownerId }).from(reminders).where(eq(reminders.id, input.id)) : [],
+    db.select({ id: people.id }).from(people).where(and(eq(people.ownerId, ownerId), eq(people.id, input.personId), isNull(people.deletedAt))),
+    input.noteId ? db.select({ id: notes.id }).from(notes).where(and(eq(notes.ownerId, ownerId), eq(notes.id, input.noteId))) : [],
+  ]);
+  if (input.id && existing) return existing.ownerId === ownerId ? getReminder(ownerId, input.id) : null;
   if (!person) return null;
-  let noteId: string | null = null;
-  if (input.noteId) {
-    const [note] = await db.select({ id: notes.id }).from(notes).where(and(eq(notes.ownerId, ownerId), eq(notes.id, input.noteId)));
-    noteId = note?.id ?? null;
-  }
+  const noteId = note?.id ?? null;
   const [row] = await db
     .insert(reminders)
     .values({
@@ -155,16 +152,17 @@ export type CompleteOptions = {
  * (from today, at their usual local time) instead of closing.
  */
 export async function completeReminder(ownerId: string, id: string, opts: CompleteOptions = {}) {
-  if (opts.completionId) {
-    const [seen] = await db.select({ ownerId: reminderCompletions.ownerId }).from(reminderCompletions).where(eq(reminderCompletions.id, opts.completionId));
-    if (seen) return seen.ownerId === ownerId ? getReminder(ownerId, id) : null;
-  }
-  const r = await db.query.reminders.findFirst({ where: and(eq(reminders.ownerId, ownerId), eq(reminders.id, id)) });
+  const [[seen], r, timeZone, noteId] = await Promise.all([
+    opts.completionId ? db.select({ ownerId: reminderCompletions.ownerId }).from(reminderCompletions).where(eq(reminderCompletions.id, opts.completionId)) : [],
+    db.query.reminders.findFirst({ where: and(eq(reminders.ownerId, ownerId), eq(reminders.id, id)) }),
+    ownerTimeZone(ownerId),
+    ownNoteId(ownerId, opts.noteId),
+  ]);
+  if (seen) return seen.ownerId === ownerId ? getReminder(ownerId, id) : null;
   if (!r) return null;
   // Already done (e.g. from the app, then again from the assistant): one entry is enough.
   if (r.status === "done") return getReminder(ownerId, id);
-  const next = r.recurrence === "none" ? null : nextDue(new Date(), r.recurrence, r.recurrenceDays, await ownerTimeZone(ownerId), r.dueAt);
-  const noteId = await ownNoteId(ownerId, opts.noteId);
+  const next = r.recurrence === "none" ? null : nextDue(new Date(), r.recurrence, r.recurrenceDays, timeZone, r.dueAt);
   const scope = and(eq(reminders.ownerId, ownerId), eq(reminders.id, id));
   await db.transaction(async (tx) => {
     if (next) await tx.update(reminders).set({ dueAt: next, status: "pending", sentAt: null, doneAt: null }).where(scope);

@@ -20,6 +20,9 @@ import styles from "./globe.module.css";
 
 export const MAX_PINS = 80;
 const THROTTLE_MS = 180;
+/** Event data the idle spin passes to `jumpTo`, so listeners can tell it from a user's move. */
+export const SPIN = { spin: true } as const;
+export const isSpin = (e: object) => "spin" in e;
 /** Skip cities more than ~80° from the view centre: they are on the far side of the planet. */
 const FAR_SIDE = (80 * Math.PI) / 180;
 
@@ -75,18 +78,20 @@ export function CityPins({ map, groups, selectedId, onPress }: Props) {
     const throttled = () => {
       const wait = THROTTLE_MS - (performance.now() - last);
       if (wait <= 0) run();
-      else timer ??= setTimeout(run, wait);
+      else if (!timer) timer = setTimeout(run, wait);
     };
+    // Every spin frame ends in a moveend: throttle those like moves; a user's move settles at once.
+    const onMoveEnd = (e: object) => (isSpin(e) ? throttled() : run());
     const onSourceData = (e: { sourceId?: string; isSourceLoaded?: boolean }) => {
       if (e.sourceId === SRC.cities && e.isSourceLoaded) throttled();
     };
     map.on("move", throttled);
-    map.on("moveend", run);
+    map.on("moveend", onMoveEnd);
     map.on("sourcedata", onSourceData);
     raf = requestAnimationFrame(run);
     return () => {
       map.off("move", throttled);
-      map.off("moveend", run);
+      map.off("moveend", onMoveEnd);
       map.off("sourcedata", onSourceData);
       cancelAnimationFrame(raf);
       if (timer) clearTimeout(timer);

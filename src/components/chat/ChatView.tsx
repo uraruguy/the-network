@@ -2,15 +2,17 @@
 import type { UIMessage } from "ai";
 import { History, SquarePen, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useState, useSyncExternalStore } from "react";
+import { Suspense, useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { IconButton } from "@/components/ui/IconButton";
 import { SkeletonText } from "@/components/ui/Skeleton";
 import { Tooltip } from "@/components/ui/Tooltip";
+import { useOnIdle } from "@/lib/idle";
 import { useCacheReady, useReadyData } from "@/lib/offline/useCacheReady";
 import { useChatThread, useChatTurnFinished } from "@/lib/queries/chat";
 import { useProfile } from "@/lib/queries/misc";
 import { usePersonDetail } from "@/lib/queries/people";
 import { ChatSession, type ChatModelChoice } from "./ChatSession";
+import { preloadMarkdown } from "./Message";
 import { ThreadsSheet } from "./ThreadsSheet";
 import "./chat.css";
 
@@ -60,6 +62,12 @@ export function ChatView() {
   const router = useRouter();
   const urlThread = params.get("t");
   const urlPerson = params.get("person");
+  // A saved thread needs the markdown chunk right away (ChatSession waits for it); a new chat
+  // warms it on idle.
+  useOnIdle(preloadMarkdown);
+  useEffect(() => {
+    if (urlThread) preloadMarkdown();
+  }, [urlThread]);
 
   // The id a new, unsaved conversation will get.
   const [freshId, setFreshId] = useState(() => crypto.randomUUID());
@@ -122,10 +130,7 @@ export function ChatView() {
       </header>
 
       {loading ? (
-        <div className="mx-auto w-full max-w-[760px] space-y-6 pt-4">
-          <SkeletonText lines={2} className="ml-auto w-1/2" />
-          <SkeletonText lines={4} />
-        </div>
+        <ThreadSkeleton />
       ) : notFound ? (
         <div className="mx-auto flex w-full max-w-[760px] flex-1 flex-col items-center justify-center gap-3 text-center">
           <p className="text-headline text-fg">This conversation is gone.</p>
@@ -134,18 +139,20 @@ export function ChatView() {
           </button>
         </div>
       ) : (
-        <ChatSession
-          key={threadId}
-          threadId={threadId}
-          initialMessages={isFresh ? [] : ((threadData?.messages ?? []) as UIMessage[])}
-          personId={isFresh ? urlPerson : null}
-          personName={person?.displayName ?? null}
-          homeCity={homeCity}
-          model={model}
-          onModelChange={setModel}
-          onStarted={onStarted}
-          onTurnFinished={turnFinished}
-        />
+        <Suspense fallback={<ThreadSkeleton />}>
+          <ChatSession
+            key={threadId}
+            threadId={threadId}
+            initialMessages={isFresh ? [] : ((threadData?.messages ?? []) as UIMessage[])}
+            personId={isFresh ? urlPerson : null}
+            personName={person?.displayName ?? null}
+            homeCity={homeCity}
+            model={model}
+            onModelChange={setModel}
+            onStarted={onStarted}
+            onTurnFinished={turnFinished}
+          />
+        </Suspense>
       )}
 
       <ThreadsSheet
@@ -157,6 +164,15 @@ export function ChatView() {
           if (id !== threadId) router.push(`/chat?t=${id}`);
         }}
       />
+    </div>
+  );
+}
+
+function ThreadSkeleton() {
+  return (
+    <div className="mx-auto w-full max-w-[760px] space-y-6 pt-4">
+      <SkeletonText lines={2} className="ml-auto w-1/2" />
+      <SkeletonText lines={4} />
     </div>
   );
 }

@@ -82,7 +82,8 @@ async function assertLiveSession(owner: Owner) {
 /**
  * Wraps a route handler: re-verifies the session (local JWT check + passkey cookie — the proxy is
  * not the only gate), validates route params (malformed ids → 404), maps errors to JSON and marks
- * responses `Cache-Control: private, no-store`. Return a value to send it as JSON, or a Response.
+ * responses `Cache-Control: private, no-store` (plus a `Server-Timing` header). Return a value to
+ * send it as JSON, or a Response.
  *
  * `fresh: true` also asks the Auth server whether the session still exists — for endpoints that
  * hand out everything (export) or change credentials and secrets (security, tokens, connections),
@@ -93,6 +94,9 @@ export function withOwner<TParams = Record<string, string>>(
   opts: { params?: ZodType<TParams>; fresh?: boolean } = {},
 ) {
   return async (req: Request, ctx: { params: Promise<TParams> }) => {
+    const start = performance.now();
+    const timing: Record<string, number> = {};
+    let res: Response;
     try {
       const owner = await getOwner();
       if (!owner) throw new HttpError(401, "Not signed in", "unauthenticated");
@@ -100,18 +104,37 @@ export function withOwner<TParams = Record<string, string>>(
       if (opts.fresh) await assertLiveSession(owner);
       const raw = ((await ctx?.params) ?? {}) as Record<string, string>;
       const params = validateParams<TParams>(raw, opts.params);
+      const authed = performance.now();
+      timing.auth = authed - start;
       const result = await handler({ ownerId: owner.id, owner, req, params, url: new URL(req.url) });
-      const res = result instanceof Response ? result : NextResponse.json(result ?? { ok: true });
+      timing.handler = performance.now() - authed;
+      res = result instanceof Response ? result : NextResponse.json(result ?? { ok: true });
       try {
         if (!res.headers.has("cache-control")) res.headers.set("cache-control", NO_STORE);
       } catch {
         // Immutable headers (e.g. Response.redirect): leave as is.
       }
-      return res;
     } catch (err) {
-      return errorResponse(err);
+      res = errorResponse(err);
     }
+    timing.total = performance.now() - start;
+    try {
+      res.headers.append("server-timing", serverTiming(timing));
+    } catch {
+      // Immutable headers: no timing.
+    }
+    return res;
   };
+}
+
+/**
+ * `Server-Timing` value for withOwner (auth = session + passkey checks and param validation,
+ * handler, total; ms), so slow requests can be split in the browser's network panel. Pure.
+ */
+export function serverTiming(phases: Record<string, number>): string {
+  return Object.entries(phases)
+    .map(([name, ms]) => `${name};dur=${ms.toFixed(1)}`)
+    .join(", ");
 }
 
 export async function parseBody<T>(req: Request, schema: ZodType<T>): Promise<T> {

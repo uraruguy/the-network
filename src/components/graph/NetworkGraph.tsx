@@ -5,13 +5,14 @@
  * avatar fallbacks use the muted category palette.
  */
 import ForceGraph2D, { type ForceGraphMethods, type LinkObject, type NodeObject } from "react-force-graph-2d";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import type { GraphLink, GraphNode } from "@/lib/queries/types";
 import { useResolvedTokens } from "@/lib/design/useResolvedTokens";
 import { oklchToHex } from "@/lib/design/color";
 import { pinchFactor, usePinch, zoomAroundCenter } from "@/lib/gestures";
 import { paletteFor } from "@/lib/constants/palette";
 import { initials } from "@/lib/utils";
+import { carryPositions } from "./graph-data";
 
 type N = NodeObject<GraphNode & { me?: boolean }>;
 type L = LinkObject<GraphNode & { me?: boolean }, GraphLink>;
@@ -46,6 +47,31 @@ const FONT = "-apple-system, BlinkMacSystemFont, system-ui, sans-serif";
 const MIN_ZOOM = 0.3;
 const MAX_ZOOM = 6;
 const endId = (v: unknown) => (v && typeof v === "object" ? String((v as { id: string }).id) : String(v));
+const fills = new Map<string, string>();
+/** Avatar fallback colour for a name, cached: nodes are redrawn every frame. */
+function avatarFill(name: string, dark: boolean) {
+  const key = `${dark ? "d" : "l"}${name}`;
+  let fill = fills.get(key);
+  if (!fill) {
+    const p = paletteFor(name);
+    const tone = dark ? p.dark : p.light;
+    fill = oklchToHex(tone.l, tone.c, p.hue);
+    fills.set(key, fill);
+  }
+  return fill;
+}
+
+const toGraph = (nodes: GraphNode[], links: GraphLink[], meName: string, prev: readonly N[]) => ({
+  nodes: carryPositions(
+    [
+      { id: "me", name: meName, me: true, avatarUrl: null, warmth: "inner", circle: null, categoryIds: [], notes: 0, location: null, countryCode: null } as N,
+      ...nodes.map((n) => ({ ...n }) as N),
+    ],
+    prev,
+  ),
+  links: links.map((l) => ({ ...l }) as L),
+});
+
 /** `#rrggbb` + alpha byte. */
 const withAlpha = (hex: string, a: number) => `${hex.slice(0, 7)}${Math.round(Math.min(1, Math.max(0, a)) * 255).toString(16).padStart(2, "0")}`;
 
@@ -65,16 +91,13 @@ export function NetworkGraph({ nodes, links, meName, selectedId, onSelect, width
     archive: t["--warm-archive"],
   };
 
-  const data = useMemo(
-    () => ({
-      nodes: [
-        { id: "me", name: meName, me: true, avatarUrl: null, warmth: "inner", circle: null, categoryIds: [], notes: 0, location: null, countryCode: null } as N,
-        ...nodes.map((n) => ({ ...n }) as N),
-      ],
-      links: links.map((l) => ({ ...l }) as L),
-    }),
-    [nodes, links, meName],
-  );
+  // New data (a filter change) starts from the current layout: nodes keep their place, and the
+  // warm-up ticks only run for the first layout.
+  const [graph, setGraph] = useState(() => ({ nodes, links, meName, first: true, data: toGraph(nodes, links, meName, []) }));
+  if (graph.nodes !== nodes || graph.links !== links || graph.meName !== meName) {
+    setGraph({ nodes, links, meName, first: false, data: toGraph(nodes, links, meName, graph.data.nodes) });
+  }
+  const data = graph.data;
 
   const neighbors = useMemo(() => {
     const m = new Map<string, Set<string>>();
@@ -91,16 +114,16 @@ export function NetworkGraph({ nodes, links, meName, selectedId, onSelect, width
   const labelScale = nodes.length > 400 ? 2.2 : nodes.length > 120 ? 1.3 : 0.55;
   const fitPadding = Math.max(insets.top, insets.bottom, insets.left, insets.right, Math.min(width, height) * 0.08);
 
+  const fitEarly = useEffectEvent(() => !fitted.current && ref.current?.zoomToFit(400, fitPadding));
+  // Re-runs only when the graph itself changes.
   useEffect(() => {
     const g = ref.current;
     if (!g) return;
     g.d3Force("charge")?.strength(-140);
     g.d3Force("link")?.distance((l: L) => (l.kind === "met" ? 80 : l.kind === "introduced" ? 55 : 65));
     fitted.current = false;
-    const early = setTimeout(() => !fitted.current && g.zoomToFit(400, fitPadding), 1200);
+    const early = setTimeout(fitEarly, 1200);
     return () => clearTimeout(early);
-    // Re-run only when the graph itself changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
   useEffect(() => {
@@ -131,12 +154,6 @@ export function NetworkGraph({ nodes, links, meName, selectedId, onSelect, width
     },
   });
 
-  const avatarFill = (name: string) => {
-    const p = paletteFor(name);
-    const tone = dark ? p.dark : p.light;
-    return oklchToHex(tone.l, tone.c, p.hue);
-  };
-
   const drawNode = (node: N, ctx: CanvasRenderingContext2D, scale: number) => {
     const x = node.x ?? 0, y = node.y ?? 0;
     const isMe = !!node.me;
@@ -164,12 +181,12 @@ export function NetworkGraph({ nodes, links, meName, selectedId, onSelect, width
       }
       ctx.save();
       ctx.clip();
-      ctx.fillStyle = avatarFill(node.name);
+      ctx.fillStyle = avatarFill(node.name, dark);
       ctx.fill();
       if (img.complete && img.naturalWidth) ctx.drawImage(img, x - r, y - r, r * 2, r * 2);
       ctx.restore();
     } else {
-      ctx.fillStyle = avatarFill(node.name);
+      ctx.fillStyle = avatarFill(node.name, dark);
       ctx.fill();
     }
     ctx.lineWidth = isMe ? 2 : 1.6;
@@ -232,7 +249,7 @@ export function NetworkGraph({ nodes, links, meName, selectedId, onSelect, width
         onNodeClick={(n) => onSelect((n as N).me ? null : String((n as N).id))}
         onBackgroundClick={() => onSelect(null)}
         cooldownTicks={110}
-        warmupTicks={40}
+        warmupTicks={graph.first ? 40 : 0}
         d3AlphaDecay={0.045}
         onEngineStop={() => {
           if (fitted.current) return;

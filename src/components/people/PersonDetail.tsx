@@ -29,13 +29,12 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Avatar } from "@/components/glass/Avatar";
 import { Chip } from "@/components/glass/Chip";
 import { GlassButton } from "@/components/glass/GlassButton";
 import { FollowUpHistory } from "@/components/followups/FollowUpHistory";
 import { FollowUpSheet } from "@/components/followups/FollowUpSheet";
-import { QuickImportSheet } from "@/components/import/QuickImportSheet";
 import { primeKeyboard } from "@/components/notes/keyboard";
 import { PersonNotesSection } from "@/components/notes/PersonNotesSection";
 import { confirm } from "@/components/ui/confirm";
@@ -50,6 +49,8 @@ import { Skeleton, SkeletonRows } from "@/components/ui/Skeleton";
 import { toast } from "@/components/ui/Toast";
 import { useNow } from "@/lib/clock";
 import { formatDate, formatRelative, localTimeIn } from "@/lib/format";
+import { useOnIdle } from "@/lib/idle";
+import { Mounted } from "@/lib/mounted";
 import { displayTitle } from "@/lib/notes/title";
 import { listReturnHref } from "@/lib/people/list-memory";
 import { useNewNote } from "@/lib/queries/notes";
@@ -78,6 +79,9 @@ const CONTACT_ICON: Record<ContactKind, ReactNode> = {
   instagram: <Camera />,
   website: <Globe />,
 };
+
+// Its own chunk: the sheet pulls zod (request schemas) that the profile page doesn't need otherwise.
+const QuickImportSheet = lazy(() => import("@/components/import/QuickImportSheet").then((m) => ({ default: m.QuickImportSheet })));
 
 const firstName = (name: string) => name.trim().split(/\s+/)[0] ?? name;
 
@@ -128,6 +132,12 @@ export function PersonDetail({ id }: { id: string }) {
   const [editing, setEditing] = useState(false);
   const [followUp, setFollowUp] = useState(() => params.get("reminder") === "1");
   const [importing, setImporting] = useState(false);
+  // Mounted closed when the browser is idle (or on an earlier open) and opened only once it has
+  // mounted, so it slides in on the first open too.
+  const [importMounted, setImportMounted] = useState(false);
+  const [importReady, setImportReady] = useState(false);
+  if (importing && !importMounted) setImportMounted(true);
+  useOnIdle(() => setImportMounted(true));
   const [merging, setMerging] = useState(false);
   const nameRef = useRef<HTMLHeadingElement>(null);
 
@@ -318,7 +328,12 @@ export function PersonDetail({ id }: { id: string }) {
 
       {person && <EditPersonSheet person={person} open={editing} onClose={() => setEditing(false)} />}
       <FollowUpSheet open={followUp} onOpenChange={setFollowUp} personId={id} personName={name} />
-      <QuickImportSheet open={importing} onOpenChange={setImporting} personId={id} personName={name} />
+      {importMounted && (
+        <Suspense fallback={null}>
+          <QuickImportSheet open={importReady && importing} onOpenChange={setImporting} personId={id} personName={name} />
+          <Mounted onMount={() => setImportReady(true)} />
+        </Suspense>
+      )}
       <MergePersonSheet
         open={merging}
         onOpenChange={setMerging}

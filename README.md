@@ -245,7 +245,7 @@ Turn on *Show in Share Sheet*; shared text lands in the inbox on Today for AI tr
 | `pnpm lint` / `pnpm lint:design` | ESLint / design-token lint for `src/components` (`--strict` in CI) |
 | `pnpm test` | Vitest unit tests (`TEST_DATABASE_URL=… pnpm test` adds the local database tests) |
 | `pnpm bootstrap` | First-run setup: `.env.local`, secrets, local owner account |
-| `pnpm db:seed-cities` | Load GeoNames cities (pop. ≥ 15 000, CC BY 4.0) into `cities` |
+| `pnpm db:seed-cities` | Load GeoNames places into `cities` (CC BY 4.0): cities of ≥ 15 000 people worldwide, plus every town of ≥ 1 000 and municipality seat in `DETAIL_COUNTRIES` (Slovenia). Idempotent |
 | `pnpm db:generate` | Drizzle schema diff → paste into a new `supabase/migrations/*.sql` |
 | `pnpm notes:export` / `notes:clean` | Export Apple Notes to `.cache/` / strip inline images |
 | `pnpm import:*` | The import pipeline: `backup`, `diff`, `ingest`, `screen`, `extract`, `prepare`, `validate`, `apply`, `reconcile`, `file`, `review`, `commit`, `verify`, `spotcheck`, `rollback` ([docs/import.md](docs/import.md)) |

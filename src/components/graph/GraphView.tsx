@@ -4,13 +4,13 @@
  * filtering is client-side over the cached people index so both views read the same URL params.
  */
 import dynamic from "next/dynamic";
-import { useSearchParams } from "next/navigation";
 import { Share2 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { FilterBar } from "@/components/filters/FilterBar";
 import { MapHeader } from "@/components/globe/MapHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { filterPeople, filtersFromParams, filtersToParams, isEmpty, type PeopleFilters } from "@/lib/filters/people-filters";
+import { filterPeople, isEmpty } from "@/lib/filters/people-filters";
+import { usePeopleFilters } from "@/lib/filters/usePeopleFilters";
 import { CANVAS_PAGE, usePageZoomLock } from "@/lib/gestures";
 import { useIsPhone } from "@/lib/media";
 import { cn } from "@/lib/utils";
@@ -21,14 +21,10 @@ import { filterGraph } from "./graph-data";
 
 const NetworkGraph = dynamic(() => import("./NetworkGraph").then((m) => m.NetworkGraph), { ssr: false });
 
-function writeFilters(next: PeopleFilters) {
-  const qs = filtersToParams(next, new URLSearchParams(window.location.search)).toString();
-  window.history.replaceState(null, "", qs ? `?${qs}` : window.location.pathname);
-}
-
 export function GraphView() {
-  const params = useSearchParams();
-  const filters = useMemo(() => filtersFromParams(new URLSearchParams(params.toString())), [params]);
+  const { filters, setFilters } = usePeopleFilters();
+  // The field updates at once; filtering and the graph's new data follow when React has time.
+  const graphFilters = useDeferredValue(filters);
   const { data: graph, isPending } = useGraph();
   const { data: index } = usePeopleIndex();
   const { data: profile } = useProfile();
@@ -40,9 +36,9 @@ export function GraphView() {
   const people = useMemo(() => index ?? [], [index]);
   const filtered = useMemo(() => {
     if (!graph) return { nodes: [], links: [] };
-    if (isEmpty(filters) || !index) return graph;
-    return filterGraph(graph, new Set(filterPeople(people, filters).map((p) => p.id)));
-  }, [graph, index, people, filters]);
+    if (isEmpty(graphFilters) || !index) return graph;
+    return filterGraph(graph, new Set(filterPeople(people, graphFilters).map((p) => p.id)));
+  }, [graph, index, people, graphFilters]);
 
   const root = useRef<HTMLDivElement>(null);
   const header = useRef<HTMLDivElement>(null);
@@ -100,7 +96,7 @@ export function GraphView() {
       <div ref={chrome} aria-hidden className="pointer-events-none invisible absolute inset-x-0 bottom-0 h-[var(--chrome-bottom)]" />
 
       <MapHeader ref={header} title="Graph" subtitle={subtitle}>
-        <FilterBar variant="map" filters={filters} onChange={writeFilters} people={people} showSearch />
+        <FilterBar variant="map" filters={filters} onChange={setFilters} people={people} showSearch />
       </MapHeader>
 
       {!isPending && (graph?.nodes.length ?? 0) === 0 && (

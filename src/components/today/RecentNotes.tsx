@@ -7,10 +7,13 @@ import { RelativeTime } from "@/components/ui/RelativeTime";
 import type { NoteKind } from "@/lib/constants";
 import { displayTitle } from "@/lib/notes/title";
 import { useQueryReady } from "@/lib/offline/useCacheReady";
+import { useIntentPrefetch } from "@/lib/queries/intent-prefetch";
 import { useRecentNotes } from "@/lib/queries/notes";
 import { Section } from "./Section";
 
 const KIND_ICON: Record<NoteKind, LucideIcon> = { note: FileText, meeting: Users, call: Phone, message: MessageSquare };
+
+type RecentNote = NonNullable<ReturnType<typeof useRecentNotes>["data"]>[number];
 
 /** Most recently edited notes, newest first. */
 export function RecentNotes({ className }: { className?: string }) {
@@ -37,30 +40,37 @@ export function RecentNotes({ className }: { className?: string }) {
         <p className="surface rounded-lg px-4 py-4 text-subhead text-fg-2">Notes you write about people show up here.</p>
       ) : (
         <ul className="surface overflow-hidden rounded-lg">
-          {notes.map((n) => {
-            const Icon = KIND_ICON[n.kind as NoteKind] ?? FileText;
-            return (
-              <li key={n.id} className="relative after:absolute after:right-0 after:bottom-0 after:left-[58px] after:h-[0.5px] after:bg-separator last:after:hidden">
-                <Link
-                  href={`/people/${n.personId}/notes/${n.id}`}
-                  transitionTypes={NAV_FORWARD}
-                  className="flex min-h-[56px] items-center gap-3 px-4 py-2.5 outline-none transition-colors duration-150 focus-visible:bg-fill-1 active:bg-fill-2 [@media(hover:hover)]:hover:bg-fill-1"
-                >
-                  <span className="grid size-[30px] shrink-0 place-items-center rounded-xs bg-accent-soft text-accent-text" aria-hidden>
-                    <Icon size={16} strokeWidth={2.1} />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-body text-fg">{displayTitle(n)}</span>
-                    <span className="block truncate text-footnote text-fg-3">
-                      {n.person.displayName} · <RelativeTime date={n.updatedAt} />
-                    </span>
-                  </span>
-                </Link>
-              </li>
-            );
-          })}
+          {notes.map((n) => (
+            <RecentNoteRow key={n.id} note={n} />
+          ))}
         </ul>
       )}
     </Section>
+  );
+}
+
+function RecentNoteRow({ note: n }: { note: RecentNote }) {
+  const Icon = KIND_ICON[n.kind as NoteKind] ?? FileText;
+  const href = `/people/${n.personId}/notes/${n.id}`;
+  const prefetch = useIntentPrefetch(href, { personId: n.personId, noteId: n.id });
+  return (
+    <li className="relative after:absolute after:right-0 after:bottom-0 after:left-[58px] after:h-[0.5px] after:bg-separator last:after:hidden">
+      <Link
+        href={href}
+        transitionTypes={NAV_FORWARD}
+        {...prefetch}
+        className="flex min-h-[56px] items-center gap-3 px-4 py-2.5 outline-none transition-colors duration-150 focus-visible:bg-fill-1 active:bg-fill-2 [@media(hover:hover)]:hover:bg-fill-1"
+      >
+        <span className="grid size-[30px] shrink-0 place-items-center rounded-xs bg-accent-soft text-accent-text" aria-hidden>
+          <Icon size={16} strokeWidth={2.1} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-body text-fg">{displayTitle(n)}</span>
+          <span className="block truncate text-footnote text-fg-3">
+            {n.person.displayName} · <RelativeTime date={n.updatedAt} />
+          </span>
+        </span>
+      </Link>
+    </li>
   );
 }

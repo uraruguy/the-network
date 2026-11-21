@@ -6,13 +6,23 @@ export type NavItem = {
   icon: LucideIcon;
   /** Other path prefixes that light up this tab (e.g. /graph is the Globe tab's second view). */
   also?: readonly string[];
+  /** Starts loading the page's heavy chunk on intent (hover, focus, press) before the tap lands. */
+  preload?: () => void;
 };
+
+/**
+ * The MapLibre globe is the largest chunk in the app. Loaded through the page's own module: a
+ * direct import of MapCanvas from here gets a chunk set of its own, partly unlike the page's.
+ */
+const preloadGlobe = () => void import("@/components/globe/GlobeView").then((m) => m.preloadMap()).catch(() => {});
+/** The chat screen carries the AI SDK (the same chunks the /chat page loads). */
+const preloadChat = () => void import("@/components/chat/ChatView").catch(() => {});
 
 export const NAV: readonly NavItem[] = [
   { href: "/today", label: "Today", icon: Sun },
   { href: "/people", label: "People", icon: Users },
-  { href: "/globe", label: "Globe", icon: Globe2, also: ["/graph"] },
-  { href: "/chat", label: "Chat", icon: MessageCircle },
+  { href: "/globe", label: "Globe", icon: Globe2, also: ["/graph"], preload: preloadGlobe },
+  { href: "/chat", label: "Chat", icon: MessageCircle, preload: preloadChat },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -26,6 +36,14 @@ export function activeNavIndex(pathname: string): number {
 /** Routes drawn edge to edge (no content column, no padding). */
 export function isFullBleed(pathname: string): boolean {
   return under(pathname, "/globe") || under(pathname, "/graph");
+}
+
+/**
+ * PageTransition key. Settings sections are panes of one page (the sidebar stays put on desktop),
+ * so switching sections keeps the settings layout mounted instead of remounting it.
+ */
+export function transitionKey(pathname: string): string {
+  return under(pathname, "/settings") ? "/settings" : pathname;
 }
 
 /** Routes that take the whole screen on phones: the tab bar slides away. */

@@ -29,16 +29,19 @@ export const NAV_BACK: string[] = ["nav-back"];
 // enter/exit classes per type; the CSS picks phone vs desktop keyframes with media queries.
 const ENTER = { tab: "tab-in", "nav-forward": "push-in", "nav-back": "pop-in", default: "none" };
 const EXIT = { tab: "tab-out", "nav-forward": "push-out", "nav-back": "pop-out", default: "none" };
+// Same key, new page (the Settings tab tapped in a settings section): the same crossfade in place.
+const UPDATE = { tab: "tab-out tab-in", default: "none" };
 
 /**
- * One page's transition boundary. AppShell renders it around `children` with `key={pathname}`:
- * layouts persist across navigations (a plain wrapper would only ever "update"), the key turns
- * each navigation into an exit (old page) + enter (new page) pair that the types above animate.
- * The wrapper div is the snapshot: it spans the content column and at least the viewport height.
+ * One page's transition boundary. AppShell renders it around `children` keyed by pathname
+ * (transitionKey): layouts persist across navigations (a plain wrapper would only ever "update"),
+ * the key turns each navigation into an exit (old page) + enter (new page) pair that the types
+ * above animate. The wrapper div is the snapshot: it spans the content column and at least the
+ * viewport height.
  */
 export function PageTransition({ className, children }: { className?: string; children: ReactNode }) {
   return (
-    <ViewTransition enter={ENTER} exit={EXIT} default="none">
+    <ViewTransition enter={ENTER} exit={EXIT} update={UPDATE} default="none">
       <div className={className}>{children}</div>
     </ViewTransition>
   );

@@ -3,13 +3,13 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowDown, RotateCcw, Sparkles, Zap } from "lucide-react";
-import { useRef, useState } from "react";
+import { use, useRef, useState } from "react";
 import { Composer } from "@/components/composer/Composer";
 import { GlassButton } from "@/components/glass/GlassButton";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { fadeScale, useMotionSafe } from "@/lib/motion";
 import { ChatEmpty } from "./ChatEmpty";
-import { Message } from "./Message";
+import { markdownLoaded, Message } from "./Message";
 import { useStickToBottom } from "./useStickToBottom";
 
 export type ChatModelChoice = "smart" | "fast";
@@ -42,6 +42,8 @@ type Props = {
  * transcript); answers stream with a 50 ms render throttle.
  */
 export function ChatSession({ threadId, initialMessages, personId, personName, homeCity, model, onModelChange, onStarted, onTurnFinished }: Props) {
+  // A saved thread waits (ChatView's skeleton) for the markdown chunk instead of showing raw markdown.
+  if (initialMessages.length) use(markdownLoaded());
   const { messages, sendMessage, regenerate, status, stop, error, clearError } = useChat({
     id: threadId,
     messages: initialMessages,

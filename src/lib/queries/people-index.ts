@@ -64,7 +64,7 @@ export function usePeopleNoteSearch(query: string, { limit = 20 }: { limit?: num
   const enabled = q.length >= NOTE_SEARCH_MIN;
   const result = useQuery({
     queryKey: keys.noteSearch(q),
-    queryFn: () => api.get<NoteSearchHit[]>(`/api/notes?${new URLSearchParams({ q, limit: String(limit) })}`),
+    queryFn: ({ signal }) => api.get<NoteSearchHit[]>(`/api/notes?${new URLSearchParams({ q, limit: String(limit) })}`, { signal }),
     enabled,
     placeholderData: keepPreviousData,
     staleTime: 30_000,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyPersonPatch, indexRowFromDetail, isTempId, resolveTags, seedPersonDetail, upsertIndexRow, type Lookups } from "./people-cache";
+import { applyPersonPatch, indexRowFromDetail, isTempId, peopleRefresh, resolveTags, seedPersonDetail, upsertIndexRow, type Lookups } from "./people-cache";
 import type { Category, PersonIndexRow } from "./types";
 
 const cat = (id: string, name: string, sort: number) => ({ id, name, sort, color: "#0fb5ba", icon: "star", slug: name.toLowerCase() }) as unknown as Category;
@@ -80,5 +80,23 @@ describe("index rows", () => {
     const existing = [{ ...row, id: "old" }] as PersonIndexRow[];
     expect(upsertIndexRow(existing, row).map((r) => r.id)).toEqual(["new", "old"]);
     expect(upsertIndexRow([row, ...existing], { ...row, displayName: "Ana N." }).map((r) => r.displayName)).toEqual(["Ana N.", "Ana"]);
+  });
+});
+
+describe("peopleRefresh", () => {
+  it("refreshes everything after a removal, restore, merge or failure", () => {
+    expect(peopleRefresh(undefined)).toEqual({ index: true, tags: true, activities: true, taxonomy: true });
+  });
+
+  it("after a confirmed save, only the lists its fields feed — the index already has the answer", () => {
+    expect(peopleRefresh({ displayName: "Ana" })).toEqual({ index: false, tags: false, activities: false, taxonomy: false });
+    expect(peopleRefresh({ tagNames: ["vc"] })).toEqual({ index: false, tags: true, activities: false, taxonomy: true });
+    expect(peopleRefresh({ hobbies: ["sailing"] })).toEqual({ index: false, tags: false, activities: true, taxonomy: true });
+    expect(peopleRefresh({ categoryIds: ["c1"] })).toEqual({ index: false, tags: false, activities: false, taxonomy: true });
+  });
+
+  it("keeps what earlier writes still owe", () => {
+    const owed = peopleRefresh({ tagNames: ["vc"] }, peopleRefresh(undefined));
+    expect(peopleRefresh({ displayName: "Ana" }, owed)).toEqual({ index: true, tags: true, activities: true, taxonomy: true });
   });
 });

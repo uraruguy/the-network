@@ -74,7 +74,7 @@ const bytea = customType<{ data: Buffer; driverData: Buffer }>({ dataType: () =>
 /*  Reference data                                                     */
 /* ------------------------------------------------------------------ */
 
-/** World cities dataset (simplemaps basic). Read-only reference, shared. */
+/** Places dataset (GeoNames, scripts/seed-cities.ts). Read-only reference, shared. */
 export const cities = pgTable(
   "cities",
   {
@@ -89,7 +89,12 @@ export const cities = pgTable(
     population: integer("population"),
     timezone: text("timezone"),
   },
-  (t) => [index("cities_ascii_name_idx").on(t.asciiName), index("cities_population_idx").on(t.population)],
+  (t) => [
+    index("cities_ascii_name_idx").on(t.asciiName),
+    index("cities_population_idx").on(t.population),
+    index("cities_ascii_name_trgm_idx").using("gin", sql`${t.asciiName} gin_trgm_ops`),
+    index("cities_name_trgm_idx").using("gin", sql`${t.name} gin_trgm_ops`),
+  ],
 );
 
 /* ------------------------------------------------------------------ */
@@ -317,6 +322,7 @@ export const notes = pgTable(
     index("notes_owner_timeline_idx").on(t.ownerId, t.occurredAt.desc()).where(sql`${t.deletedAt} is null`),
     index("notes_owner_updated_idx").on(t.ownerId, t.updatedAt.desc()).where(sql`${t.deletedAt} is null`),
     index("notes_search_idx").using("gin", t.search),
+    index("notes_title_trgm_idx").using("gin", sql`${t.title} gin_trgm_ops`),
   ],
 );
 
@@ -331,7 +337,7 @@ export const noteMentions = pgTable(
       .references(() => people.id, { onDelete: "cascade" }),
     ownerId: ownerId(),
   },
-  (t) => [primaryKey({ columns: [t.noteId, t.personId] })],
+  (t) => [primaryKey({ columns: [t.noteId, t.personId] }), index("note_mentions_person_idx").on(t.personId)],
 );
 
 export const reminders = pgTable(
@@ -542,7 +548,12 @@ export const auditLog = pgTable(
     entityId: text("entity_id"),
     meta: jsonb("meta"),
   },
-  (t) => [index("audit_log_owner_at_idx").on(t.ownerId, t.at.desc())],
+  (t) => [
+    index("audit_log_owner_at_idx").on(t.ownerId, t.at.desc()),
+    index("audit_log_merge_drop_idx")
+      .on(t.ownerId, sql`(${t.meta} -> 'drop' ->> 'id')`, t.at.desc())
+      .where(sql`${t.action} = 'person.merge'`),
+  ],
 );
 
 /** Passkeys registered as a second factor (our own WebAuthn, verified with SimpleWebAuthn). */

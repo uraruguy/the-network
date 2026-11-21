@@ -24,9 +24,9 @@ const personRef = {
 };
 const shortText = (max: number) => z.string().max(max);
 
-/** Resolves a city name to a location via the cities dataset (most populous match). */
-async function cityLocation(city: string): Promise<LocationInput> {
-  const [c] = await searchCities(city, 1);
+/** Resolves a city name to a location via the cities dataset (best match, as in the city picker). */
+async function cityLocation(ownerId: string, city: string): Promise<LocationInput> {
+  const [c] = await searchCities(city, 1, ownerId);
   if (!c) throw new ToolError("invalid_input", `Unknown city: ${city}.`, "Use the city's common English or local name, e.g. \"Lisbon\".");
   return { cityId: c.id, name: c.name, admin: c.admin, country: c.country, countryCode: c.countryCode, lat: c.lat, lng: c.lng, timezone: c.timezone };
 }
@@ -124,7 +124,7 @@ export const createPersonOp = defineOp({
       displayName: input.name,
       headline: input.headline,
       company: input.company,
-      homeLocation: input.city ? await cityLocation(input.city) : null,
+      homeLocation: input.city ? await cityLocation(ctx.ownerId, input.city) : null,
       metContext: input.metContext,
       metAt: input.metOn,
       warmth: input.warmth ?? "active",
@@ -177,7 +177,7 @@ export const updatePersonOp = defineOp({
     if (input.birthday !== undefined) patch.birthday = input.birthday;
     if (input.warmth) patch.warmth = input.warmth;
     if (input.circle) patch.circle = input.circle;
-    if (input.city !== undefined) patch.homeLocation = input.city.trim() ? await cityLocation(input.city) : null;
+    if (input.city !== undefined) patch.homeLocation = input.city.trim() ? await cityLocation(ctx.ownerId, input.city) : null;
     if (input.categories) patch.categoryIds = idsFor(input.categories, n.categories, "categories") ?? [];
 
     if (input.addTags?.length || input.removeTags?.length) {

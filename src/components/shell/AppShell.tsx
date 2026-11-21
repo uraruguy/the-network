@@ -1,17 +1,20 @@
 "use client";
 import "@/app/transitions.css";
 import "./shell.css";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { CSSProperties } from "react";
-import { PasskeyPrompt } from "@/components/auth/PasskeyPrompt";
 import { cn } from "@/lib/utils";
 import { Logo } from "./Logo";
-import { QuickAddPersonHost } from "@/components/people/QuickAddPersonSheet";
-import { NAV, activeNavIndex, hidesTabBar, isFullBleed } from "./nav";
+import { QuickAddPersonHost } from "@/components/people/QuickAddPersonHost";
+import { NAV, activeNavIndex, hidesTabBar, isFullBleed, transitionKey } from "./nav";
 import { SyncStatus } from "./SyncStatus";
 import { PageTransition, TAB } from "./transitions";
 import { useKeyboardInset } from "./useKeyboardInset";
+
+// Rarely shown (only without a required passkey): its own chunk, off every route's critical path.
+const PasskeyPrompt = dynamic(() => import("@/components/auth/PasskeyPrompt").then((m) => m.PasskeyPrompt), { ssr: false });
 
 /**
  * The app frame: ambient background, sidebar (≥lg) / floating tab bar (<lg), sync status,
@@ -37,8 +40,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <Sidebar active={active} />
 
       <main id="content" className="min-w-0 flex-1 overflow-x-clip lg:pl-[var(--sidebar-w)]">
-        {/* key: each navigation is an exit + enter pair (see PageTransition). */}
-        <PageTransition key={pathname} className={fullBleed ? "page page-bleed" : "page page-column"}>
+        {/* key: each navigation is an exit + enter pair (see PageTransition); settings sections share one. */}
+        <PageTransition key={transitionKey(pathname)} className={fullBleed ? "page page-bleed" : "page page-column"}>
           {children}
         </PageTransition>
       </main>
@@ -75,6 +78,9 @@ function Sidebar({ active }: { active: number }) {
                 href={item.href}
                 transitionTypes={TAB}
                 aria-current={on ? "page" : undefined}
+                onPointerEnter={item.preload}
+                onPointerDown={item.preload}
+                onFocus={item.preload}
                 className={cn(
                   "pressable relative z-[1] flex h-11 items-center gap-3 rounded-sm px-3 text-subhead font-medium",
                   on ? "text-accent-text" : "text-fg-2 hover:bg-fill-1 hover:text-fg",
@@ -111,6 +117,9 @@ function TabBar({ active, hidden }: { active: number; hidden: boolean }) {
               href={item.href}
               transitionTypes={TAB}
               aria-current={on ? "page" : undefined}
+              onPointerEnter={item.preload}
+              onPointerDown={item.preload}
+              onFocus={item.preload}
               className={cn(
                 "pressable relative z-[1] flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-full",
                 on ? "text-accent-text" : "text-fg-3",

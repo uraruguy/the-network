@@ -46,7 +46,36 @@ export type RequestOptions = {
   keepalive?: boolean;
 };
 
-async function request<T>(method: string, path: string, body?: unknown, opts: RequestOptions = {}): Promise<T> {
+export type GetOptions = {
+  /** Aborts the read, e.g. TanStack's query `signal` (cancelled when no screen needs it any more). */
+  signal?: AbortSignal;
+};
+
+/**
+ * Reads give up when no response has started within this long: on a connection that is up but
+ * passes nothing ("lie-fi") a screen would otherwise wait forever. A slow body (the people index
+ * on a weak signal) keeps downloading. The query then retries or pauses like after any network
+ * error. Writes have no timeout: their replay rules (lib/offline/queryClient) decide.
+ */
+export const GET_TIMEOUT_MS = 15_000;
+
+/**
+ * A signal that follows `signal` and aborts with a TimeoutError after `ms` — until `started()` is
+ * called (once the response headers are in).
+ */
+export function responseTimeout(signal: AbortSignal | undefined, ms: number) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(new DOMException("The request timed out.", "TimeoutError")), ms);
+  const cancel = () => {
+    clearTimeout(timer);
+    ctrl.abort(signal?.reason);
+  };
+  if (signal?.aborted) cancel();
+  else signal?.addEventListener("abort", cancel, { once: true });
+  return { signal: ctrl.signal, started: () => clearTimeout(timer) };
+}
+
+async function request<T>(method: string, path: string, body?: unknown, opts: RequestOptions & { timeout?: ReturnType<typeof responseTimeout> } = {}): Promise<T> {
   const json = body !== undefined ? JSON.stringify(body) : undefined;
   const res = await fetch(path, {
     method,
@@ -54,7 +83,8 @@ async function request<T>(method: string, path: string, body?: unknown, opts: Re
     body: json,
     credentials: "same-origin",
     keepalive: !!opts.keepalive && fitsKeepalive(json),
-  });
+    signal: opts.timeout?.signal,
+  }).finally(() => opts.timeout?.started());
   if (!res.ok) {
     let code = "error";
     let message = res.statusText || `HTTP ${res.status}`;
@@ -73,7 +103,7 @@ async function request<T>(method: string, path: string, body?: unknown, opts: Re
 }
 
 export const api = {
-  get: <T>(path: string) => request<T>("GET", path),
+  get: <T>(path: string, opts: GetOptions = {}) => request<T>("GET", path, undefined, { timeout: responseTimeout(opts.signal, GET_TIMEOUT_MS) }),
   post: <T>(path: string, body?: unknown, opts?: RequestOptions) => request<T>("POST", path, body, opts),
   put: <T>(path: string, body: unknown, opts?: RequestOptions) => request<T>("PUT", path, body, opts),
   patch: <T>(path: string, body: unknown, opts?: RequestOptions) => request<T>("PATCH", path, body, opts),

@@ -1,7 +1,6 @@
 "use client";
 import type { QueryClient } from "@tanstack/react-query";
 import { makePersister } from "@/lib/offline/queryClient";
-import { supabaseBrowser } from "@/lib/supabase/client";
 
 /**
  * Deliberate sign-out: ends the session and removes every private copy this browser holds.
@@ -20,10 +19,14 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 export async function signOutEverywhere(queryClient?: QueryClient): Promise<void> {
   // 1. Passkey cookie (httpOnly — only the server can clear it).
   await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" }).catch(() => {});
-  // 2. Supabase session: revokes this device's refresh token and clears the auth cookies.
-  await supabaseBrowser()
-    .auth.signOut({ scope: "local" })
+  // 2. Supabase session: revokes this device's refresh token and clears the auth cookies. Loaded
+  //    on demand so the Supabase client (and env validation) stays out of the settings bundle;
+  //    settings warm it on idle (preloadSignOut). Should it still fail to load (a deploy since
+  //    this page loaded removed the chunk), the auth cookies are deleted all the same.
+  await loadSupabase()
+    .then(({ supabaseBrowser }) => supabaseBrowser().auth.signOut({ scope: "local" }))
     .catch(() => {});
+  clearSupabaseCookies();
   // 3. Queries in memory (cancels in-flight fetches, drops paused offline mutations).
   queryClient?.getMutationCache().clear();
   queryClient?.clear();
@@ -40,6 +43,19 @@ export async function signOutEverywhere(queryClient?: QueryClient): Promise<void
   await clearRuntimeCaches().catch(() => {});
   // 6. Full navigation: drops in-memory state and history entries' bfcache.
   window.location.replace("/login");
+}
+
+const loadSupabase = () => import("@/lib/supabase/client");
+
+/** Loads the Supabase client chunk sign-out needs while it's surely on the server. */
+export const preloadSignOut = () => void loadSupabase().catch(() => {});
+
+/** Deletes the Supabase auth cookies (`sb-<ref>-auth-token`, its chunks, the PKCE verifier); they aren't httpOnly. */
+export function clearSupabaseCookies() {
+  for (const c of document.cookie.split(";")) {
+    const name = c.split("=")[0]!.trim();
+    if (name.startsWith("sb-")) document.cookie = `${name}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
+  }
 }
 
 /** idb-keyval's default database, where the offline query cache lives (src/lib/offline/queryClient.ts). */

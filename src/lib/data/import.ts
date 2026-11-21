@@ -223,9 +223,9 @@ export const decisionSchema = z.object({
 });
 export type Decision = z.infer<typeof decisionSchema>;
 
-async function geocode(city: string | null | undefined, country?: string | null) {
+async function geocode(ownerId: string, city: string | null | undefined, country?: string | null) {
   if (!city) return null;
-  const hits = await searchCities(city, 5);
+  const hits = await searchCities(city, 5, ownerId);
   if (!hits.length) return null;
   const pick = (country && hits.find((h) => norm(h.country) === norm(country))) || hits[0]!;
   return { cityId: pick.id, name: pick.name, admin: pick.admin, country: pick.country, countryCode: pick.countryCode, lat: pick.lat, lng: pick.lng, timezone: pick.timezone };
@@ -262,7 +262,7 @@ export async function commitItem(ownerId: string, itemId: string, decision: Deci
   for (const d of decision.candidates) {
     const c = ex.candidates[d.index];
     if (!c || d.action === "skip") continue;
-    const home = await geocode(d.city ?? c.city, c.country);
+    const home = await geocode(ownerId, d.city ?? c.city, c.country);
     const categoryIds = (d.categories ?? c.categories).map((s) => catId(s)).filter((x): x is string => !!x);
     if (d.action === "create") {
       const dup = await db.query.people.findFirst({ where: and(eq(people.ownerId, ownerId), isNull(people.deletedAt), sql`lower(unaccent(${people.displayName})) = lower(unaccent(${d.name ?? c.name}))`), columns: { id: true } });
@@ -275,7 +275,7 @@ export async function commitItem(ownerId: string, itemId: string, decision: Deci
       if (Object.keys(patch).length) await updatePerson(ownerId, d.personId, patch);
       resolved.set(d.index, d.personId);
     } else {
-      const met = await geocode(c.metCity, null);
+      const met = await geocode(ownerId, c.metCity, null);
       const created = await createPerson(
         ownerId,
         {

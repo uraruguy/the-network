@@ -7,7 +7,7 @@ import { HISTORY_EXCERPT, HISTORY_LIMIT, toHistoryEntry } from "./history";
 import { HttpError } from "@/lib/errors";
 import type { PersonData, PersonPatchData } from "@/lib/schemas";
 import { cleanNames, slugify } from "@/lib/text";
-import { upsertLocation } from "./locations";
+import { searchCities, upsertLocation } from "./locations";
 import { afterRecencyCursor, decodeCursor, encodeCursor, peopleConditions, recencyKey, relevance, type PeopleFilters } from "./people-filters";
 
 const { people, personCategories, personActivities, personTags, locations, categories, activities, tags } = schema;
@@ -130,7 +130,9 @@ export type NoteSummary = PersonDetail["notes"][number];
 /**
  * One person with everything the profile page shows — a single SQL statement (drizzle relational
  * query). Notes come as excerpts (first page only; see listNotes) plus the total `notesCount`;
- * the follow-up history newest first, plus the total `historyCount`.
+ * the follow-up history newest first, plus the total `historyCount`. Mentions (other people's
+ * notes naming this one) are filtered, ordered and capped in SQL, so only the first page of
+ * excerpts is read.
  */
 export async function getPerson(ownerId: string, id: string) {
   const row = await db.query.people.findFirst({
@@ -177,11 +179,15 @@ export async function getPerson(ownerId: string, id: string) {
       },
       mentions: {
         columns: {},
+        where: (t, { sql }) =>
+          sql`exists (select 1 from notes n join people np on np.id = n.person_id where n.id = ${t.noteId} and n.deleted_at is null and np.deleted_at is null)`,
+        orderBy: (t, { asc, sql }) => [sql`(select n.occurred_at from notes n where n.id = ${t.noteId}) desc`, asc(t.noteId)],
+        limit: PERSON_NOTES_PAGE,
         with: {
           note: {
-            columns: { id: true, personId: true, title: true, occurredAt: true, deletedAt: true },
+            columns: { id: true, personId: true, title: true, occurredAt: true },
             extras: (t, { sql }) => ({ excerpt: sql<string>`left(${t.contentText}, ${EXCERPT_LENGTH})`.as("excerpt") }),
-            with: { person: { columns: { id: true, displayName: true, deletedAt: true } } },
+            with: { person: { columns: { displayName: true } } },
           },
         },
       },
@@ -202,13 +208,9 @@ export async function getPerson(ownerId: string, id: string) {
     tags: tagList,
     tagIds: tagList.map((t) => t.id),
     history: completions.map(toHistoryEntry),
-    mentions: mentions
-      .filter((m) => !m.note.deletedAt && !m.note.person.deletedAt)
-      .sort((a, b) => +new Date(b.note.occurredAt) - +new Date(a.note.occurredAt))
-      .slice(0, PERSON_NOTES_PAGE)
-      .map((m) => ({
-        note: { id: m.note.id, personId: m.note.personId, title: m.note.title, excerpt: m.note.excerpt, occurredAt: m.note.occurredAt, personName: m.note.person.displayName },
-      })),
+    mentions: mentions.map((m) => ({
+      note: { id: m.note.id, personId: m.note.personId, title: m.note.title, excerpt: m.note.excerpt, occurredAt: m.note.occurredAt, personName: m.note.person.displayName },
+    })),
   };
 }
 
@@ -498,9 +500,9 @@ export async function peopleByPlace(ownerId: string, place: string | { lat: numb
       const rows = await indexQuery({}, peopleConditions(ownerId, { countryCode: country.code })).orderBy(desc(recencyKey), asc(people.id)).limit(limit);
       return { place: { kind: "country" as const, name: country.country, countryCode: country.code }, people: rows.map((r) => ({ ...r, distanceKm: null })) };
     }
-    const [city] = await db.execute<{ name: string; country: string; lat: number; lng: number }>(sql`select name, country, lat, lng from search_cities(${text}, 1)`);
+    const [city] = await searchCities(text, 1, ownerId);
     if (!city) return { place: null, people: [] };
-    center = { lat: Number(city.lat), lng: Number(city.lng), name: String(city.name), country: String(city.country) };
+    center = { lat: city.lat, lng: city.lng, name: city.name, country: city.country };
   } else {
     center = { ...place, name: `${place.lat.toFixed(3)}, ${place.lng.toFixed(3)}`, country: null };
   }

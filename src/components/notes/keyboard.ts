@@ -2,7 +2,7 @@
 /**
  * Software-keyboard helpers for the note editor on iPhone.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, type MouseEvent, type PointerEvent } from "react";
 
 /**
  * Height of the on-screen keyboard (px), from the VisualViewport, also published as the CSS
@@ -71,3 +71,9 @@ export function releaseKeyboardPrime() {
 
 /** True while a primed keyboard is waiting for the editor to take focus. */
 export const isKeyboardPrimed = () => !!primed;
+
+/**
+ * Keeps the editor focused (and its selection) when a toolbar control is pressed. Lives here, not
+ * in FormatMenu, so the quick composer can use it without pulling Tiptap into the person page.
+ */
+export const keepFocus = { onPointerDown: (e: PointerEvent) => e.preventDefault(), onMouseDown: (e: MouseEvent) => e.preventDefault() };

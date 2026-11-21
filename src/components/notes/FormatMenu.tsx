@@ -4,6 +4,9 @@ import { Bold, Italic, Strikethrough, Underline } from "lucide-react";
 import type { ReactNode } from "react";
 import { setBlockStyle, type BlockStyle } from "@/lib/notes/extensions";
 import { cn } from "@/lib/utils";
+import { keepFocus } from "./keyboard";
+
+export { keepFocus };
 
 /** Everything the toolbars show as active, from one `useEditorState` selector. */
 export function useFormatState(editor: Editor) {
@@ -28,9 +31,6 @@ export function useFormatState(editor: Editor) {
   });
 }
 export type FormatState = ReturnType<typeof useFormatState>;
-
-/** Keeps the editor focused (and its selection) when a toolbar control is pressed. */
-export const keepFocus = { onPointerDown: (e: React.PointerEvent) => e.preventDefault(), onMouseDown: (e: React.MouseEvent) => e.preventDefault() };
 
 const STYLES: { id: BlockStyle; label: string; shortcut: string; className: string }[] = [
   { id: "title", label: "Title", shortcut: "⇧⌘T", className: "text-title3 font-bold" },

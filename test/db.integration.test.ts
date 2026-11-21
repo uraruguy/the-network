@@ -53,6 +53,23 @@ describe.skipIf(!local)("v2 migrations (local database)", () => {
       expect(slug!.s).toBe("caj-s-prijatelji");
     }));
 
+  it("ranks city search by exact name, then population boosted in the preferred country", () =>
+    withRollback(async (tx) => {
+      // A made-up prefix keeps the check independent of whatever cities are seeded.
+      await tx`insert into cities (id, name, ascii_name, country, country_code, lat, lng, population) values
+        (-1, 'Qxkampala', 'Qxkampala', 'Uganda', 'UG', 0, 0, 1680600),
+        (-2, 'Qxkamnik', 'Qxkamnik', 'Slovenia', 'SI', 0, 0, 13644),
+        (-3, 'Qxkamyshin', 'Qxkamyshin', 'Russia', 'RU', 0, 0, 120000),
+        (-4, 'Qxškofja Loka', 'Qxskofja Loka', 'Slovenia', 'SI', 0, 0, 11619),
+        (-5, 'Qxkamnikgrad', 'Qxkamnikgrad', 'Russia', 'RU', 0, 0, 5000000)`;
+      const names = async (q: string, prefer: string | null) => (await tx`select name from search_cities(${q}, 8, ${prefer})`).map((r) => r.name);
+      expect(await names("Qxkam", null)).toEqual(["Qxkamnikgrad", "Qxkampala", "Qxkamyshin", "Qxkamnik"]);
+      expect(await names("qxkam", "SI")).toEqual(["Qxkamnik", "Qxkamnikgrad", "Qxkampala", "Qxkamyshin"]);
+      expect(await names("qxkamnik", null)).toEqual(["Qxkamnik", "Qxkamnikgrad"]);
+      expect(await names("Qxškofja", null)).toEqual(["Qxškofja Loka"]);
+      expect(await names("qxskofja", null)).toEqual(["Qxškofja Loka"]);
+    }));
+
   it("enforces case-insensitive tag names", () =>
     withRollback(async (tx) => {
       const [owner] = await tx`select id from profiles limit 1`;

@@ -23,7 +23,7 @@ export type FilterBarProps = {
   onChange: (next: PeopleFilters) => void;
   /** Rows the counts are computed from (the full index, not the filtered result). */
   people: readonly PersonIndexRow[];
-  facets?: Facet[];
+  facets?: readonly Facet[];
   showSearch?: boolean;
   variant?: "page" | "map";
   className?: string;
@@ -38,13 +38,11 @@ export type FilterBarProps = {
   trailing?: ReactNode;
 };
 
-const pillMotion = { layout: "position" as const, transition: spring.snappy };
-
 export function FilterBar({
   filters,
   onChange,
   people,
-  facets = [...FACETS],
+  facets = FACETS,
   showSearch,
   variant = "page",
   className,
@@ -61,6 +59,13 @@ export function FilterBar({
   const [sheetOpen, setSheetOpen] = useState(false);
   const activeFacets = activeFacetCount(filters);
   const anyActive = activeFacets > 0;
+  // Pills only move when a selection (their labels, phone visibility) or the sort changes: without
+  // this, Motion would measure every pill on each search keystroke.
+  const pillMotion = {
+    layout: "position" as const,
+    layoutDependency: `${sort ?? ""}|${facets.map((f) => facetSelection(filters, f).join(",")).join("|")}`,
+    transition: spring.snappy,
+  };
 
   const search = withSearch && (
     <SearchField
@@ -187,7 +192,7 @@ function StickyBar({ sticky, className, children }: { sticky: boolean; className
       <div
         aria-hidden
         className={cn(
-          "pointer-events-none absolute inset-x-0 top-[calc(-1*var(--sat))] bottom-0 -z-10 bg-surface-4 shadow-[0_0.5px_0_var(--hairline)] [-webkit-backdrop-filter:var(--blur-thick)] [backdrop-filter:var(--blur-thick)] transition-opacity duration-200",
+          "pointer-events-none absolute inset-x-0 top-[calc(-1*var(--sat))] bottom-0 -z-10 bg-surface-4 shadow-[0_0.5px_0_var(--hairline)] [-webkit-backdrop-filter:var(--blur-glass)] [backdrop-filter:var(--blur-glass)] transition-opacity duration-200",
           stuck ? "opacity-100" : "opacity-0",
         )}
       />

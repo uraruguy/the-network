@@ -1,4 +1,5 @@
 "use client";
+import { onlineManager } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { MotionConfig } from "motion/react";
 import { useEffect, useState } from "react";
@@ -16,10 +17,15 @@ import { ToastHost } from "@/components/ui/Toast";
 /**
  * App-wide client providers. The query cache is restored from IndexedDB on start; until that
  * finishes `useIsRestoring()` is true and queries don't fetch, so the server render and the
- * first client render agree (both show skeletons — see components/skeletons).
+ * first client render agree (both show skeletons — see components/skeletons). Queued offline
+ * writes replay in the background, not before the screens may render: the provider waits for a
+ * promise `onSuccess` returns, and offline that one only settles once the network is back.
  */
 export function Providers({ children }: { children: React.ReactNode }) {
   const [client] = useState(() => {
+    // TanStack assumes online until an "offline" event: an app opened without a connection would
+    // retry restored writes into failures instead of pausing them.
+    if (typeof navigator !== "undefined" && navigator.onLine === false) onlineManager.setOnline(false);
     const qc = makeQueryClient();
     // Mutation defaults first, so paused offline writes restored from IndexedDB know how to resume.
     registerPeopleMutations(qc);
@@ -47,7 +53,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <PersistQueryClientProvider
       client={client}
       persistOptions={persistOptions}
-      onSuccess={() => client.resumePausedMutations().then(() => client.invalidateQueries())}
+      onSuccess={() => void client.resumePausedMutations().then(() => client.invalidateQueries())}
     >
       <MotionConfig reducedMotion="user" transition={spring.smooth}>
         <ThemeSync />
