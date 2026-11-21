@@ -14,6 +14,7 @@ import { useNow } from "@/lib/clock";
 import { formatRelative, formatShortDate } from "@/lib/format";
 import { duration, ease, spring, useMotionSafe } from "@/lib/motion";
 import { useQueryReady } from "@/lib/offline/useCacheReady";
+import { useIntentPrefetch } from "@/lib/queries/intent-prefetch";
 import { keys } from "@/lib/queries/keys";
 import { useReminders, useReminderWrites, type DoneNote, type DoneReceipt, type ReminderSnapshot, type ReminderWithPerson } from "@/lib/queries/reminders";
 import type { Stats } from "@/lib/queries/types";
@@ -218,6 +219,8 @@ function dueLabel(dueAt: string | Date, now: number, upcoming?: boolean) {
 
 function ReminderItem({ r, now, checked, onComplete, upcoming }: { r: ReminderWithPerson; now: number; checked: boolean; onComplete: (r: ReminderWithPerson) => void; upcoming?: boolean }) {
   const label = dueLabel(r.dueAt, now, upcoming);
+  const href = `/people/${r.person.id}`;
+  const prefetch = useIntentPrefetch(href, { personId: r.person.id });
   return (
     <div className="flex min-h-[64px] items-center pr-4 pl-1.5">
       <button
@@ -244,8 +247,9 @@ function ReminderItem({ r, now, checked, onComplete, upcoming }: { r: ReminderWi
         </motion.span>
       </button>
       <Link
-        href={`/people/${r.person.id}`}
+        href={href}
         transitionTypes={NAV_FORWARD}
+        {...prefetch}
         className="flex min-w-0 flex-1 items-center gap-3 self-stretch rounded-sm py-2.5 outline-none focus-visible:bg-fill-1"
       >
         <Avatar name={r.person.displayName} src={r.person.avatarUrl} size={40} />

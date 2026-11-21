@@ -23,6 +23,9 @@ const nextConfig: NextConfig = {
   experimental: {
     // Subresource Integrity: build-time hashes on our script tags (works with static pages, unlike nonces).
     sri: { algorithm: "sha256" },
+    // Reopening a person or note visited in the last 5 minutes reuses its payload instead of a
+    // server round trip. Safe: those pages are client shells, their data comes from the query cache.
+    staleTimes: { dynamic: 300 },
   },
   // Later entries override earlier ones for the same header key.
   headers: async () => [

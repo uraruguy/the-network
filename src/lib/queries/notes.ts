@@ -16,7 +16,7 @@
  * on another device meanwhile the server refuses with 409 and we keep both versions — the note
  * takes the other device's text and the local words become a new note beside it.
  */
-import { MutationObserver, onlineManager, useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
+import { MutationObserver, onlineManager, queryOptions, useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { toast } from "@/components/ui/Toast";
@@ -75,31 +75,40 @@ export type RestoreVars = { id: string; personId: string; summary?: NoteSummary 
 /* ------------------------------------------------------------------ */
 
 /**
- * One note for the editor. A local draft (or a note whose create is still queued) is served from
- * the cache and never fetched. A 404 for an id we don't know yet becomes an empty draft for that
- * id (reloading an unsaved "New note"); a 404 for a note we had means it was deleted.
+ * One note for the editor, shared by `useNoteDoc` and the intent prefetch. A note with a save on
+ * its way is served from the cache. A 404 for an id we don't know yet becomes an empty draft for
+ * that id (reloading an unsaved "New note"); a 404 for a note we had means it was deleted.
  */
-export function useNoteDoc(id: string | null, opts: { personId?: string } = {}) {
-  const qc = useQueryClient();
-  return useQuery<NoteDoc>({
-    queryKey: keys.note(id ?? ""),
-    queryFn: async () => {
-      const cached = qc.getQueryData<NoteDoc>(keys.note(id!));
-      if (cached && pendingNoteWrites(qc, id!).length) return cached; // a save is on its way: the cache is newer
+export const noteDocQuery = (id: string, personId?: string) =>
+  queryOptions<NoteDoc>({
+    queryKey: keys.note(id),
+    queryFn: async ({ client }) => {
+      const cached = client.getQueryData<NoteDoc>(keys.note(id));
+      if (cached && pendingNoteWrites(client, id).length) return cached; // a save is on its way: the cache is newer
       try {
         return await api.get<NoteDoc>(`/api/notes/${id}`);
       } catch (e) {
         if (e instanceof ApiError && e.status === 404) {
           if (cached && !cached.localOnly) return { ...cached, deleted: true };
           if (cached) return cached;
-          if (opts.personId) return makeDraftNote({ id: id!, personId: opts.personId });
+          if (personId) return makeDraftNote({ id, personId });
         }
         throw e;
       }
     },
-    enabled: (q) => !!id && !q.state.data?.localOnly,
     retry: (n, e) => !(e instanceof ApiError && e.status < 500) && n < 2,
   });
+
+/** One note for the editor (see noteDocQuery). A local draft (or a note whose create is still queued) is never fetched. */
+export function useNoteDoc(id: string | null, opts: { personId?: string } = {}) {
+  return useQuery<NoteDoc>({ ...noteDocQuery(id ?? "", opts.personId), enabled: (q) => !!id && !q.state.data?.localOnly });
+}
+
+/** Warms a note for the editor on intent (hover, focus, touch) — not a local draft, nor one with a save on its way. */
+export function prefetchNote(qc: QueryClient, id: string, personId?: string) {
+  const cached = qc.getQueryData<NoteDoc>(keys.note(id));
+  if (cached && (cached.localOnly || pendingNoteWrites(qc, id).length)) return;
+  void qc.prefetchQuery(noteDocQuery(id, personId));
 }
 
 /** @deprecated use useNoteDoc */
@@ -117,10 +126,10 @@ export function useNoteSearch(query: string, opts: { personId?: string; limit?: 
   const q = query.trim();
   return useQuery({
     queryKey: keys.noteSearch(q, opts.personId),
-    queryFn: () => {
+    queryFn: ({ signal }) => {
       const qs = new URLSearchParams({ q, limit: String(opts.limit ?? 20) });
       if (opts.personId) qs.set("person", opts.personId);
-      return api.get<NoteSearchHit[]>(`/api/notes?${qs}`);
+      return api.get<NoteSearchHit[]>(`/api/notes?${qs}`, { signal });
     },
     enabled: q.length >= 2,
     placeholderData: (prev) => prev,

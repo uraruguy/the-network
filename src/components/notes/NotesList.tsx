@@ -56,6 +56,7 @@ export function NotesList({ notes, personId, personName }: { notes: NoteSummary[
                     <NoteRow
                       note={n}
                       href={`/people/${personId}/notes/${n.id}`}
+                      personId={personId}
                       className="rounded-none"
                       onKeyDown={(e) => {
                         if ((e.metaKey || e.ctrlKey) && e.key === "Backspace") {
