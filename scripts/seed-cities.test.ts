@@ -6,7 +6,7 @@ const line = (over: Partial<Record<number, string>> = {}) => {
   for (const [i, v] of Object.entries(over)) c[Number(i)] = v!;
   return c.join("\t");
 };
-const admin1 = new Map([["SI.03", "Municipality of Bled"]]);
+const admin1 = new Map([["SI.03", "Municipality of Bled"], ["SI.C2", "Urban Municipality of Maribor"]]);
 const countryName = (cc: string) => (cc === "SI" ? "Slovenia" : cc);
 
 describe("parseGeonamesLine", () => {
@@ -24,6 +24,10 @@ describe("parseGeonamesLine", () => {
       timezone: "Europe/Ljubljana",
       feature: "PPLA",
     });
+  });
+
+  it("also drops the 'Urban Municipality of' prefix of city municipalities", () => {
+    expect(parseGeonamesLine(line({ 10: "C2" }), admin1, countryName)?.admin).toBe("Maribor");
   });
 
   it("skips non-places and short lines; unknown population and admin become null", () => {

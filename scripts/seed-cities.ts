@@ -44,7 +44,7 @@ export function parseGeonamesLine(line: string, admin1: Map<string, string>, cou
     id: Number(id),
     name: name!,
     ascii_name: ascii!,
-    admin: admin1.get(`${cc}.${a1}`)?.replace(/^Municipality of /, "") ?? null,
+    admin: admin1.get(`${cc}.${a1}`)?.replace(/^(Urban )?Municipality of /, "") ?? null,
     country: countryName(cc),
     country_code: cc,
     lat: Number(lat),
