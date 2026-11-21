@@ -8,7 +8,7 @@ import { PasskeyPrompt } from "@/components/auth/PasskeyPrompt";
 import { cn } from "@/lib/utils";
 import { Logo } from "./Logo";
 import { QuickAddPersonHost } from "@/components/people/QuickAddPersonSheet";
-import { NAV, activeNavIndex, hidesTabBar, isFullBleed } from "./nav";
+import { NAV, activeNavIndex, hidesTabBar, isFullBleed, transitionKey } from "./nav";
 import { SyncStatus } from "./SyncStatus";
 import { PageTransition, TAB } from "./transitions";
 import { useKeyboardInset } from "./useKeyboardInset";
@@ -37,8 +37,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <Sidebar active={active} />
 
       <main id="content" className="min-w-0 flex-1 overflow-x-clip lg:pl-[var(--sidebar-w)]">
-        {/* key: each navigation is an exit + enter pair (see PageTransition). */}
-        <PageTransition key={pathname} className={fullBleed ? "page page-bleed" : "page page-column"}>
+        {/* key: each navigation is an exit + enter pair (see PageTransition); settings sections share one. */}
+        <PageTransition key={transitionKey(pathname)} className={fullBleed ? "page page-bleed" : "page page-column"}>
           {children}
         </PageTransition>
       </main>

@@ -1,7 +1,6 @@
 "use client";
 import type { QueryClient } from "@tanstack/react-query";
 import { makePersister } from "@/lib/offline/queryClient";
-import { supabaseBrowser } from "@/lib/supabase/client";
 
 /**
  * Deliberate sign-out: ends the session and removes every private copy this browser holds.
@@ -20,9 +19,11 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 export async function signOutEverywhere(queryClient?: QueryClient): Promise<void> {
   // 1. Passkey cookie (httpOnly — only the server can clear it).
   await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" }).catch(() => {});
-  // 2. Supabase session: revokes this device's refresh token and clears the auth cookies.
-  await supabaseBrowser()
-    .auth.signOut({ scope: "local" })
+  // 2. Supabase session: revokes this device's refresh token and clears the auth cookies. Loaded
+  //    on demand so the Supabase client (and env validation) stays out of the settings bundle;
+  //    the service worker precaches the chunk, so this works offline too.
+  await import("@/lib/supabase/client")
+    .then(({ supabaseBrowser }) => supabaseBrowser().auth.signOut({ scope: "local" }))
     .catch(() => {});
   // 3. Queries in memory (cancels in-flight fetches, drops paused offline mutations).
   queryClient?.getMutationCache().clear();

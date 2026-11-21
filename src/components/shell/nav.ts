@@ -28,6 +28,14 @@ export function isFullBleed(pathname: string): boolean {
   return under(pathname, "/globe") || under(pathname, "/graph");
 }
 
+/**
+ * PageTransition key. Settings sections are panes of one page (the sidebar stays put on desktop),
+ * so switching sections keeps the settings layout mounted instead of remounting it.
+ */
+export function transitionKey(pathname: string): string {
+  return under(pathname, "/settings") ? "/settings" : pathname;
+}
+
 /** Routes that take the whole screen on phones: the tab bar slides away. */
 export function hidesTabBar(pathname: string): boolean {
   return /^\/people\/[^/]+\/notes\/[^/]+$/.test(pathname);
