@@ -1,8 +1,8 @@
 "use client";
-import { defaultShouldDehydrateQuery, QueryClient, type Mutation, type Query } from "@tanstack/react-query";
-import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
+import { defaultShouldDehydrateQuery, onlineManager, QueryClient, type Mutation, type Query } from "@tanstack/react-query";
 import type { PersistedClient, Persister, PersistQueryClientOptions } from "@tanstack/react-query-persist-client";
 import { del, get, set } from "idb-keyval";
+import type { NoteDoc } from "@/lib/notes/cache";
 
 // Bump when cached API shapes change incompatibly (v2: people index, note excerpts, activities).
 // Bumping drops the whole persisted cache — including writes still queued offline — so additive
@@ -36,19 +36,30 @@ export function makeQueryClient() {
 
 /**
  * Key roots that never reach IndexedDB, whatever a query's meta says: chat transcripts, the
- * security overview, connected apps (token list) and geocoder lookups. Search results
- * (`[root, "search", …]`) are volatile and never persisted either.
+ * security overview, connected apps (token list), geocoder lookups and the import review (whole
+ * imported notes, online-only work). Search results (`[root, "search", …]`) are volatile and
+ * never persisted either.
  */
-const NEVER_PERSIST = new Set(["chat", "security", "connected-apps", "cities"]);
+const NEVER_PERSIST = new Set(["chat", "security", "connected-apps", "cities", "import-review"]);
+
+/** A note document holding words the server doesn't have yet (see NoteDoc): never dropped. */
+const hasLocalContent = (query: Pick<Query, "queryKey" | "state">) => {
+  const doc = query.queryKey[0] === "note" ? (query.state.data as NoteDoc | undefined) : undefined;
+  return !!(doc?.syncPending || doc?.localOnly);
+};
 
 /**
  * Which queries reach IndexedDB: every successful query unless its key is excluded above or it
- * opts out with `meta: { persist: false }` (large, volatile or sensitive data).
+ * opts out with `meta: { persist: false }` (large, volatile or sensitive data). Entries not
+ * refreshed for PERSIST_MAX_AGE are left out, so the persisted cache sheds what is no longer
+ * opened (gc timers restart with every session and never get there) — but not while offline,
+ * where nothing can be refreshed, and never a note with unsynced words.
  */
 export function shouldPersistQuery(query: Pick<Query, "queryKey" | "meta" | "state">): boolean {
   const [root, sub] = query.queryKey;
   if (NEVER_PERSIST.has(String(root)) || sub === "search") return false;
-  return query.meta?.persist !== false && defaultShouldDehydrateQuery(query as Query);
+  if (query.meta?.persist === false || !defaultShouldDehydrateQuery(query as Query)) return false;
+  return Date.now() - query.state.dataUpdatedAt <= PERSIST_MAX_AGE || !onlineManager.isOnline() || hasLocalContent(query);
 }
 
 /**
@@ -87,6 +98,13 @@ export function resumeInFlight(client: PersistedClient): PersistedClient {
   return { ...client, clientState: { ...client.clientState, mutations } };
 }
 
+/** Runs `fn` when the main thread is idle — after the next paint where `requestIdleCallback` is missing (Safari). */
+function whenIdle(fn: () => void, timeout: number) {
+  if (typeof requestIdleCallback === "function") requestIdleCallback(() => fn(), { timeout });
+  else if (typeof requestAnimationFrame === "function") requestAnimationFrame(() => setTimeout(fn, 16));
+  else setTimeout(fn, 16);
+}
+
 /**
  * Resolves once the main thread goes idle after start-up — i.e. after React has hydrated every
  * Suspense boundary (each loading.tsx adds one, and they hydrate in later tasks than the root).
@@ -94,10 +112,7 @@ export function resumeInFlight(client: PersistedClient): PersistedClient {
  */
 function afterHydration(): Promise<void> {
   if (typeof window === "undefined") return Promise.resolve();
-  return new Promise((resolve) => {
-    if (typeof window.requestIdleCallback === "function") window.requestIdleCallback(() => resolve(), { timeout: 300 });
-    else requestAnimationFrame(() => setTimeout(resolve, 16));
-  });
+  return new Promise((resolve) => whenIdle(resolve, 300));
 }
 
 let flushActive: (() => Promise<void>) | null = null;
@@ -105,40 +120,54 @@ let flushActive: (() => Promise<void>) | null = null;
 /**
  * Writes the newest cache snapshot to IndexedDB right away, skipping the throttle — call on
  * pagehide / tab hidden so a just-queued save (and its `syncPending` flag) is on disk before the
- * page may be killed. No-op until the persisted cache has been restored.
+ * page may be killed. No-op until the persisted cache has been restored, and when nothing changed
+ * since the last write.
  */
 export function flushPersistedCache(): Promise<void> {
   return flushActive?.() ?? Promise.resolve();
 }
 
+/**
+ * Saves the cache to IndexedDB. Every cache change hands over a snapshot synchronously; the newest
+ * is serialised at most once per PERSIST_THROTTLE_MS, and only once the main thread is idle —
+ * never inside the tap or keystroke that changed the cache (stringifying the whole cache takes
+ * tens of milliseconds on a phone). `flush` writes the newest snapshot at once.
+ */
 export function makePersister(): Persister & { flush: () => Promise<void> } {
   const key = `the-network-cache-${CACHE_VERSION}`;
-  const persister = createAsyncStoragePersister({
-    storage: {
-      getItem: (k) => get(k),
-      setItem: (k, value) => set(k, value),
-      removeItem: (k) => del(k),
-    },
-    key,
-    throttleTime: PERSIST_THROTTLE_MS,
-  });
-  // The subscriber hands every snapshot to persistClient synchronously; the throttle may sit on it.
   let latest: PersistedClient | null = null;
+  let dirty = false;
+  let scheduled = false;
+  let lastWrite = -Infinity;
   const flush = async () => {
-    if (latest) await set(key, JSON.stringify(latest));
+    if (!dirty || !latest) return;
+    dirty = false;
+    lastWrite = Date.now();
+    try {
+      await set(key, JSON.stringify(latest));
+    } catch {
+      dirty = true; // e.g. storage full: the next save or flush tries again
+    }
+  };
+  const write = () => {
+    scheduled = false;
+    void flush();
   };
   flushActive = flush;
   return {
     persistClient: (client) => {
       latest = client;
-      return persister.persistClient(client);
+      dirty = true;
+      if (scheduled) return;
+      scheduled = true;
+      setTimeout(() => whenIdle(write, 1000), Math.max(0, lastWrite + PERSIST_THROTTLE_MS - Date.now()));
     },
     restoreClient: async () => {
       await afterHydration();
-      const client = await persister.restoreClient();
-      return client ? resumeInFlight(client) : client;
+      const json = await get<string>(key);
+      return json ? resumeInFlight(JSON.parse(json) as PersistedClient) : undefined;
     },
-    removeClient: () => persister.removeClient(),
+    removeClient: () => del(key),
     flush,
   };
 }

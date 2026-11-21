@@ -16,7 +16,9 @@ import { ToastHost } from "@/components/ui/Toast";
 /**
  * App-wide client providers. The query cache is restored from IndexedDB on start; until that
  * finishes `useIsRestoring()` is true and queries don't fetch, so the server render and the
- * first client render agree (both show skeletons — see components/skeletons).
+ * first client render agree (both show skeletons — see components/skeletons). Queued offline
+ * writes replay in the background, not before the screens may render: the provider waits for a
+ * promise `onSuccess` returns, and offline that one only settles once the network is back.
  */
 export function Providers({ children }: { children: React.ReactNode }) {
   const [client] = useState(() => {
@@ -47,7 +49,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <PersistQueryClientProvider
       client={client}
       persistOptions={persistOptions}
-      onSuccess={() => client.resumePausedMutations().then(() => client.invalidateQueries())}
+      onSuccess={() => void client.resumePausedMutations().then(() => client.invalidateQueries())}
     >
       <MotionConfig reducedMotion="user" transition={spring.smooth}>
         <ThemeSync />
