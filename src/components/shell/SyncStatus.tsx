@@ -84,7 +84,8 @@ export function SyncStatus({ variant = "inline", className }: { variant?: "inlin
       className={cn("sync-pill pointer-events-none fixed inset-x-0 z-[var(--z-toast)] flex justify-center", className)}
     >
       <span className="glass-thick specular elevation-e3 inline-flex h-8 items-center gap-1.5 rounded-full px-3.5 text-footnote font-medium text-fg-2">
-        {!online ? <CloudOff size={14} aria-hidden /> : <RefreshCw size={13} aria-hidden className="animate-spin [animation-duration:2s]" />}
+        {/* The capsule stays mounted (it fades); a spinning icon only while it has something to say. */}
+        {message && (!online ? <CloudOff size={14} aria-hidden /> : <RefreshCw size={13} aria-hidden className="animate-spin [animation-duration:2s]" />)}
         {message ?? ""}
       </span>
     </div>
