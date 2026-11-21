@@ -1,36 +1,29 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { api, withTimeout } from "./api";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { api, responseTimeout } from "./api";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-describe.each([
-  ["with AbortSignal.any", true],
-  ["without AbortSignal.any (Safari before 17.4)", false],
-])("withTimeout %s", (_, native) => {
-  const any = AbortSignal.any;
-  beforeEach(() => {
-    if (!native) (AbortSignal as { any?: unknown }).any = undefined;
-  });
-  afterEach(() => {
-    AbortSignal.any = any;
-  });
-
-  it("aborts with a TimeoutError once the time is up", async () => {
-    const signal = withTimeout(undefined, 10);
-    expect(signal.aborted).toBe(false);
+describe("responseTimeout", () => {
+  it("aborts with a TimeoutError once the time is up, unless the response started", async () => {
+    const late = responseTimeout(undefined, 10);
+    const early = responseTimeout(undefined, 10);
+    early.started();
+    expect(late.signal.aborted).toBe(false);
     await sleep(40);
-    expect(signal.aborted).toBe(true);
-    expect((signal.reason as DOMException).name).toBe("TimeoutError");
+    expect(late.signal.aborted).toBe(true);
+    expect((late.signal.reason as DOMException).name).toBe("TimeoutError");
+    expect(early.signal.aborted).toBe(false);
   });
 
-  it("follows the caller's signal, also one aborted already", () => {
+  it("follows the caller's signal, also one aborted already, after the response started too", () => {
     const ctrl = new AbortController();
-    const signal = withTimeout(ctrl.signal, 1000);
-    expect(signal.aborted).toBe(false);
+    const t = responseTimeout(ctrl.signal, 1000);
+    t.started();
+    expect(t.signal.aborted).toBe(false);
     ctrl.abort();
-    expect(signal.aborted).toBe(true);
-    expect((signal.reason as DOMException).name).toBe("AbortError");
-    expect(withTimeout(ctrl.signal, 1000).aborted).toBe(true);
+    expect(t.signal.aborted).toBe(true);
+    expect((t.signal.reason as DOMException).name).toBe("AbortError");
+    expect(responseTimeout(ctrl.signal, 1000).signal.aborted).toBe(true);
   });
 });
 
