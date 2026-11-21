@@ -33,3 +33,23 @@ export function linkLabel(l: GraphLink, selfId: string, nameOf: (id: string) => 
   if (l.kind === "mention") return `Mentioned with ${nameOf(other)}${l.weight > 1 ? ` (${l.weight}×)` : ""}`;
   return "Met directly";
 }
+
+type Placed = { id?: string | number; x?: number; y?: number; vx?: number; vy?: number };
+
+/**
+ * The simulation writes positions onto the node objects it is given. Fresh copies for a filter
+ * change take over the previous position and velocity of the same id, so the layout stays put
+ * instead of restarting from scratch.
+ */
+export function carryPositions<T extends Placed>(next: T[], prev: readonly Placed[]): T[] {
+  const byId = new Map(prev.map((n) => [n.id, n]));
+  for (const n of next) {
+    const p = byId.get(n.id);
+    if (p?.x === undefined || p.y === undefined) continue;
+    n.x = p.x;
+    n.y = p.y;
+    n.vx = p.vx;
+    n.vy = p.vy;
+  }
+  return next;
+}

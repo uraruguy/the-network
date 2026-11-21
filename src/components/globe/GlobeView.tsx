@@ -2,21 +2,20 @@
 /**
  * /globe — an Apple-Maps-style planet of the people you know.
  *
- * URL is the source of truth: people filters (`?q=&cat=&w=&act=&tag=`, shared with /people and
- * /graph) and the selected city (`?city=<locationId>`). Updates go through
- * `history.replaceState`, which Next syncs into `useSearchParams` — no router round trip and no
- * state-mirroring effects. The map itself is a client-only chunk (MapCanvas).
+ * People filters (`?q=&cat=&w=&act=&tag=`, shared with /people and /graph) and the selected city
+ * (`?city=<locationId>`, the city facet's param) live in `usePeopleFilters`: typing never waits
+ * for the URL, which follows shallowly. The map itself is a client-only chunk (MapCanvas).
  */
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { MapPinOff, SearchX, UserPlus } from "lucide-react";
-import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import type { PaddingOptions } from "maplibre-gl";
 import { FilterBar } from "@/components/filters/FilterBar";
 import { buttonVariants, GlassButton } from "@/components/glass/GlassButton";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { EMPTY_FILTERS, filterPeople, filtersFromParams, filtersToParams, isEmpty, type Facet, type PeopleFilters } from "@/lib/filters/people-filters";
+import { EMPTY_FILTERS, filterPeople, isEmpty, type Facet, type PeopleFilters } from "@/lib/filters/people-filters";
+import { usePeopleFilters } from "@/lib/filters/usePeopleFilters";
 import { CANVAS_PAGE, usePageZoomLock } from "@/lib/gestures";
 import { useIsPhone } from "@/lib/media";
 import { useCacheReady } from "@/lib/offline/useCacheReady";
@@ -41,21 +40,16 @@ const CITY_ZOOM = 10.5;
 const HOME_ZOOM = 9;
 const PANEL_WIDTH = 360;
 
-/** Write the URL in place: filters (minus the city facet) + the selected city. */
-function writeUrl(filters: PeopleFilters, city: string | null) {
-  const next = filtersToParams({ ...filters, locationIds: [] }, new URLSearchParams(window.location.search));
-  if (city) next.set("city", city);
-  else next.delete("city");
-  const qs = next.toString();
-  window.history.replaceState(null, "", qs ? `?${qs}` : window.location.pathname);
-}
-
 const plural = (n: number, one: string, many: string) => `${n.toLocaleString()} ${n === 1 ? one : many}`;
 
 export function GlobeView() {
-  const params = useSearchParams();
-  const filters = useMemo<PeopleFilters>(() => ({ ...filtersFromParams(new URLSearchParams(params.toString())), locationIds: [] }), [params]);
-  const selectedId = params.get("city");
+  const { filters: state, setFilters } = usePeopleFilters();
+  const filters = useMemo<PeopleFilters>(() => ({ ...state, locationIds: [] }), [state]);
+  const selectedId = state.locationIds.length === 1 ? state.locationIds[0]! : null;
+  /** The filters with the city selection; `null` clears it. */
+  const update = (next: PeopleFilters, city: string | null) => setFilters({ ...next, locationIds: city ? [city] : [] });
+  // The field updates at once; filtering and the map's new data follow when React has time.
+  const mapFilters = useDeferredValue(filters);
 
   const peopleQuery = usePeopleIndex();
   const profileQuery = useProfile();
@@ -66,7 +60,7 @@ export function GlobeView() {
   const peopleData = cacheReady ? peopleQuery.data : undefined;
   const peoplePending = !cacheReady || peopleQuery.isPending;
   const people = useMemo(() => peopleData ?? [], [peopleData]);
-  const filtered = useMemo(() => filterPeople(people, filters), [people, filters]);
+  const filtered = useMemo(() => filterPeople(people, mapFilters), [people, mapFilters]);
   const { collection, groups, withoutCity } = useMemo(() => buildCityData(filtered), [filtered]);
   const activities = useMemo<ActivityLookup>(() => new Map((activityRows ?? []).map((a) => [a.id, a])), [activityRows]);
 
@@ -125,7 +119,7 @@ export function GlobeView() {
     handle.current?.flyToCity(g.location, { zoom: CITY_ZOOM, padding: padding(g.people.length === 1 ? "peek" : "city") });
   };
   const selectCity = (id: string | null) => {
-    writeUrl(filters, id);
+    update(filters, id);
     if (id) flyTo(id);
   };
 
@@ -144,7 +138,7 @@ export function GlobeView() {
   useEffect(() => () => clearTimeout(fitTimer.current), []);
   const onFiltersChange = (next: PeopleFilters) => {
     const keepCity = selectedId && filterPeople(people, next).some((p) => p.homeLocation?.id === selectedId) ? selectedId : null;
-    writeUrl(next, keepCity);
+    update(next, keepCity);
     clearTimeout(fitTimer.current);
     if (isEmpty({ ...next, locationIds: [] }) || keepCity) return;
     // Show where the matches are (debounced so typing a search doesn't swing the camera).
@@ -222,7 +216,7 @@ export function GlobeView() {
         onZoomOut={() => handle.current?.zoomBy(-1)}
         onHome={home ? () => handle.current?.flyToCity(home, { zoom: HOME_ZOOM, padding: padding() }) : null}
         onPlanet={() => {
-          writeUrl(filters, null);
+          update(filters, null);
           handle.current?.resetPlanet(planetCenter(), padding());
         }}
         arcs={arcsOn}
