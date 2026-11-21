@@ -19,6 +19,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Every record id (server- or client-generated) is a UUID. */
+export const isUuid = (s: string) => UUID.test(s);
+
 export function initials(name: string) {
   return name
     .split(/\s+/)

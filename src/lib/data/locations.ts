@@ -38,13 +38,15 @@ export async function upsertLocation(ownerId: string, input: LocationData, tx: T
 const preferredCountry = (ownerId: string) => sql`coalesce(
   (select l.country_code from profiles p join locations l on l.id = p.home_location_id where p.id = ${ownerId}),
   (select l.country_code from people pe join locations l on l.id = pe.home_location_id
-    where pe.owner_id = ${ownerId} and l.country_code is not null group by 1 order by count(*) desc limit 1))`;
+    where pe.owner_id = ${ownerId} and pe.deleted_at is null and l.country_code is not null group by 1 order by count(*) desc limit 1))`;
 
 /** Prefix search over the cities dataset (search_cities: exact names first, then population; `ownerId` boosts their country). */
 export async function searchCities(q: string, limit = 8, ownerId?: string) {
   if (!q.trim()) return [];
-  const prefer = ownerId ? preferredCountry(ownerId) : sql`null`;
-  const rows = await db.execute(sql`select * from search_cities(${q.trim()}, ${limit}, ${prefer})`);
+  // The country goes in through a lateral column: a subquery argument would stop Postgres from
+  // inlining search_cities (and planning its trigram index scan with the actual prefix).
+  const prefer = ownerId ? preferredCountry(ownerId) : sql`null::text`;
+  const rows = await db.execute(sql`select c.* from (select ${prefer} as code) p, search_cities(${q.trim()}, ${limit}, p.code) c`);
   return rows.map((r) => ({
     id: Number(r.id),
     name: String(r.name),

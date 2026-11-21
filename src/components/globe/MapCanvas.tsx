@@ -450,7 +450,17 @@ function MapCanvasInner({
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    // Pressing a link elsewhere (a tab, a person) leaves the globe: stop at once, so its frames
+    // don't compete with loading the next screen.
+    const leave = (e: PointerEvent) => {
+      const target = e.target as Element | null;
+      if (target?.closest?.("a[href]") && !map.getContainer().contains(target)) cancelAnimationFrame(raf);
+    };
+    document.addEventListener("pointerdown", leave, true);
+    return () => {
+      cancelAnimationFrame(raf);
+      document.removeEventListener("pointerdown", leave, true);
+    };
   }, [map, rotate]);
 
   /* ---------- Safari trackpad pinch (Chrome's ctrl+wheel pinch is MapLibre's scroll zoom) ---------- */

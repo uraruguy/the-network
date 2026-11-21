@@ -7,7 +7,7 @@ import { HISTORY_EXCERPT, HISTORY_LIMIT, toHistoryEntry } from "./history";
 import { HttpError } from "@/lib/errors";
 import type { PersonData, PersonPatchData } from "@/lib/schemas";
 import { cleanNames, slugify } from "@/lib/text";
-import { upsertLocation } from "./locations";
+import { searchCities, upsertLocation } from "./locations";
 import { afterRecencyCursor, decodeCursor, encodeCursor, peopleConditions, recencyKey, relevance, type PeopleFilters } from "./people-filters";
 
 const { people, personCategories, personActivities, personTags, locations, categories, activities, tags } = schema;
@@ -500,9 +500,9 @@ export async function peopleByPlace(ownerId: string, place: string | { lat: numb
       const rows = await indexQuery({}, peopleConditions(ownerId, { countryCode: country.code })).orderBy(desc(recencyKey), asc(people.id)).limit(limit);
       return { place: { kind: "country" as const, name: country.country, countryCode: country.code }, people: rows.map((r) => ({ ...r, distanceKm: null })) };
     }
-    const [city] = await db.execute<{ name: string; country: string; lat: number; lng: number }>(sql`select name, country, lat, lng from search_cities(${text}, 1)`);
+    const [city] = await searchCities(text, 1, ownerId);
     if (!city) return { place: null, people: [] };
-    center = { lat: Number(city.lat), lng: Number(city.lng), name: String(city.name), country: String(city.country) };
+    center = { lat: city.lat, lng: city.lng, name: city.name, country: city.country };
   } else {
     center = { ...place, name: `${place.lat.toFixed(3)}, ${place.lng.toFixed(3)}`, country: null };
   }

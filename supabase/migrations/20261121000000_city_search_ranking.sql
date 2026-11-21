@@ -1,5 +1,5 @@
 -- City search ranking and speed.
--- 1. Exact name matches come first ("Bled" before "Bledzew"), then population.
+-- 1. The query is a plain prefix (LIKE wildcards escaped). Exact name matches come first ("Bled" before "Bledzew"), then population.
 -- 2. An optional preferred country (the owner's home) counts its towns' population 1000×, so its
 --    small towns aren't buried under big foreign cities sharing their prefix. Measured on the
 --    seeded data: every Slovenian place shows within 3 typed letters (26 needed 5+ before), and
@@ -15,12 +15,14 @@ create index if not exists cities_name_trgm_idx on cities using gin (name gin_tr
 drop function if exists public.search_cities(text, int);
 create or replace function public.search_cities(q text, lim int default 8, prefer text default null)
 returns setof cities language sql stable as $$
-  select * from cities
-  where ascii_name ilike unaccent(q) || '%' or name ilike q || '%'
+  select c.* from cities c,
+    -- q is a prefix, not a pattern: escape LIKE's wildcards ("%" alone matched every city).
+    (select replace(replace(replace(q, '\', '\\'), '%', '\%'), '_', '\_') as p) e
+  where c.ascii_name ilike unaccent(e.p) || '%' or c.name ilike e.p || '%'
   order by
-    (lower(ascii_name) = lower(unaccent(q)) or lower(name) = lower(q)) desc,
-    coalesce(population, 0)::bigint * (case when country_code = prefer then 1000 else 1 end) desc,
-    id
+    (lower(c.ascii_name) = lower(unaccent(q)) or lower(c.name) = lower(q)) desc,
+    coalesce(c.population, 0)::bigint * (case when c.country_code = upper(prefer) then 1000 else 1 end) desc,
+    c.id
   limit lim;
 $$;
 
